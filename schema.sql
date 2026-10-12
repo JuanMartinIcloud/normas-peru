@@ -101,3 +101,20 @@ CREATE TABLE IF NOT EXISTS resumenes (
     ventana_hasta  TIMESTAMPTZ,
     creado_en      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ---------------------------------------------------------------------------
+-- Etapa 4: busqueda dentro del contenido.
+-- Tambien la ejecuta src/db.py automaticamente. Se puede repetir sin riesgo.
+-- ---------------------------------------------------------------------------
+
+-- Proyectos: sumilla extensa del expediente del Congreso (explica que propone el proyecto)
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS sumilla TEXT;
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS sumilla_revisada BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_proy_busqueda ON proyectos_ley
+    USING GIN (to_tsvector('spanish', coalesce(titulo,'') || ' ' || coalesce(sumilla,'')));
+
+-- Normas: palabras del texto completo (del PDF oficial). Se guardan solo las palabras
+-- indexadas, no el texto, para no llenar la base gratuita.
+ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_tsv tsvector;
+ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_estado TEXT;   -- ok | sin_texto | sin_pdf
+CREATE INDEX IF NOT EXISTS idx_normas_texto ON normas USING GIN (texto_tsv);

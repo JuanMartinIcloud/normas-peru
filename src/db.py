@@ -7,7 +7,18 @@ from psycopg2.extras import execute_values
 import config
 
 _ESQUEMA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "schema.sql")
-_MARCA_ETAPA3 = "-- Etapa 3:"
+# Cada etapa: (marca en schema.sql, consulta que dice si ya esta aplicada)
+_ETAPAS = [
+    ("-- Etapa 3:", """SELECT EXISTS (SELECT 1 FROM information_schema.tables
+                                     WHERE table_schema = 'public' AND table_name = 'resumenes')
+                         AND EXISTS (SELECT 1 FROM information_schema.columns
+                                     WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
+                                       AND column_name = 'estado_cambiado_en')"""),
+    ("-- Etapa 4:", """SELECT EXISTS (SELECT 1 FROM pg_indexes
+                                     WHERE schemaname = 'public' AND indexname = 'idx_normas_texto')
+                         AND EXISTS (SELECT 1 FROM pg_indexes
+                                     WHERE schemaname = 'public' AND indexname = 'idx_proy_busqueda')"""),
+]
 
 
 def conectar():
@@ -19,35 +30,33 @@ def conectar():
 
 
 def asegurar_esquema(conn):
-    """Aplica una sola vez los cambios de la etapa 3 (resumenes con IA).
+    """Aplica una sola vez los cambios de cada etapa de schema.sql que falten.
 
-    Solo actua si falta la tabla 'resumenes' o la columna 'estado_cambiado_en';
-    en las ejecuciones siguientes no hace nada.
+    En las ejecuciones siguientes solo hace una consulta rapida por etapa.
     """
-    with conn.cursor() as cur:
-        cur.execute(
-            """SELECT
-                 EXISTS (SELECT 1 FROM information_schema.tables
-                         WHERE table_schema = 'public' AND table_name = 'resumenes'),
-                 EXISTS (SELECT 1 FROM information_schema.columns
-                         WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
-                           AND column_name = 'estado_cambiado_en')"""
-        )
-        tiene_resumenes, tiene_columna = cur.fetchone()
-    conn.commit()
-    if tiene_resumenes and tiene_columna:
-        return
-    with open(_ESQUEMA, encoding="utf-8") as f:
-        texto = f.read()
-    pos = texto.find(_MARCA_ETAPA3)
-    if pos < 0:
-        raise RuntimeError("No encontre la seccion 'Etapa 3' en schema.sql")
-    with conn.cursor() as cur:
-        # Candado: si dos tareas arrancan a la vez, la segunda espera a que la primera termine
-        cur.execute("SELECT pg_advisory_xact_lock(724501)")
-        cur.execute(texto[pos:])
-    conn.commit()
-    print("Base de datos actualizada para los resumenes diarios.")
+    texto = None
+    for n, (marca, consulta) in enumerate(_ETAPAS):
+        with conn.cursor() as cur:
+            cur.execute(consulta)
+            lista = cur.fetchone()[0]
+        conn.commit()
+        if lista:
+            continue
+        if texto is None:
+            with open(_ESQUEMA, encoding="utf-8") as f:
+                texto = f.read()
+        ini = texto.find(marca)
+        if ini < 0:
+            raise RuntimeError(f"No encontre la seccion '{marca}' en schema.sql")
+        sig = _ETAPAS[n + 1][0] if n + 1 < len(_ETAPAS) else None
+        fin = texto.find(sig, ini) if sig else -1
+        bloque = texto[ini:fin] if fin > 0 else texto[ini:]
+        with conn.cursor() as cur:
+            # Candado: si dos tareas arrancan a la vez, la segunda espera a que la primera termine
+            cur.execute("SELECT pg_advisory_xact_lock(724501)")
+            cur.execute(bloque)
+        conn.commit()
+        print(f"Base de datos actualizada ({marca.strip('- :')}).")
 
 
 def insertar_normas(conn, filas: list[dict]) -> int:
