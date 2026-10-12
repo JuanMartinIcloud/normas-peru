@@ -4,8 +4,33 @@ import { textoNorma, documentoProyecto } from "../../../../lib/documentos";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
+const EP = "https://busquedas.elperuano.pe";
+const AGENTE = { "User-Agent": "Mozilla/5.0 (compatible; normas-peru/0.2; consulta de documentos publicos)" };
+
+// Revisa como responde la portada del buscador de El Peruano (solo direcciones fijas de ese sitio)
+async function revisarBuscador() {
+  const r = {};
+  const inicio = await fetch(`${EP}/`, { headers: AGENTE, cache: "no-store" });
+  const html = await inicio.text();
+  r.portada = { estado: inicio.status, bytes: html.length };
+  const modulo = (html.match(/"routes\/_index"[\s\S]{0,600}?"module":\s*"([^"]+)"/) || [])[1];
+  r.modulo_busqueda = modulo || null;
+  if (modulo && /^\/assets\/[\w.()-]+\.js$/.test(modulo)) {
+    const js = await (await fetch(`${EP}${modulo}`, { headers: AGENTE, cache: "no-store" })).text();
+    r.codigo_busqueda = js.slice(0, 40000);
+  }
+  return r;
+}
+
 // Revisa que la IA y la lectura de documentos completos funcionen desde Vercel (no gasta cupo de IA)
-export async function GET() {
+export async function GET(request) {
+  if (new URL(request.url).searchParams.get("buscador") === "1") {
+    try {
+      return Response.json(await revisarBuscador(), { headers: { "Cache-Control": "no-store" } });
+    } catch (e) {
+      return Response.json({ error: String(e.message || e) });
+    }
+  }
   const r = { clave_gemini: Boolean((process.env.GEMINI_API_KEY || "").trim()) };
   try {
     const [n] = await consultar(

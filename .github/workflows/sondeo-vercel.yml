@@ -1,0 +1,30 @@
+name: Sondeo a traves de la web
+
+on:
+  workflow_dispatch:
+    inputs:
+      ruta:
+        description: "Ruta de la web a consultar (ej. /api/ia/diagnostico?buscador=1)"
+        default: "/api/ia/diagnostico?buscador=1"
+
+permissions:
+  contents: write
+
+jobs:
+  sondeo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Consultar la web
+        run: |
+          mkdir -p sondeo_buscador
+          curl -sS -m 280 "https://normas-peru.vercel.app${{ github.event.inputs.ruta }}" -o sondeo_buscador/vercel.json
+          head -c 300 sondeo_buscador/vercel.json
+      - name: Guardar resultado en el repositorio
+        run: |
+          git config user.name "JuanMartinIcloud"
+          git config user.email "282369089+JuanMartinIcloud@users.noreply.github.com"
+          git add sondeo_buscador
+          git commit -m "Resultado del sondeo a traves de la web" || echo "sin cambios"
+          git push
