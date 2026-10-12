@@ -1,4 +1,4 @@
-HTTP 200 22751 bytes
+HTTP 200 22763 bytes
 Script guardado: https://diariooficial.elperuano.pe/Scripts/jquery-latest.min.js
 Script guardado: https://diariooficial.elperuano.pe/Scripts/jquery.unobtrusive-ajax.min.js
 Script guardado: https://diariooficial.elperuano.pe/Scripts/jquery-ui.min.js
@@ -7,7 +7,7 @@ Script guardado: https://delivery.pubgenius.io/elperuan-CDCO61Cq/shim-gpt.js
 Script guardado: https://delivery.pubgenius.io/elperuan-CDCO61Cq/wrapper.js
 Script guardado: https://diariooficial.elperuano.pe/Scripts/NormasLegales.js?20240103V1
 Script guardado: https://code.jquery.com/ui/1.11.4/jquery-ui.js
-Script guardado: https://diariooficial.elperuano.pe/bnith__uLVaUEXi37C_z7pC6JV71RFLPgzTMQzSxgS6mO3Hw6NZDLbEgRlttDzBjl_ZTc7c
+Script guardado: https://diariooficial.elperuano.pe/bnith__jp44guR8UJKcKQ5H9kkD1Jvsj_EqfObN8rnuhCW-5n49v-2Roqr3rJClpUAo0je_7AOwVsfhuV4=
 
 Posibles endpoints encontrados:
    ../../img/normas-actualizadas.jpg
@@ -32,3 +32,5 @@ Posibles endpoints encontrados:
 
 Revisa probe_out/ y busca la llamada AJAX que se dispara al pulsar 'Buscar'.
 Tip: en Chrome, F12 > Network > Fetch/XHR, pulsa Buscar y copia la URL y los parametros.
+muestra_dia.html HTTP 200 67417 bytes | articles: 41
+muestra_hoy.html HTTP 200 64730 bytes | articles: 40
