@@ -45,6 +45,12 @@ def main():
     cur.execute("SELECT count(*) FROM proyectos_ley")
     aviso("proyectos_ley_total", cur.fetchone()[0])
 
+    conn.close()
+
+
+def detalle_proyectos():
+    conn = db.conectar()
+    cur = conn.cursor()
     cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY 1")
     aviso("tablas", ", ".join(r[0] for r in cur.fetchall()))
 
@@ -65,4 +71,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "proyectos":
+        detalle_proyectos()
+    else:
+        main()

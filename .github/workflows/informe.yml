@@ -17,3 +17,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python src/informe.py
+      - name: Detalle de proyectos de ley
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python src/informe.py proyectos
