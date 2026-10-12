@@ -1,0 +1,120 @@
+window.onload = function () {
+    $("#space_PortalNormasLegales").trigger("submit");
+    $("#space_EditorialNoticias").trigger("submit");
+    $("#space_EdicionImpresa").trigger("submit");
+    $("#space_AndinaNoticias").trigger("submit");
+
+    var btnBuscar = document.getElementById("btnBuscar");
+
+    var hoy = new Date();
+    var anioActual = hoy.getFullYear();
+    var mesActual = hoy.getMonth() + 1; // (1-12)
+
+    var anioInicio = 2015;
+    var anioFin = (mesActual === 12) ? (anioActual + 1) : anioActual;
+
+    var strTipo = document.getElementById("tipo");
+
+    $.datepicker.setDefaults({
+        closeText: 'Cerrar',
+        prevText: '< Ant',
+        nextText: 'Sig >',
+        currentText: 'Hoy',
+        monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+        dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+        weekHeader: 'Sm',
+        dateFormat: 'dd/mm/yy', // español
+        firstDay: 1, // lunes
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: ''
+    });
+
+
+    $("#cddesde").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        yearRange: anioInicio + ":" + anioFin,
+        dateFormat: 'dd/mm/yy'
+    });
+
+    $("#cdhasta").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        yearRange: anioInicio + ":" + anioFin,
+        dateFormat: 'dd/mm/yy'
+    });
+
+    //SETEO DE FECHAS
+    var now = new Date();
+    var day = ("0" + now.getDate()).slice(-2);
+    var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+    var inicio = (day) + "/" + (month) + "/" + now.getFullYear();
+    var fin = (day) + "/" + (month) + "/" + now.getFullYear();
+    $('#cddesde').val(inicio);
+    $('#cdhasta').val(fin);
+
+    //Paginacion
+
+
+
+    btnBuscar.onclick = function () {
+
+        ////Validacion de Días Máximos a Seleccionar
+        //var startDateText = $('#cddesde').val();
+        //var NINETY_DAYS = 1000 * 3600 * 24 * 30;
+        //var startDate = new Date(startDateText);
+        //var maxEndDate = startDate.getTime() + NINETY_DAYS;
+
+        //var endDateText = $('#cdhasta').val();
+        //var endDate = new Date(endDateText);
+        //if (endDate.getTime() > maxEndDate) {
+        //    document.getElementById("resultado").innerHTML = "<b>Estimado usuario, el rango de fechas máximo permitido es de 30 días. Lo sentimos :(  </b>";
+        //}
+        //else {
+        $("#space_PortalNormasLegalesN").trigger("submit");
+
+    }
+
+    $(function () {
+        // this will get the full URL at the address bar
+        var url = window.location.href;
+
+        // passes on every "a" tag 
+        $("#mimenu a").each(function () {
+            // checks if its the same on the address bar
+            if (url == (this.href)) {
+                $(this).closest("li").addClass("active");
+            }
+        });
+    });
+
+}
+
+function downloadURI(uri, name) {
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = uri;
+    link.click();
+}
+
+function MensajeBusquedaGeneral() {
+    document.getElementById("NormasEPPortal").innerHTML = "<b>Buscando Normas...</b>";
+
+}
+
+function Resultado(data) {
+    var cant = $(data).filter('article').size();
+    //var extraordinarias = $(data).filter('strong').size();
+    document.getElementById("resultado").innerHTML = "<b>Hemos encontrado " + cant + " dispositivos, En edición extraordinaria (" + extraordinaria + ") </b>";
+    if (!data) {
+        document.getElementById("Error").style = "display:block";
+        console.log(data.vchLinkPDFTUPA);
+    }
+}
+
+

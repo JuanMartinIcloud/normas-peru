@@ -1,0 +1,34 @@
+HTTP 200 22751 bytes
+Script guardado: https://diariooficial.elperuano.pe/Scripts/jquery-latest.min.js
+Script guardado: https://diariooficial.elperuano.pe/Scripts/jquery.unobtrusive-ajax.min.js
+Script guardado: https://diariooficial.elperuano.pe/Scripts/jquery-ui.min.js
+Script guardado: https://diariooficial.elperuano.pe/Scripts/Portal.js
+Script guardado: https://delivery.pubgenius.io/elperuan-CDCO61Cq/shim-gpt.js
+Script guardado: https://delivery.pubgenius.io/elperuan-CDCO61Cq/wrapper.js
+Script guardado: https://diariooficial.elperuano.pe/Scripts/NormasLegales.js?20240103V1
+Script guardado: https://code.jquery.com/ui/1.11.4/jquery-ui.js
+Script guardado: https://diariooficial.elperuano.pe/bnith__uLVaUEXi37C_z7pC6JV71RFLPgzTMQzSxgS6mO3Hw6NZDLbEgRlttDzBjl_ZTc7c
+
+Posibles endpoints encontrados:
+   ../../img/normas-actualizadas.jpg
+   .rubiconproject.com/a/api/fastlane.json
+   //ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
+   /Normas
+   /Normas/DOPElectronico
+   /Normas/Indices
+   /Normas/LoadNormasLegales?Length=0
+   /Normas/Verificador
+   /Normas/normasactualizadas
+   /Scripts/NormasLegales.js?20240103V1
+   Normas
+   NormasEPPortal
+   api
+   dapid
+   normaslegaleswrapper
+   space_PortalNormasLegales
+   space_PortalNormasLegalesN
+   uidapi.com
+   zeotapid
+
+Revisa probe_out/ y busca la llamada AJAX que se dispara al pulsar 'Buscar'.
+Tip: en Chrome, F12 > Network > Fetch/XHR, pulsa Buscar y copia la URL y los parametros.
