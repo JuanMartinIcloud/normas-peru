@@ -90,6 +90,7 @@ export default async function Pagina({ searchParams }) {
         <a className={`atajo ${f.central ? "activo" : ""}`} href={enlace(f, { central: !f.central, pagina: 1 })}>
           Solo gobierno central
         </a>
+        <a className="atajo" href="/proyectos">Proyectos de ley →</a>
       </nav>
 
       {anios.length > 0 && (

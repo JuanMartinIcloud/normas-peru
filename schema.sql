@@ -38,17 +38,35 @@ CREATE TABLE IF NOT EXISTS descargas (
     actualizado TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Para la segunda etapa: proyectos de ley del Congreso
+-- Proyectos de ley del Congreso (periodo 2021 en adelante, desde su portal oficial)
+-- Migracion unica: si la tabla antigua (sin columna "camara") existe, se recrea. Estaba vacia.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'proyectos_ley')
+       AND NOT EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'proyectos_ley' AND column_name = 'camara') THEN
+        DROP TABLE proyectos_ley;
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS proyectos_ley (
-    id            BIGSERIAL PRIMARY KEY,
-    periodo       TEXT,
-    numero        TEXT NOT NULL,
+    id                 BIGSERIAL PRIMARY KEY,
+    periodo            TEXT NOT NULL,            -- ej. 2021 (periodo parlamentario 2021-2026)
+    camara             TEXT NOT NULL DEFAULT 'C',-- C = Congreso, D = Diputados, S = Senado
+    numero             TEXT NOT NULL,            -- ej. 14864/2025-CR
+    num_pley           INTEGER,
     fecha_presentacion DATE,
-    titulo        TEXT,
-    autor         TEXT,
-    comision      TEXT,
-    estado        TEXT,
-    rubro         TEXT,
-    url           TEXT,
-    UNIQUE (periodo, numero)
+    titulo             TEXT,
+    autor              TEXT,
+    proponente         TEXT,
+    comision           TEXT,
+    estado             TEXT,
+    rubro              TEXT,
+    url                TEXT,
+    actualizado        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (periodo, camara, numero)
 );
+
+CREATE INDEX IF NOT EXISTS idx_proy_fecha  ON proyectos_ley (fecha_presentacion DESC);
+CREATE INDEX IF NOT EXISTS idx_proy_estado ON proyectos_ley (estado);
+CREATE INDEX IF NOT EXISTS idx_proy_rubro  ON proyectos_ley (rubro);

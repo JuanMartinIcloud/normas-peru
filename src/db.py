@@ -51,3 +51,24 @@ def dias_pendientes(conn, desde, hasta) -> list:
             (desde, hasta),
         )
         return [r[0] for r in cur.fetchall()]
+
+
+def upsert_proyectos(conn, filas: list[dict]) -> int:
+    """Inserta proyectos de ley; si ya existen, actualiza su estado y datos."""
+    if not filas:
+        return 0
+    cols = ["periodo", "camara", "numero", "num_pley", "fecha_presentacion",
+            "titulo", "autor", "proponente", "estado", "rubro", "url"]
+    valores = [[f[c] for c in cols] for f in filas]
+    with conn.cursor() as cur:
+        execute_values(
+            cur,
+            f"""INSERT INTO proyectos_ley ({', '.join(cols)}) VALUES %s
+                ON CONFLICT (periodo, camara, numero) DO UPDATE SET
+                    estado = EXCLUDED.estado, titulo = EXCLUDED.titulo, autor = EXCLUDED.autor,
+                    proponente = EXCLUDED.proponente, rubro = EXCLUDED.rubro,
+                    fecha_presentacion = EXCLUDED.fecha_presentacion, actualizado = now()""",
+            valores,
+        )
+    conn.commit()
+    return len(filas)
