@@ -15,6 +15,11 @@ export async function GET() {
       `SELECT fecha::text AS fecha, modelo, n_normas, n_proyectos, n_cambios, creado_en::text AS creado_en
        FROM resumenes ORDER BY fecha DESC LIMIT 7`
     );
+    estado.tamano = await consultar(
+      `SELECT pg_size_pretty(pg_database_size(current_database())) AS base,
+              pg_size_pretty(pg_total_relation_size('normas')) AS normas,
+              pg_size_pretty(pg_total_relation_size('proyectos_ley')) AS proyectos`
+    );
     const ultimo = await cargarResumen();
     estado.portada = ultimo ? { fecha: ultimo.fecha, referencias: Object.keys(ultimo.referencias).length } : null;
   } catch (e) {
