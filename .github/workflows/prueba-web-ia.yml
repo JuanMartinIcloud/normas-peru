@@ -1,0 +1,49 @@
+name: Prueba de la IA en la web
+
+on:
+  workflow_dispatch:
+    inputs:
+      busqueda:
+        description: "Texto a buscar y resumir"
+        default: "violencia"
+
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Resumir una busqueda
+        run: |
+          curl -sS -m 300 -X POST https://normas-peru.vercel.app/api/ia/resumir \
+            -H 'Content-Type: application/json' \
+            -d "{\"ambito\":\"ambos\",\"filtros\":{\"q\":\"${{ github.event.inputs.busqueda }}\"}}" > resumir.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open("resumir.json"))
+          if "error" in d:
+              print(f"::error title=resumir::{d['error']}"); raise SystemExit(1)
+          print(f"::notice title=resumir_totales::{json.dumps(d['totales'])} modelo={d.get('modelo')}")
+          for g in ("normas", "proyectos"):
+              print(f"::notice title=resumir_{g}::{d[g]['panorama'][:300]} | puntos={len(d[g]['puntos'])}")
+          PY
+      - name: Proyecto unificado con dos proyectos parecidos
+        run: |
+          python3 - <<'PY'
+          import json, re, urllib.request
+          html = urllib.request.urlopen("https://normas-peru.vercel.app/proyectos?q=${{ github.event.inputs.busqueda }}", timeout=120).read().decode()
+          ids = list(dict.fromkeys(re.findall(r"/proyectos/similares\?id=(\d+)", html)))[:2]
+          print("ids:", ids)
+          cuerpo = json.dumps({"accion": "proyecto", "items": [{"t": "P", "id": i} for i in ids]}).encode()
+          req = urllib.request.Request("https://normas-peru.vercel.app/api/ia/unir", data=cuerpo,
+                                       headers={"Content-Type": "application/json"})
+          try:
+              d = json.load(urllib.request.urlopen(req, timeout=300))
+          except urllib.error.HTTPError as e:
+              d = json.loads(e.read() or b"{}")
+          if "error" in d:
+              print(f"::error title=unir::{d['error']}"); raise SystemExit(1)
+          print(f"::notice title=unir_titulo::{d['titulo'][:200]} | modelo={d.get('modelo')}")
+          print(f"::notice title=unir_secciones::{[s['titulo'] for s in d['secciones']]}")
+          print(f"::notice title=unir_fuentes::{[(f['texto'], f['lectura'], f['aviso'][:80]) for f in d['fuentes']]}")
+          print(f"::notice title=unir_inicio::{(d['secciones'][0]['parrafos'] or [''])[0][:300]}")
+          PY
