@@ -1,5 +1,5 @@
 import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA } from "../lib/db";
-import { cargarResumen, ayerLima } from "../lib/resumenes";
+import { cargarResumen, fechasConResumen, ayerLima } from "../lib/resumenes";
 import ResumenIA from "./ResumenIA";
 
 export const dynamic = "force-dynamic";
@@ -85,7 +85,8 @@ export default async function Pagina({ searchParams }) {
   let resumenIA = null;
   if (!hayFiltros && f.pagina === 1) {
     try {
-      resumenIA = await cargarResumen();
+      const [ultima] = await fechasConResumen(1);
+      resumenIA = ultima ? await cargarResumen(ultima.fecha) : null;
     } catch (e) {
       resumenIA = null;
     }

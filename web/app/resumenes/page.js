@@ -12,7 +12,10 @@ export default async function Resumenes({ searchParams }) {
   let fechas = [];
   let error = "";
   try {
-    [resumen, fechas] = await Promise.all([cargarResumen(pedida), fechasConResumen(90)]);
+    fechas = await fechasConResumen(90);
+    // Sin fecha pedida se muestra el mas reciente de la lista
+    const elegida = pedida || (fechas[0] ? fechas[0].fecha : "");
+    resumen = elegida ? await cargarResumen(elegida) : null;
   } catch (e) {
     error = String(e.message || e);
   }
