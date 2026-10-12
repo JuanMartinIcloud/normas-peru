@@ -62,7 +62,8 @@ export async function cargarResumen(fecha = "") {
         )
       : await consultar(
           `SELECT fecha::text AS fecha, datos, modelo, n_normas, n_proyectos, n_cambios, creado_en
-           FROM resumenes ORDER BY fecha DESC LIMIT 1`
+           FROM resumenes WHERE fecha <= $1 ORDER BY fecha DESC LIMIT 1`,
+          [hoyLima()]
         );
   } catch (e) {
     if (tablaFaltante(e)) return null;

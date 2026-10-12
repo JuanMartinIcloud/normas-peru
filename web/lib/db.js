@@ -1,6 +1,8 @@
 import { neon } from "@neondatabase/serverless";
+import { unstable_noStore as sinCache } from "next/cache";
 
 export function consultar(texto, params = []) {
+  sinCache(); // cada consulta se hace en el momento, nunca se reutiliza una respuesta guardada
   if (!process.env.DATABASE_URL) {
     throw new Error("Falta la variable DATABASE_URL en Vercel (Settings > Environment Variables).");
   }
