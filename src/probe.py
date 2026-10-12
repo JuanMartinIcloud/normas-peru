@@ -56,3 +56,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def muestra():
+    """Pide al servidor un dia real y guarda la respuesta para ver la estructura."""
+    os.makedirs(OUT, exist_ok=True)
+    for nombre, desde, hasta in [("muestra_dia.html", "09/10/2026", "09/10/2026"),
+                                 ("muestra_hoy.html", "10/10/2026", "10/10/2026")]:
+        r = requests.post(
+            f"{BASE}/Normas/Filtro",
+            data={"cddesde": desde, "cdhasta": hasta},
+            headers={**HEADERS, "X-Requested-With": "XMLHttpRequest"},
+            timeout=60,
+        )
+        print(nombre, "HTTP", r.status_code, len(r.text), "bytes", "| articles:", r.text.count("<article"))
+        with open(f"{OUT}/{nombre}", "w", encoding="utf-8") as f:
+            f.write(r.text)
+
+
+if __name__ == "__main__":
+    muestra()
