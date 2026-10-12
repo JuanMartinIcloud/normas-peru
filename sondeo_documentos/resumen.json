@@ -6,6 +6,13 @@
   "bytes": 6355,
   "inicio": "{\"code\":"
  },
+ "pdf_proyecto_2026_6": {
+  "url": "https://api.congreso.gob.pe/spley-portal-service/archivo/NDE0NzQw/pdf",
+  "status": 200,
+  "tipo": "application/pdf; charset=UTF-8",
+  "bytes": 106593,
+  "inicio": "%PDF-1.7"
+ },
  "expediente_2021_2": {
   "url": "https://api.congreso.gob.pe/spley-portal-service/expediente/ICnrsvoH7U-3Sjp2uTAa2A/tFrUrxo2pP22EhyatlhXIA?codTipoParl=C",
   "status": 200,
@@ -13,18 +20,25 @@
   "bytes": 7645,
   "inicio": "{\"code\":"
  },
+ "pdf_proyecto_2021_2": {
+  "url": "https://api.congreso.gob.pe/spley-portal-service/archivo/OTA5MTk=/pdf",
+  "status": 200,
+  "tipo": "application/pdf; charset=UTF-8",
+  "bytes": 19702510,
+  "inicio": "%PDF-1.4"
+ },
  "https://busquedas.elperuano.pe/dispositivo/NL/2562861-1/pdf": {
   "url": "https://busquedas.elperuano.pe/dispositivo/NL/2562861-1/pdf",
   "status": 200,
   "tipo": "text/html; charset=utf-8",
-  "bytes": 102407,
+  "bytes": 102419,
   "inicio": "<!DOCTYP"
  },
  "https://busquedas.elperuano.pe/dispositivo/NL/2562861-1": {
   "url": "https://busquedas.elperuano.pe/dispositivo/NL/2562861-1",
   "status": 200,
   "tipo": "text/html; charset=utf-8",
-  "bytes": 109393,
+  "bytes": 109417,
   "inicio": "<!DOCTYP"
  }
 }

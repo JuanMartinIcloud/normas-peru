@@ -1,6 +1,10 @@
 expediente {'url': 'https://api.congreso.gob.pe/spley-portal-service/expediente/e3raUNYYJZYlohsSfzRqtA/iHl4EH2-EuX26KgGHzSWjw?codTipoParl=C', 'status': 200, 'tipo': 'application/json; charset=UTF-8', 'bytes': 6355, 'inicio': '{"code":'}
-claves de data: ['general', 'seguimientos', 'acumulados', 'documentosAnexos', 'estudioComisiones', 'subseccionesEstudioComision', 'firmantes'] | archivos: 0
+claves de data: ['general', 'seguimientos', 'acumulados', 'documentosAnexos', 'estudioComisiones', 'subseccionesEstudioComision', 'firmantes'] | archivos: 4
+primer archivo: {'proyectoArchivoId': 414740, 'seguimientoPleyId': 105424, 'seccionId': None, 'pleyId': 21307, 'uuid': '09eee4cd-18f5-46a9-8935-99d48b8dee8f', 'fecha': '2026-10-05', 'nombreArchivo': 'PL 00006-2026-2031-CR.pdf', 'descripcion': 'PL 00006-2026-2031-CR', 'enlace': None, 'publico': True, 'activo': True}
+pdf proyecto {'url': 'https://api.congreso.gob.pe/spley-portal-service/archivo/NDE0NzQw/pdf', 'status': 200, 'tipo': 'application/pdf; charset=UTF-8', 'bytes': 106593, 'inicio': '%PDF-1.7'}
 expediente {'url': 'https://api.congreso.gob.pe/spley-portal-service/expediente/ICnrsvoH7U-3Sjp2uTAa2A/tFrUrxo2pP22EhyatlhXIA?codTipoParl=C', 'status': 200, 'tipo': 'application/json; charset=UTF-8', 'bytes': 7645, 'inicio': '{"code":'}
-claves de data: ['general', 'seguimientos', 'acumulados', 'documentosAnexos', 'estudioComisiones', 'subseccionesEstudioComision', 'firmantes'] | archivos: 0
-el peruano {'url': 'https://busquedas.elperuano.pe/dispositivo/NL/2562861-1/pdf', 'status': 200, 'tipo': 'text/html; charset=utf-8', 'bytes': 102407, 'inicio': '<!DOCTYP'}
-el peruano {'url': 'https://busquedas.elperuano.pe/dispositivo/NL/2562861-1', 'status': 200, 'tipo': 'text/html; charset=utf-8', 'bytes': 109393, 'inicio': '<!DOCTYP'}
+claves de data: ['general', 'seguimientos', 'acumulados', 'documentosAnexos', 'estudioComisiones', 'subseccionesEstudioComision', 'firmantes'] | archivos: 3
+primer archivo: {'proyectoArchivoId': 90919, 'seguimientoPleyId': 18295, 'seccionId': 255, 'pleyId': 2, 'uuid': '43c53db3-13d5-405f-ac9f-6a5ec8525e4c', 'fecha': '2022-12-28', 'nombreArchivo': '20.pdf', 'descripcion': 'PL 2 (U)', 'enlace': None, 'publico': True, 'activo': True}
+pdf proyecto {'url': 'https://api.congreso.gob.pe/spley-portal-service/archivo/OTA5MTk=/pdf', 'status': 200, 'tipo': 'application/pdf; charset=UTF-8', 'bytes': 19702510, 'inicio': '%PDF-1.4'}
+el peruano {'url': 'https://busquedas.elperuano.pe/dispositivo/NL/2562861-1/pdf', 'status': 200, 'tipo': 'text/html; charset=utf-8', 'bytes': 102419, 'inicio': '<!DOCTYP'}
+el peruano {'url': 'https://busquedas.elperuano.pe/dispositivo/NL/2562861-1', 'status': 200, 'tipo': 'text/html; charset=utf-8', 'bytes': 109417, 'inicio': '<!DOCTYP'}
