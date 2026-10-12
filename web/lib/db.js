@@ -5,7 +5,10 @@ export function consultar(texto, params = []) {
     throw new Error("Falta la variable DATABASE_URL en Vercel (Settings > Environment Variables).");
   }
   const sql = neon(process.env.DATABASE_URL);
-  return sql.query(texto, params);
+  // Versiones nuevas del paquete usan sql.query(texto, params);
+  // las 0.x aceptan sql(texto, params) directamente.
+  if (typeof sql.query === "function") return sql.query(texto, params);
+  return sql(texto, params);
 }
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
