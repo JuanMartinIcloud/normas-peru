@@ -1,0 +1,45 @@
+jQuery(document).ready(function ($) {
+	$(".select2").select2();
+	$('input[name="dates"]').daterangepicker(
+		{
+			autoApply: false,
+			autoUpdateInput: false,
+			showDropdowns: true,
+			applyButtonClasses: "congaf-btn-primary",
+			locale: {
+				format: "DD/MM/YYYY",
+				separator: " - ",
+				applyLabel: "Aplicar",
+				cancelLabel: "Cancelar",
+				fromLabel: "Desde",
+				toLabel: "Hasta",
+				customRangeLabel: "Personalizado",
+				weekLabel: "S",
+				daysOfWeek: [
+					"Do", // Domingo
+					"Lu", // Lunes
+					"Ma", // Martes
+					"Mi", // Miércoles
+					"Ju", // Jueves
+					"Vi", // Viernes
+					"Sa", // Sábado
+				],
+				monthNames: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+				firstDay: 1,
+				cancelLabel: "Limpiar",
+			},
+		},
+		function (start, end, label) {
+			// console.log("New date range selected: " + start.format("YYYY-MM-DD") + " to " + end.format("YYYY-MM-DD") + " (predefined range: " + label + ")");
+		}
+	);
+	$('input[name="dates"]').on("apply.daterangepicker", function (ev, picker) {
+		$(this).val(picker.startDate.format("DD/MM/YYYY") + " - " + picker.endDate.format("DD/MM/YYYY"));
+		$(this)
+			.siblings('input[name="datesBase"]')
+			.val(`${picker.startDate.format("YYYY-MM-DD")},${picker.endDate.format("YYYY-MM-DD")}`);
+	});
+	$('input[name="dates"]').on("cancel.daterangepicker", function (ev, picker) {
+		$(this).val("");
+	});
+});

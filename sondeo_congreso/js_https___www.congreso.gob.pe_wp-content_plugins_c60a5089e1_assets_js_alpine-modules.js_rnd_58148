@@ -1,0 +1,141 @@
+const debounce = (func, wait, immediate = true) => {
+    let timeout
+    return () => {
+        const context = this
+        const args = arguments
+        const callNow = immediate && !timeout
+        clearTimeout(timeout)
+        timeout = setTimeout(function() {
+            timeout = null
+            if (!immediate) {
+                func.apply(context, args)
+            }
+        }, wait)
+        if (callNow) func.apply(context, args)
+    }
+}
+const appendChildAwaitLayout = (parent, element) => {
+    return new Promise((resolve, _) => {
+        const resizeObserver = new ResizeObserver((entries, observer) => {
+            observer.disconnect()
+            resolve(entries)
+        })
+        resizeObserver.observe(element)
+        parent.appendChild(element)
+    })
+}
+document.addEventListener('alpine:init', () => {
+    Alpine.data('Marquee', ({
+        speed = 1,
+        spaceX = 0,
+        dynamicWidthElements = false
+    }) => ({
+        dynamicWidthElements,
+        async init() {
+            if (this.dynamicWidthElements) {
+                const images = this.$el.querySelectorAll('img')
+                // If there are any images, make sure they are loaded before
+                // we start cloning them, since their width might be dynamically
+                // calculated
+                if (images) {
+                    await Promise.all(Array.from(images).map(image => {
+                        return new Promise((resolve, _) => {
+                            if (image.complete) {
+                                resolve()
+                            } else {
+                                image.addEventListener('load', () => {
+                                    resolve()
+                                })
+                            }
+                        })
+                    }))
+                }
+            }
+            // Store the original element so we can restore it on screen resize later
+            this.originalElement = this.$el.cloneNode(true)
+            const originalWidth = this.$el.scrollWidth + spaceX * 4
+            // Required for the marquee scroll animation 
+            // to loop smoothly without jumping 
+            this.$el.style.setProperty('--marquee-width', originalWidth + 'px')
+            this.$el.style.setProperty('--marquee-time', ((1 / speed) * originalWidth) / 100 + 's')
+            this.resize()
+            // Make sure the resize function can only be called once every 100ms
+            // Not strictly necessary but stops lag when resizing window a bit
+            window.addEventListener('resize', debounce(this.resize.bind(this), 100))
+        },
+        async resize() {
+            // Reset to original number of elements
+            this.$el.innerHTML = this.originalElement.innerHTML
+            let i = 0
+            let safetyCounter = 0 // <--- Contador de seguridad
+            const safetyLimit = 1000 // <--- Límite de clones permitido
+            while (this.$el.scrollWidth <= this.$el.clientWidth) {
+                if (safetyCounter++ > safetyLimit) {
+                    console.warn('Safety limit reached in marquee resize')
+                    break
+                }
+                if (this.dynamicWidthElements) {
+                    await appendChildAwaitLayout(this.$el, this.originalElement.children[i].cloneNode(true))
+                } else {
+                    this.$el.appendChild(this.originalElement.children[i].cloneNode(true))
+                }
+                i += 1
+                i = i % this.originalElement.childElementCount
+            }
+            // Extra clones para scroll suave
+            let j = 0
+            while (j < this.originalElement.childElementCount) {
+                this.$el.appendChild(this.originalElement.children[i].cloneNode(true))
+                j += 1
+                i += 1
+                i = i % this.originalElement.childElementCount
+            }
+        },
+    }))
+})
+document.addEventListener('alpine:init', () => {
+    Alpine.data('carousel', (carouselData = {
+        slides: [],
+        intervalTime: 0,
+        loading: false,
+    }, ) => ({
+        loading: carouselData.loading,
+        slides: carouselData.slides,
+        autoplayIntervalTime: carouselData.intervalTime,
+        currentSlideIndex: 1,
+        isPaused: false,
+        autoplayInterval: null,
+        previous() {
+            if (this.currentSlideIndex > 1) {
+                this.currentSlideIndex = this.currentSlideIndex - 1
+            } else {
+                // If it's the first slide, go to the last slide           
+                this.currentSlideIndex = this.slides.length
+            }
+        },
+        next() {
+            if (this.currentSlideIndex < this.slides.length) {
+                this.currentSlideIndex = this.currentSlideIndex + 1
+            } else {
+                // If it's the last slide, go to the first slide    
+                this.currentSlideIndex = 1
+            }
+        },
+        autoplay() {
+            this.autoplayInterval = setInterval(() => {
+                if (!this.isPaused) {
+                    this.next()
+                }
+            }, this.autoplayIntervalTime)
+        },
+        // Updates interval time   
+        setAutoplayIntervalTime(newIntervalTime) {
+            clearInterval(this.autoplayInterval)
+            this.autoplayIntervalTime = newIntervalTime
+            this.autoplay()
+        },
+        setSlides(newSlides) {
+            this.slides = newSlides
+        },
+    }))
+})

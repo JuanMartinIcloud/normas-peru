@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html translate="no" lang="es">
+	<head>
+		<meta charset="utf-8"/>
+		<title>Proposiciones Legislativas</title>
+		<base href="/spley-portal/"/>
+		<!-- Meta tags para evitar caché -->
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<link rel="shortcut icon" type="image/x-icon" href="assets/favicon.ico"/>
+		<!-- Google tag (gtag.js) -->
+		<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-74S6D3XXVJ"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+
+			gtag("config", "G-74S6D3XXVJ", { send_page_view: false});
+		</script>
+	<link rel="stylesheet" href="styles.ef5b4823b62ccbedba32.css"></head>
+	<body class="main-body light-theme app sidebar-mini active is-expanded body-default leftmenu-light">
+		<app-root></app-root>
+	<script src="runtime-es2015.a4dadbc03350107420a4.js" type="module"></script><script src="runtime-es5.a4dadbc03350107420a4.js" nomodule defer></script><script src="polyfills-es5.d8c834adac55bb2ae3a4.js" nomodule defer></script><script src="polyfills-es2015.4efa094b73f0ddd047b4.js" type="module"></script><script src="main-es2015.2ad20b723277a0ed1f2a.js" type="module"></script><script src="main-es5.2ad20b723277a0ed1f2a.js" nomodule defer></script></body>
+</html>

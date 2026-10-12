@@ -1,0 +1,132 @@
+https://wb2server.congreso.gob.pe/spley-portal/ -> HTTP 200, 1546 bytes, final: https://wb2server.congreso.gob.pe/spley-portal/
+   script https://wb2server.congreso.gob.pe/spley-portal/runtime-es2015.a4dadbc03350107420a4.js: 1485 bytes, 0 posibles rutas
+   script https://wb2server.congreso.gob.pe/spley-portal/runtime-es5.a4dadbc03350107420a4.js: 1485 bytes, 0 posibles rutas
+   script https://wb2server.congreso.gob.pe/spley-portal/polyfills-es5.d8c834adac55bb2ae3a4.js: 136821 bytes, 0 posibles rutas
+   script https://wb2server.congreso.gob.pe/spley-portal/polyfills-es2015.4efa094b73f0ddd047b4.js: 34424 bytes, 0 posibles rutas
+   script https://wb2server.congreso.gob.pe/spley-portal/main-es2015.2ad20b723277a0ed1f2a.js: 2814595 bytes, 24 posibles rutas
+      Jumapili_Jumatatu_Jumanne_Jumatano_Alhamisi_Ijumaa_Jumamosi
+      OpinionCiudadanaService.ciudadano
+      app-congresista-leyes
+      app-legacy-congresista-proyectosley-redirect
+      app-parlamentario-proyectos
+      https://api.congreso.gob.pe/participacion-ciudadana-portal-service
+      https://api.congreso.gob.pe/spley-portal-service
+      https://wb2server.congreso.gob.pe/spley-portal/#/
+      https://www3.congreso.gob.pe/Docs/documento/politicas/interacion_ciudadano.html
+      https://www3.congreso.gob.pe/autografas/
+      https://www3.congreso.gob.pe/dictamenescongreso/2011-2021
+      https://www3.congreso.gob.pe/pley-2016-2021
+      link-proyecto-acumulado
+      numLey
+      pley
+      printServiceOverlay
+      proyectoLey
+      proyectos
+      proyectosLey
+      reporte-proyecto-ley
+      spley-portal-frontend
+      tituloLey
+      urtarrila_otsaila_martxoa_apirila_maiatza_ekaina_uztaila_abuztua_iraila_urria_azaroa_abendua
+      visor-pdf/reporte-proyecto-ley?token=
+   script https://wb2server.congreso.gob.pe/spley-portal/main-es5.2ad20b723277a0ed1f2a.js: 2975960 bytes, 36 posibles rutas
+      /ley/lista-por-congresista/
+      /opinion-ciudadana/proyecto/
+      /proyecto-ley/comision/
+      /proyecto-ley/lista-con-filtro
+      /proyecto-ley/lista-con-filtro/exporta/
+      /proyecto-ley/periodo/
+      Jumapili_Jumatatu_Jumanne_Jumatano_Alhamisi_Ijumaa_Jumamosi
+      OpinionCiudadanaService.ciudadano
+      app-congresista-leyes
+      app-legacy-congresista-proyectosley-redirect
+      app-parlamentario-proyectos
+      exportExcelProyectos
+      getComentariosDelProyecto
+      getComentariosDelProyectoTotales
+      getProyectos
+      https://api.congreso.gob.pe/participacion-ciudadana-portal-service
+      https://api.congreso.gob.pe/spley-portal-service
+      https://wb2server.congreso.gob.pe/spley-portal/#/
+      https://www3.congreso.gob.pe/Docs/documento/politicas/interacion_ciudadano.html
+      https://www3.congreso.gob.pe/autografas/
+      https://www3.congreso.gob.pe/dictamenescongreso/2011-2021
+      https://www3.congreso.gob.pe/pley-2016-2021
+      leyesLoad
+      link-proyecto-acumulado
+      numLey
+      pley
+      printServiceOverlay
+      proyectoLey
+      proyectos
+      proyectosLey
+      proyectosLoad
+      reporte-proyecto-ley
+      spley-portal-frontend
+      tituloLey
+      urtarrila_otsaila_martxoa_apirila_maiatza_ekaina_uztaila_abuztua_iraila_urria_azaroa_abendua
+      visor-pdf/reporte-proyecto-ley?token=
+https://www.congreso.gob.pe/pley-2021-2026 -> HTTP 404, 176509 bytes, final: https://www.congreso.gob.pe/pley-2021-2026
+   script https://www.congreso.gob.pe/wp-includes/js/jquery/jquery.min.js?rnd=58148: 87553 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/jquery/jquery-migrate.min.js?rnd=58148: 13577 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/c60a5089e1/assets/js/widget-congreso.js?rnd=58148: 3805 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/c60a5089e1/assets/js/alpine.js?rnd=58148: 44763 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/utils.min.js?rnd=58148: 1864 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/plupload/moxie.min.js?rnd=58148: 87394 bytes, 1 posibles rutas
+      moxie/runtime/html5/image/MegaPixel
+   script https://www.congreso.gob.pe/wp-includes/js/plupload/plupload.min.js?rnd=58148: 15605 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/json2.min.js?rnd=58148: 3143 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/themes/72a4a3dd3b/assets/js/main.js?rnd=58148: 7257 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/1208a9070d/assets/script.js?rnd=58148: 1495 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/1208a9070d/assets/alpine-collapse.js?rnd=58148: 1449 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/1208a9070d/assets/moment.min.js?rnd=58148: 51473 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/1208a9070d/assets/select2.min.js?rnd=58148: 71843 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/1208a9070d/assets/daterangepicker.min.js?rnd=58148: 32930 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-content/plugins/c60a5089e1/assets/js/alpine-modules.js?rnd=58148: 5634 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/underscore.min.js?rnd=58148: 18905 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/shortcode.min.js?rnd=58148: 2643 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/backbone.min.js?rnd=58148: 24301 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/wp-util.min.js?rnd=58148: 1426 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/wp-backbone.min.js?rnd=58148: 3039 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/media-models.min.js?rnd=58148: 13284 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/plupload/wp-plupload.min.js?rnd=58148: 6036 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/jquery/ui/core.min.js?rnd=58148: 21462 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/jquery/ui/mouse.min.js?rnd=58148: 3428 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/jquery/ui/sortable.min.js?rnd=58148: 25504 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/mediaelement/mediaelement-and-player.min.js?rnd=58148: 158005 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/mediaelement/mediaelement-migrate.min.js?rnd=58148: 1191 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/mediaelement/wp-mediaelement.min.js?rnd=58148: 1107 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/api-request.min.js?rnd=58148: 1023 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/dist/dom-ready.min.js?rnd=58148: 457 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/dist/hooks.min.js?rnd=58148: 4776 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/dist/i18n.min.js?rnd=58148: 9141 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/dist/a11y.min.js?rnd=58148: 2357 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/clipboard.min.js?rnd=58148: 9009 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/media-views.min.js?rnd=58148: 110712 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/media-editor.min.js?rnd=58148: 10885 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/wp-includes/js/media-audiovideo.min.js?rnd=58148: 12052 bytes, 0 posibles rutas
+   script https://www.congreso.gob.pe/themes/72a4a3dd3b/assets/js/magnific-popup.min.js?rnd=58148: 20735 bytes, 0 posibles rutas
+https://www2.congreso.gob.pe/Sicr/TraDocEstProc/CLProLey2021.nsf/Local%20Por%20Numero?OpenView -> HTTP 404, 222 bytes, final: https://www2.congreso.gob.pe/Sicr/TraDocEstProc/CLProLey2021.nsf/Local%20Por%20Numero?OpenView
+https://leyes.congreso.gob.pe/ -> HTTP 200, 31321 bytes, final: https://leyes.congreso.gob.pe/
+   script https://leyes.congreso.gob.pe/SpryAssets/SpryAccordion.js: 16016 bytes, 0 posibles rutas
+   script https://leyes.congreso.gob.pe/SpryAssets/SpryCollapsiblePanel.js: 15813 bytes, 0 posibles rutas
+   script https://leyes.congreso.gob.pe/p7tmm/p7TMMscripts.js: 12259 bytes, 0 posibles rutas
+   script https://leyes.congreso.gob.pe/WebResource.axd?d=ei5MsTWo33v4gaCChbw6A74k3Ff33XdGh0xR8zU5D_ib6G_B0UFOVqww2zJMmqXXwgNyC0qztb6F-hheoGaaf0WYBF41&amp;t=635588438575142005: 20794 bytes, 0 posibles rutas
+   script https://leyes.congreso.gob.pe/ScriptResource.axd?d=SCoY2lHpgoanxie9r-wVOHnKhs3zJ2x8KGnFAlK7uB5pq4VaPp2D5OoHwfggL5hL2Cx0Boc5RokPReIz2SeLrvRbs77LuOx7GPE9tTEdwZMcnx4seOvUy_3zYwvSVRnXMuiZGiZ3RBPlMIOhf-SDQxybwuI1&amp;t=635599534068265657: 84016 bytes, 5 posibles rutas
+      servicePathNotSet
+      webServiceFailed
+      webServiceFailedNoMsg
+      webServiceInvalidReturnType
+      webServiceTimedOut
+   script https://leyes.congreso.gob.pe/ScriptResource.axd?d=X6jwpOz0_R4CSvbovuRteHP6kfhPdPXeQOY1OcwLWw3LjdmKNmBp7iWjBBpz677rCl_dFhhs3tvJPJqYddpjBtj-YtLCPlRfTit-z8F4ZRH96wK7AWwlR_9KDUhP8kRGLxuqVmkl8W7QhKftDdfZS-NgPXE9dnxK4EzO0kUHcTMRpH-s0&amp;t=635599534068265657: 29520 bytes, 0 posibles rutas
+   script https://leyes.congreso.gob.pe/inicio.aspx?_TSM_HiddenField_=ctl00_ToolkitScriptManager1_HiddenField&amp;_TSM_CombinedScripts_=%3b%3bAjaxControlToolkit%2c+Version%3d1.0.10618.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d28f01b0e84b6d53e%3aes%3ac730f88e-f78f-4518-a07f-5958fb0c7109%3ae2e86ef9%3aa9a7729d%3a9ea3f0e2%3a9e8e87e9%3a1df13a87%3a4c9865be%3aba594826%3a507fcf1b%3ac7a4182e%3a182913ba%3abae32fb7%3afde3863c: 31695 bytes, 11 posibles rutas
+      LeyNoNumeP.aspx
+      LeyNumePP.aspx?xNorma=0
+      LeyNumePP.aspx?xNorma=14
+      LeyNumePP.aspx?xNorma=15
+      LeyNumePP.aspx?xNorma=21
+      LeyNumePP.aspx?xNorma=3
+      LeyNumePP.aspx?xNorma=5
+      Leyes_quechua.aspx
+      http://www.congreso.gob.pe
+      https://www.congreso.gob.pe/biblioteca/reglamentos-congreso/
+      leyes_indias.aspx

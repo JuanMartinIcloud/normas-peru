@@ -1,0 +1,101 @@
+const fetchNotices = async (url) => {
+	if (!url) return [];
+	const response = await fetch(url).catch((error) => {
+		console.error("Error al cargar las noticias destacadas:", error);
+	});
+	const responseJson = await response.json();
+	if (!responseJson) return [];
+	return responseJson?.noticias.map((item) => ({
+	    imgSrc: item.post_image_full || item.post_image || "",
+		imgAlt: item.post_title,
+		title: item.post_title,
+		ctaUrl: item.post_link,
+		date: item.post_date,
+		content: item.post_content,
+		ctaText: "Más información",
+	}));
+};
+const formatDate = (inputDate, userFormat) => {
+	const date = new Date(inputDate);
+	if (isNaN(date)) return "Invalid date";
+
+	const day = String(date.getDate()).padStart(2, "0");
+	const rawDay = date.getDate();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const rawMonth = date.getMonth() + 1;
+	const year = date.getFullYear();
+	const shortYear = String(year).slice(2);
+	const hours = String(date.getHours()).padStart(2, "0");
+	const minutes = String(date.getMinutes()).padStart(2, "0");
+	const seconds = String(date.getSeconds()).padStart(2, "0");
+
+	const monthNames = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+	const monthName = monthNames[date.getMonth()];
+
+	return userFormat
+		.replace(/dd/, day)
+		.replace(/d/, rawDay)
+		.replace(/mm/, month)
+		.replace(/m/, rawMonth)
+		.replace(/yyyy/, year)
+		.replace(/yy/, shortYear)
+		.replace(/hh/, hours)
+		.replace(/ii/, minutes)
+		.replace(/ss/, seconds)
+		.replace(/Month/, monthName);
+};
+
+function visScroll() {
+    const elements = document.querySelectorAll(".visScroll");
+
+    elements.forEach(element => {
+        const hasWrap = element.dataset.wrap === "true" || element.classList.contains("wrap");
+        const isHorizontal = element.classList.contains("horizontal");
+        const positionProp = isHorizontal ? "left" : "top";
+        const list = element.querySelector("ul");
+        let wrapper;
+        if (hasWrap) {
+            if (!element.querySelector("div.ul-wrap")) {
+                const wrapDiv = document.createElement("div");
+                wrapDiv.className = "ul-wrap";
+                list.parentNode.insertBefore(wrapDiv, list);
+                wrapDiv.appendChild(list);
+            }
+            wrapper = element.querySelector("div.ul-wrap");
+            wrapper.style.overflow = "hidden";
+        } else {
+            wrapper = element;
+        }
+
+        const listSize = isHorizontal ? list.offsetWidth : list.offsetHeight;
+        const wrapperSize = isHorizontal ? wrapper.clientWidth : wrapper.clientHeight;
+
+        if (listSize > wrapperSize) {
+            wrapper.blnMouseOver = false;
+            wrapper.style.position = "relative";
+            list.style.position = "absolute";
+            list.style[positionProp] = `${wrapperSize}px`;
+
+            wrapper.addEventListener("mouseenter", () => {
+                wrapper.blnMouseOver = true;
+            });
+
+            wrapper.addEventListener("mouseleave", () => {
+                wrapper.blnMouseOver = false;
+            });
+
+            wrapper.hndInterval = setInterval(() => {
+                if (!wrapper.blnMouseOver) {
+                    let currentPos = parseInt(list.style[positionProp]) || 0;
+                    const listDimension = isHorizontal ? list.offsetWidth : list.offsetHeight;
+                    const resetPos = wrapperSize;
+
+                    currentPos = currentPos < -listDimension ? resetPos : currentPos - 1;
+                    list.style[positionProp] = `${currentPos}px`;
+                }
+            }, 100);
+        }
+    });
+}
+
+window.addEventListener('load', visScroll);

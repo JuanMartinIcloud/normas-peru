@@ -1,0 +1,188 @@
+function popUpSb(title, url) {
+    (function($) {
+        $.magnificPopup.open({
+            items: {
+                src: url
+            },
+            type: 'iframe',
+            iframe: {
+                patterns: {
+                    // Permite cualquier URL externa
+                    custom: {
+                        index: '', // sin dominio específico
+                        src: '%id%'
+                    }
+                },
+                srcAction: 'iframe_src',
+            },
+            mainClass: 'mfp-fade',
+            removalDelay: 300,
+            closeBtnInside: true,
+            preloader: false,
+        });
+    })(jQuery);
+}
+
+function handleMenuItems() {
+    const menu = document.querySelector('#menu-home');
+    if (!menu) return;
+    const items = menu.querySelectorAll(':scope > .menu-item');
+    // Reset: Mostrar todos los elementos
+    items.forEach(item => item.style.display = 'flex');
+    const screenWidth = window.innerWidth;
+    // Definir cantidad máxima de ítems visibles según el ancho de pantalla
+    let maxVisibleItems;
+    if (screenWidth >= 1280) { // Desktop grande
+        maxVisibleItems = items.length;
+    } else if (screenWidth >= 1024) { // Laptop / Desktop mediano
+        maxVisibleItems = 6;
+    } else if (screenWidth >= 768) { // Tablets
+        maxVisibleItems = 4;
+    } else { // Móviles
+        maxVisibleItems = 2;
+    }
+    // Ocultar los últimos elementos según el límite calculado
+    items.forEach((item, index) => {
+        item.style.display = (index < maxVisibleItems) ? 'flex' : 'none';
+    });
+}
+
+function init() {
+    const menuContainer = document.querySelector(".menu-movil");
+    const subMenus = menuContainer ? menuContainer.querySelectorAll(".sub-menu") : [];
+    subMenus.forEach(subMenu => {
+        const siblingLink = subMenu.parentElement.querySelector("a");
+        const title = siblingLink ? siblingLink.textContent.trim() : "";
+        const backItem = document.createElement("li");
+        backItem.className = "back-section";
+        backItem.innerHTML = `
+        <span class="action-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left pointer-events-none stroke-primary"><path d="m15 18-6-6 6-6"/></svg>
+        </span>
+        <h4>${title}</h4>
+    `;
+        subMenu.insertBefore(backItem, subMenu.firstChild);
+    });
+}
+window.addEventListener('load', handleMenuItems);
+window.addEventListener('resize', handleMenuItems);
+init();
+document.addEventListener("click", function(event) {
+    const target = event.target;
+    // Expand submenu
+    if (target.classList.contains("action-expand")) {
+        event.preventDefault();
+        const siblingSubMenu = target.parentElement.querySelector(".sub-menu");
+        if (siblingSubMenu) {
+            siblingSubMenu.classList.add("show-menu");
+        }
+    }
+    // Go back from submenu
+    if (target.classList.contains("action-back")) {
+        event.preventDefault();
+        const subMenu = target.closest(".sub-menu");
+        if (subMenu) {
+            subMenu.classList.remove("show-menu");
+        }
+    }
+});
+document.addEventListener("click", function(event) {
+    const target = event.target;
+    if (target.id === "open-menu-hamburguer" || target.id === "close--menu") {
+        event.preventDefault();
+        const menuContainer = document.querySelector(".menu-movil");
+        if (menuContainer) {
+            menuContainer.classList.toggle("show");
+        }
+        const subMenus = document.querySelectorAll(".sub-menu");
+        subMenus.forEach(subMenu => subMenu.classList.remove("show-menu"));
+    }
+});
+
+function resetMenuMovil() {
+    const menuContainer = document.querySelector(".menu-movil");
+    const subMenus = document.querySelectorAll(".sub-menu");
+    subMenus.forEach(subMenu => subMenu.classList.remove("show-menu"));
+}
+
+
+// ── Visor PDF Modal ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const modal      = document.getElementById('pdf-modal');
+    const loader     = document.getElementById('pdf-loader');
+    const errorBox   = document.getElementById('pdf-error');
+    const iframe     = document.getElementById('pdf-viewer-frame');
+    const titleEl    = document.getElementById('pdf-modal-title');
+    const closeBtn   = document.getElementById('pdf-modal-close');
+    const downloadLink = document.getElementById('pdf-download-link');
+    const retryBtn   = document.getElementById('pdf-retry-btn');
+    const directLink = document.getElementById('pdf-direct-link');
+
+    if (!modal || !iframe) return;
+
+    let loadTimeout = null;
+    let currentHref = '';
+
+    function showLoader() {
+        loader.style.display = '';      // revierte a display:flex de la clase
+        errorBox.style.display = 'none';
+    }
+    function hideLoader() {
+        loader.style.display = 'none';
+    }
+    function showError() {
+        hideLoader();
+        errorBox.style.display = 'flex';
+    }
+    function openModal() {
+        modal.showModal();
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+        modal.close();
+    }
+    modal.addEventListener('close', () => {
+        document.body.style.overflow = '';
+        clearTimeout(loadTimeout);
+        iframe.src = '';
+        showLoader();
+    });
+    function loadPDF(href) {
+        currentHref = href;
+        showLoader();
+        if (directLink) directLink.href = href;
+        if (downloadLink) {
+            const downloadUrl = new URL(downloadLink.dataset.downloadEndpoint, window.location.origin);
+            downloadUrl.searchParams.set('url', href);
+            downloadLink.href = downloadUrl.toString();
+        }
+        iframe.src = '';
+        clearTimeout(loadTimeout);
+        loadTimeout = setTimeout(() => showError(), 20000);
+        iframe.src = 'https://docs.google.com/gview?url=' + encodeURIComponent(href) + '&embedded=true';
+    }
+
+    iframe.addEventListener('load', () => {
+        clearTimeout(loadTimeout);
+        if (!iframe.src || iframe.src === window.location.href) return;
+        setTimeout(() => hideLoader(), 800);
+    });
+
+    if (closeBtn)  closeBtn.addEventListener('click', closeModal);
+    if (retryBtn)  retryBtn.addEventListener('click', () => loadPDF(currentHref));
+
+    document.body.addEventListener('click', (e) => {
+        const link = e.target.closest('a[data-pdfviewer]');
+        if (!link) return;
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (!href) return;
+        const labelText = link.textContent.trim();
+        if (titleEl && labelText) {
+            const reqTitle = link.closest('li') && link.closest('li').querySelector('.cr-req-title');
+            titleEl.textContent = reqTitle ? labelText + ' \u2014 ' + reqTitle.textContent.trim() : labelText;
+        }
+        loadPDF(href);
+        openModal();
+    });
+});

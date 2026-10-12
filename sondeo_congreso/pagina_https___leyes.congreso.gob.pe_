@@ -1,0 +1,513 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>
+	Archivo Digital de la Legislaci&oacute;n del Per&uacute;
+</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><link href="stylesheets/estilos.css" rel="stylesheet" type="text/css" />
+    <script src="SpryAssets/SpryAccordion.js" type="text/javascript"></script>
+    <link href="SpryAssets/SpryAccordion.css" rel="stylesheet" type="text/css" />
+    <script src="SpryAssets/SpryCollapsiblePanel.js" type="text/javascript"></script>
+    <link href="SpryAssets/SpryCollapsiblePanel.css" rel="stylesheet" type="text/css" /><link href="p7tmm/p7TMM05.css" rel="stylesheet" type="text/css" media="all" />
+    <script type="text/javascript" src="p7tmm/p7TMMscripts.js"></script>    
+    
+    <script type="text/javascript">
+        function doClick(btnCon, e) {   //the purpose of this function is to allow the enter key to 
+            //point to the correct button to click.
+            var key;
+            if (window.event)
+                key = window.event.keyCode;     //IE
+            else
+                key = e.which;     //firefox
+            if (key == 13) {
+                //Get the button the user wants to have clicked
+                var btnC = document.getElementById(btnCon);
+                if (btnC != null) { //If we find the button click it
+                    var txt = document.getElementById("ctl00_ContentPlaceHolder1_TxtBuscar");
+                    var txtNormaI = document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaI");
+                    var txtNormaF = document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaF");
+                    if (txt.value != "" || txtNormaI.value != "" || txtNormaI.value != "") {
+                        btnC.click();
+                        event.keyCode = 0
+                    }
+                }
+            }
+        }
+        //-----------------------------------------------------------------------------------------//
+        function MostrarOcultar() {
+            var Fila1 = document.getElementById("fecha");
+            var Fila2 = document.getElementById("texto");
+            var Fila3 = document.getElementById("norma");
+            var Combo = document.getElementById("ctl00_ContentPlaceHolder1_DdlTipoBusqueda");
+            if (Combo.value == "3") { //Texto
+                Fila1.style.display = "none";
+                Fila2.style.display = "block";
+                Fila3.style.display = "none";
+                document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaIni").value = "";
+                document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaFin").value = "";
+                document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaI").value = "";
+                document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaF").value = "";
+                document.getElementById("ctl00_ContentPlaceHolder1_TxtBuscar").focus();
+            } else {
+                if (Combo.value == "4") { //Norma
+                    Fila1.style.display = "none";
+                    Fila2.style.display = "none";
+                    Fila3.style.display = "block";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaIni").value = "";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaFin").value = "";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtBuscar").value = "";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaI").focus();
+                } else { //Fechas
+                    Fila1.style.display = "block";
+                    Fila2.style.display = "none";
+                    Fila3.style.display = "none";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaI").value = "";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaF").value = "";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtBuscar").value = "";
+                    document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaIni").focus();
+                }
+            }
+        }
+        //-----------------------------------------------------------------------------------------//
+        function Validar() {
+            var fechaini = document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaIni");
+            var fechafin = document.getElementById("ctl00_ContentPlaceHolder1_TxtFechaFin");
+            var normaini = document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaI");
+            var normafin = document.getElementById("ctl00_ContentPlaceHolder1_TxtNroNormaF");
+            /* Valida fecha en formato dd/mm/yyyy */
+            var Expresion = /^[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9][0-9][0-9]$/
+
+            if (normaini.value == "" && normafin.value != "") {
+                alert("Introduzca Norma Inicial.");
+                normaini.focus();
+                return false;
+            }
+
+            if (fechaini.value == "" && fechafin.value != "") {
+                alert("Introduzca Fecha Inicial.");
+                fechaini.focus();
+                return false;
+            }
+
+            if (fechaini.value != "") {
+                if (!Expresion.test(fechaini.value)) {
+                    alert("Formato de Fecha debe ser dd/mm/aaaa.");
+                    fechaini.focus();
+                    return false;
+                } else {
+                    var valor = FechaCorrecta(fechaini);
+                    if (valor == false) { fechaini.focus(); return false; }
+                }
+            }
+
+            if (fechafin.value != "") {
+                if (!Expresion.test(fechafin.value)) {
+                    alert("Formato de Fecha debe ser dd/mm/aaaa.");
+                    fechafin.focus();
+                    return false;
+                } else {
+                    var valor = FechaCorrecta(fechafin);
+                    if (valor == false) { fechafin.focus(); return false; }
+                }
+            }
+
+            var auxfi = Date.parse(fechaini.value);
+            var auxff = Date.parse(fechafin.value);
+
+            if (ComparaFechas(fechaini, fechafin)) {
+                alert("Fecha Inicial mayor que Fecha Final, Corrija.");
+                return false;
+            }
+
+            if (parseInt(fechaini.value.substring(6), 10) < parseInt(1904)) {
+                alert("Rango de fechas debe estar comprendida desde 01/01/1904 a la actualidad.");
+                return false;
+            }
+
+            if (parseInt(fechafin.value.substring(6), 10) < parseInt(1904)) {
+                alert("Rango de fechas debe estar comprendida desde 01/01/1904 a la actualidad.");
+                return false;
+            }
+            // Devuelve true si todo es correcto
+            return true;
+        } // cierra funcion validar
+        function ComparaFechas(fecha1, fecha2) {
+            var xanio = parseInt(fecha1.value.substring(6), 10);
+            var xmes = parseInt(fecha1.value.substring(3, 5), 10);
+            var xdia = parseInt(fecha1.value.substring(0, 2), 10);
+
+            var yanio = parseInt(fecha2.value.substring(6), 10);
+            var ymes = parseInt(fecha2.value.substring(3, 5), 10);
+            var ydia = parseInt(fecha2.value.substring(0, 2), 10);
+
+            if (xanio > yanio) {
+                return true;
+            } else {
+                if (xanio == yanio) {
+                    if (xmes > ymes) {
+                        return true;
+                    } else {
+                        if (xmes == ymes) {
+                            if (xdia > ydia) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        } else { return false; }
+                    }
+                } else { return false; }
+            }
+        }
+        function FechaCorrecta(fecha) {
+            var dia = parseInt(fecha.value.substring(0, 2), 10);
+            var mes = parseInt(fecha.value.substring(3, 5), 10);
+            var ann = parseInt(fecha.value.substring(6), 10);
+            switch (mes) {
+                case 1:
+                case 3:
+                case 5:
+                case 7:
+                case 8:
+                case 10:
+                case 12:
+                    numDias = 31;
+                    break;
+                case 4: case 6: case 9: case 11:
+                    numDias = 30
+                    break;
+                case 2:
+                    if (comprobarSiBisisesto(ann)) {
+                        numDias = 29;
+                    } else { numDias = 28 };
+                    break;
+                default:
+                    alert("Fecha introducida es incorrecta. El formato correcto es dd/mm/aaaa");
+                    return false;
+            }
+            if (dia > numDias || dia == 0) {
+                alert("Fecha introducida es incorrecta. El formato correcto es dd/mm/aaaa");
+                return false;
+            }
+        } // cierra funcion FechaCorrecta
+        function comprobarSiBisisesto(ann) {
+            if ((ann % 100 != 0) && ((ann % 4 == 0) || (ann % 400 == 0))) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    </script>
+
+    <!-- CODIGO GOOGLE ANALITYCS 14/03/2013 --->
+    <!-- colocado el 10/11/2014 --->
+        <script type="text/javascript">
+
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-33823413-1']);
+            _gaq.push(['_setDomainName', 'congreso.gob.pe']);
+            _gaq.push(['_setAllowLinker', true]);
+            _gaq.push(['_trackPageview']);
+
+            (function () {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+    <!-- FIN CODIGO GOOGLE ANALITYCS 14/03/2013 --->    
+<link href="/WebResource.axd?d=7r0JYino-Nt7r1YJC57mT50ms1C11GB-RGbPuv6SlkjS-3gQ0nuwHAmn8roFHSpIbLe6h_zNrznqvVDUWO1YdwQqD4ifl1WTt620PJfZU-JXlsguLa0IWmhhVB9RYFZgYl-DnSh69vY_wFEBjZjyn8l_Qx81&amp;t=635043893060000000" type="text/css" rel="stylesheet" /></head>
+<body>
+    <form name="aspnetForm" method="post" action="inicio.aspx" id="aspnetForm">
+<div>
+<input type="hidden" name="ctl00_ToolkitScriptManager1_HiddenField" id="ctl00_ToolkitScriptManager1_HiddenField" value="" />
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUJMjY5NzMzNTE1D2QWAmYPZBYCAgMPZBYCAgMPZBYSAgcPEA8WBh4NRGF0YVRleHRGaWVsZAUMeF9kZXNjX25vcm1hHg5EYXRhVmFsdWVGaWVsZAUHY19ub3JtYR4LXyFEYXRhQm91bmRnZBAVByZMRVkvUkVTT0xVQ0lPTiBMRUdJU0xBVElWQS9ERUNSRVRPIExFWQ9ERUNSRVRPIFNVUFJFTU8TREVDUkVUTyBMRUdJU0xBVElWTxNERUNSRVRPIERFIFVSR0VOQ0lBEkxFWSBDT05TVElUVUNJT05BTAxMRVkgUkVHSU9OQUweREVDUkVUTyBTVVBSRU1PIEVYVFJBT1JESU5BUklPFQcBMAEyATMBNQIxNAIxNQIyMRQrAwdnZ2dnZ2dnZGQCCw8QZGQWAQIDZAIRDw8WAh4JTWF4TGVuZ3RoZmRkAhcPDxYCHwNmZGQCHw8PZBYCHgpPbktleVByZXNzBTdkb0NsaWNrKCdjdGwwMF9Db250ZW50UGxhY2VIb2xkZXIxX0J0bkNvbnN1bHRhcicsZXZlbnQpZAIjDw9kFgIfBAU3ZG9DbGljaygnY3RsMDBfQ29udGVudFBsYWNlSG9sZGVyMV9CdG5Db25zdWx0YXInLGV2ZW50KWQCJw8PZBYCHwQFN2RvQ2xpY2soJ2N0bDAwX0NvbnRlbnRQbGFjZUhvbGRlcjFfQnRuQ29uc3VsdGFyJyxldmVudClkAjUPFhYeEUN1bHR1cmVEYXRlRm9ybWF0BQNETVkeIEN1bHR1cmVDdXJyZW5jeVN5bWJvbFBsYWNlaG9sZGVyBQNTLy4eDkFjY2VwdE5lZ2F0aXZlCymCAUFqYXhDb250cm9sVG9vbGtpdC5NYXNrZWRFZGl0U2hvd1N5bWJvbCwgQWpheENvbnRyb2xUb29sa2l0LCBWZXJzaW9uPTEuMC4xMDYxOC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPTI4ZjAxYjBlODRiNmQ1M2UAHhZDdWx0dXJlVGltZVBsYWNlaG9sZGVyBQE6Hg5JbnB1dERpcmVjdGlvbgsphgFBamF4Q29udHJvbFRvb2xraXQuTWFza2VkRWRpdElucHV0RGlyZWN0aW9uLCBBamF4Q29udHJvbFRvb2xraXQsIFZlcnNpb249MS4wLjEwNjE4LjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MjhmMDFiMGU4NGI2ZDUzZQAeDERpc3BsYXlNb25leQsrBAAeCkFjY2VwdEFtUG1oHhtDdWx0dXJlVGhvdXNhbmRzUGxhY2Vob2xkZXIFASweFkN1bHR1cmVBTVBNUGxhY2Vob2xkZXIFCWEubS47cC5tLh4WQ3VsdHVyZURhdGVQbGFjZWhvbGRlcgUBLx4ZQ3VsdHVyZURlY2ltYWxQbGFjZWhvbGRlcgUBLmQCNw8WFh8FBQNETVkfBgUDUy8uHwcLKwQAHwgFATofCQsrBQAfCgsrBAAfC2gfDAUBLB8NBQlhLm0uO3AubS4fDgUBLx8PBQEuZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WAgUlY3RsMDAkQ29udGVudFBsYWNlSG9sZGVyMSRJbWdGZWNoYUluaQUlY3RsMDAkQ29udGVudFBsYWNlSG9sZGVyMSRJbWdGZWNoYUZpbo6KWM5izEy49xAClAQAkdg8dctq" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=ei5MsTWo33v4gaCChbw6A74k3Ff33XdGh0xR8zU5D_ib6G_B0UFOVqww2zJMmqXXwgNyC0qztb6F-hheoGaaf0WYBF41&amp;t=635588438575142005" type="text/javascript"></script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+var __cultureInfo = '{"name":"es-ES","numberFormat":{"CurrencyDecimalDigits":2,"CurrencyDecimalSeparator":",","IsReadOnly":true,"CurrencyGroupSizes":[3],"NumberGroupSizes":[3],"PercentGroupSizes":[3],"CurrencyGroupSeparator":".","CurrencySymbol":"€","NaNSymbol":"NeuN","CurrencyNegativePattern":8,"NumberNegativePattern":1,"PercentPositivePattern":0,"PercentNegativePattern":0,"NegativeInfinitySymbol":"-Infinito","NegativeSign":"-","NumberDecimalDigits":2,"NumberDecimalSeparator":",","NumberGroupSeparator":".","CurrencyPositivePattern":3,"PositiveInfinitySymbol":"Infinito","PositiveSign":"+","PercentDecimalDigits":2,"PercentDecimalSeparator":",","PercentGroupSeparator":".","PercentSymbol":"%","PerMilleSymbol":"‰","NativeDigits":["0","1","2","3","4","5","6","7","8","9"],"DigitSubstitution":1},"dateTimeFormat":{"AMDesignator":"","Calendar":{"MinSupportedDateTime":"\/Date(-62135578800000)\/","MaxSupportedDateTime":"\/Date(253402300799999)\/","AlgorithmType":1,"CalendarType":1,"Eras":[1],"TwoDigitYearMax":2029,"IsReadOnly":true},"DateSeparator":"/","FirstDayOfWeek":1,"CalendarWeekRule":0,"FullDateTimePattern":"dddd, dd\u0027 de \u0027MMMM\u0027 de \u0027yyyy H:mm:ss","LongDatePattern":"dddd, dd\u0027 de \u0027MMMM\u0027 de \u0027yyyy","LongTimePattern":"H:mm:ss","MonthDayPattern":"dd MMMM","PMDesignator":"","RFC1123Pattern":"ddd, dd MMM yyyy HH\u0027:\u0027mm\u0027:\u0027ss \u0027GMT\u0027","ShortDatePattern":"dd/MM/yyyy","ShortTimePattern":"H:mm","SortableDateTimePattern":"yyyy\u0027-\u0027MM\u0027-\u0027dd\u0027T\u0027HH\u0027:\u0027mm\u0027:\u0027ss","TimeSeparator":":","UniversalSortableDateTimePattern":"yyyy\u0027-\u0027MM\u0027-\u0027dd HH\u0027:\u0027mm\u0027:\u0027ss\u0027Z\u0027","YearMonthPattern":"MMMM\u0027 de \u0027yyyy","AbbreviatedDayNames":["dom","lun","mar","mié","jue","vie","sáb"],"ShortestDayNames":["do","lu","ma","mi","ju","vi","sá"],"DayNames":["domingo","lunes","martes","miércoles","jueves","viernes","sábado"],"AbbreviatedMonthNames":["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic",""],"MonthNames":["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre",""],"IsReadOnly":true,"NativeCalendarName":"calendario gregoriano","AbbreviatedMonthGenitiveNames":["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic",""],"MonthGenitiveNames":["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre",""]}}';//]]>
+</script>
+
+<script src="/ScriptResource.axd?d=SCoY2lHpgoanxie9r-wVOHnKhs3zJ2x8KGnFAlK7uB5pq4VaPp2D5OoHwfggL5hL2Cx0Boc5RokPReIz2SeLrvRbs77LuOx7GPE9tTEdwZMcnx4seOvUy_3zYwvSVRnXMuiZGiZ3RBPlMIOhf-SDQxybwuI1&amp;t=635599534068265657" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=X6jwpOz0_R4CSvbovuRteHP6kfhPdPXeQOY1OcwLWw3LjdmKNmBp7iWjBBpz677rCl_dFhhs3tvJPJqYddpjBtj-YtLCPlRfTit-z8F4ZRH96wK7AWwlR_9KDUhP8kRGLxuqVmkl8W7QhKftDdfZS-NgPXE9dnxK4EzO0kUHcTMRpH-s0&amp;t=635599534068265657" type="text/javascript"></script>
+<script src="/inicio.aspx?_TSM_HiddenField_=ctl00_ToolkitScriptManager1_HiddenField&amp;_TSM_CombinedScripts_=%3b%3bAjaxControlToolkit%2c+Version%3d1.0.10618.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d28f01b0e84b6d53e%3aes%3ac730f88e-f78f-4518-a07f-5958fb0c7109%3ae2e86ef9%3aa9a7729d%3a9ea3f0e2%3a9e8e87e9%3a1df13a87%3a4c9865be%3aba594826%3a507fcf1b%3ac7a4182e%3a182913ba%3abae32fb7%3afde3863c" type="text/javascript"></script>
+<div>
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="980642AA" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWGgKB3u6FBwL22c6FCALp2c6FCALo2c6FCALn68nJBwL568nJBwL668nJBwL868nJBwL467nKBwL467XKBwL564XKBwL+vrzXDAL8vrzXDAL9vrzXDAKwxP3CAQK5yOC4DgLS7I2KBgLpzZTHBQKi7Z+ZBgKi7cOZBgKo9uOwBALz6tmeBgLs6tmeBgKUlY2PCALR7ouKBAKotImKBDgG3Y/hfXIbYL+p4eNsQuU5y8Ct" />
+</div>
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ToolkitScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls([], [], [], 90);
+//]]>
+</script>
+
+        <div id="contenedor">
+  <!-- INICIO CABECERA -->
+  <div id='cabecera'>
+    <div id='enlaces_top'>
+      <div id='link_left'> </div>
+      <div id='link_right'>
+        <ul>
+          <li><a href='mailto:webmaster@congreso.gob.pe'>Cont&aacute;ctenos</a></li>
+          
+        </ul>
+      </div>
+    </div>
+    <div id='logo'>
+      <h1>CONGRESO de la REP&Uacute;BLICA del PER&Uacute;</h1>
+    </div>
+    <div id='menuh'>
+      <ul >
+        <li class='nivel1'><a href='http://www.congreso.gob.pe' >Portal del Congreso</a> </li>
+  <li class='nivel1'><a href='documentos/Guia-Usuario.pdf' target="_blank" >Guía del usuario</a>	
+  </li>	          
+        
+      </ul>
+    </div>
+  </div>
+  <!--  FIN CABECERA -->
+  <!-- INICIO CUERPO -->
+  <div id="centro">
+    <!-- Inicio box_left_int-->
+    <div id="box_left_int">      
+        
+
+    <div id="box_top">
+        <!-- InstanceBeginEditable name="INFO" -->
+        <img src="imagenes/b-top.jpg" width="778" height="210" /><!-- InstanceEndEditable -->
+    </div>
+    <div id="box_top1">
+        <!-- InstanceBeginEditable name="top_text" -->
+        El Archivo Digital de la Legislaci&oacute;n del Per&uacute; contiene principalmente las normas con rango de ley que pertenecen al sistema normativo peruano, as&iacute; como las Leyes de Indias. En definitiva, informaci&oacute;n indispensable para el conocimiento de la normatividad nacional.<!-- InstanceEndEditable -->
+    </div>
+    <br />
+    <div style="clear: both"></div>
+    <div id="contenido">
+        <!-- InstanceBeginEditable name="CONTENIDO" -->
+        <p id="titulo03">Legislación desde 1904</p>
+        <p>Esta búsqueda comprende las normas con rango o fuerza de ley desde el año 1904 hasta la fecha. Abarca leyes, resoluciones legislativas, decretos leyes, leyes regionales expedidas por los Congresos respectivos que creó la Constitución de 1920, decretos legislativos, decretos de urgencia y otras con rango o fuerza similar que se ha considerado incluir.</p>
+        <div>
+            <hr />
+        </div>
+        <div style="display: none">
+            <table border="0" cellpadding="0" cellspacing="2">
+                <tr>
+                    <td style="width: 120px">
+                        <span id="ctl00_ContentPlaceHolder1_Label1" style="font-weight:bold;">Estado:</span></td>
+                    <td style="width: 480px">
+                        <select name="ctl00$ContentPlaceHolder1$DdlEstado" id="ctl00_ContentPlaceHolder1_DdlEstado" style="width:200px;">
+	<option value="0">Normas vigentes</option>
+	<option value="1">Normas no vigentes</option>
+	<option selected="selected" value="2">Ambos</option>
+
+</select></td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <table border="0" cellpadding="0" cellspacing="2">
+                <tr>
+                    <td style="width: 110px">
+                        <span id="ctl00_ContentPlaceHolder1_Label7" style="font-weight:bold;">Tipo norma:</span></td>
+                    <td style="width: 347px">
+                        <select name="ctl00$ContentPlaceHolder1$DdlTipoNorma" id="ctl00_ContentPlaceHolder1_DdlTipoNorma" style="width:338px;">
+	<option selected="selected" value="0">LEY/RESOLUCION LEGISLATIVA/DECRETO LEY</option>
+	<option value="2">DECRETO SUPREMO</option>
+	<option value="3">DECRETO LEGISLATIVO</option>
+	<option value="5">DECRETO DE URGENCIA</option>
+	<option value="14">LEY CONSTITUCIONAL</option>
+	<option value="15">LEY REGIONAL</option>
+	<option value="21">DECRETO SUPREMO EXTRAORDINARIO</option>
+
+</select></td>
+                    <td style="width: 95px">
+                        <span id="ctl00_ContentPlaceHolder1_Label8" style="font-weight:bold;">Tipo búsqueda:</span></td>
+                    <td style="width: 217px">
+                        <select name="ctl00$ContentPlaceHolder1$DdlTipoBusqueda" id="ctl00_ContentPlaceHolder1_DdlTipoBusqueda" onchange="MostrarOcultar();" style="width:215px;">
+	<option value="2">Por fecha de publicaci&#243;n</option>
+	<option selected="selected" value="4">Por n&#250;mero de norma</option>
+	<option value="3">Por texto en el t&#237;tulo de la norma</option>
+
+</select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="fecha" style="display: none">
+            <table border="0" cellpadding="0" cellspacing="2">
+                <tr>
+                    <td style="width: 110px">
+                        <span id="ctl00_ContentPlaceHolder1_Label2" style="font-weight:bold;">Rango de fechas:</span></td>
+                    <td style="width: 480px">
+                        <span id="ctl00_ContentPlaceHolder1_Label4">Del </span>
+                        <input name="ctl00$ContentPlaceHolder1$TxtFechaIni" type="text" id="ctl00_ContentPlaceHolder1_TxtFechaIni" style="width:90px;" />
+                        <input type="image" name="ctl00$ContentPlaceHolder1$ImgFechaIni" id="ctl00_ContentPlaceHolder1_ImgFechaIni" src="imagenes/button-calendar.gif" style="border-width:0px;" />
+                        <span id="ctl00_ContentPlaceHolder1_Label5">Al </span>
+                        <input name="ctl00$ContentPlaceHolder1$TxtFechaFin" type="text" id="ctl00_ContentPlaceHolder1_TxtFechaFin" style="width:90px;" />
+                        <input type="image" name="ctl00$ContentPlaceHolder1$ImgFechaFin" id="ctl00_ContentPlaceHolder1_ImgFechaFin" src="imagenes/button-calendar.gif" style="border-width:0px;" /></td>
+                </tr>
+            </table>
+        </div>
+        <div id="norma">
+            <table border="0" cellpadding="0" cellspacing="2">
+                <tr>
+                    <td style="width: 110px">
+                        <span id="ctl00_ContentPlaceHolder1_Label9" style="font-weight:bold;">Rango de normas:</span></td>
+                    <td style="width: 480px">
+                        <span id="ctl00_ContentPlaceHolder1_Label10">Del </span>
+                        <input name="ctl00$ContentPlaceHolder1$TxtNroNormaI" type="text" id="ctl00_ContentPlaceHolder1_TxtNroNormaI" OnKeyPress="doClick('ctl00_ContentPlaceHolder1_BtnConsultar',event)" style="width:115px;" />
+                        <span id="ctl00_ContentPlaceHolder1_Label11">Al </span>
+                        <input name="ctl00$ContentPlaceHolder1$TxtNroNormaF" type="text" id="ctl00_ContentPlaceHolder1_TxtNroNormaF" OnKeyPress="doClick('ctl00_ContentPlaceHolder1_BtnConsultar',event)" style="width:115px;" /></td>
+                </tr>
+            </table>
+        </div>
+        <div id="texto" style="display: none">
+            <table border="0" cellpadding="0" cellspacing="2">
+                <tr>
+                    <td style="width: 110px">
+                        <span id="ctl00_ContentPlaceHolder1_Label6" style="font-weight:bold;">Texto a buscar:</span></td>
+                    <td style="width: 640px">
+                        <input name="ctl00$ContentPlaceHolder1$TxtBuscar" type="text" maxlength="102" id="ctl00_ContentPlaceHolder1_TxtBuscar" OnKeyPress="doClick('ctl00_ContentPlaceHolder1_BtnConsultar',event)" style="width:610px;" /></td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <table border="0" cellpadding="0" cellspacing="2">
+                <tr>
+                    <td style="width: 110px">
+                        <span id="ctl00_ContentPlaceHolder1_Label3" style="font-weight:bold;">Ordenar por:</span></td>
+                    <td style="width: 480px">
+                        <select name="ctl00$ContentPlaceHolder1$DdlOrdenar" id="ctl00_ContentPlaceHolder1_DdlOrdenar" style="width:120px;">
+	<option value="0">N&#250;mero</option>
+	<option value="1">T&#237;tulo</option>
+
+</select></td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <hr />
+        </div>
+        <div style="text-align: center">
+            <input type="submit" name="ctl00$ContentPlaceHolder1$BtnConsultar" value="Consultar" onclick="return Validar();" id="ctl00_ContentPlaceHolder1_BtnConsultar" />
+        </div>
+        
+        <!-- InstanceEndEditable -->
+    </div>
+    
+    
+    <input type="hidden" name="ctl00$ContentPlaceHolder1$MaskedEditExtender1_ClientState" id="ctl00_ContentPlaceHolder1_MaskedEditExtender1_ClientState" />
+    <input type="hidden" name="ctl00$ContentPlaceHolder1$MaskedEditExtender2_ClientState" id="ctl00_ContentPlaceHolder1_MaskedEditExtender2_ClientState" />
+    
+    
+    
+
+             
+    </div>
+    <!-- Fin box_left_int-->
+    <!-- Inicio box_right_int-->
+
+<div id="box_right_int">
+
+ <div id="p7TMM_1" class="p7TMM05">
+   <ul class="p7TMM">
+     <li><a href="Inicio.aspx">Inicio</a></li>
+     <li><a href="constituciones.aspx">Constituciones del Per&uacute;</a></li>
+     <li><a href="https://www.congreso.gob.pe/biblioteca/reglamentos-congreso/" target="_blank">Reglamentos del Congreso de la Rep&uacute;blica</a></li>
+     <li><a href="leyes_indias.aspx">Leyes de Indias</a></li>
+     <li><a href="LeyNoNumeP.aspx">Legislaci&oacute;n del Siglo XIX hasta 1904</a></li>
+     <li><a href="LeyNumePP.aspx?xNorma=0">Legislaci&oacute;n desde 1904</a></li>
+     <li><a href="LeyNumePP.aspx?xNorma=15">Leyes Regionales</a></li>
+     <li><a href="LeyNumePP.aspx?xNorma=3">Decretos Legislativos</a></li>
+     <li><a href="LeyNumePP.aspx?xNorma=5">Decretos de Urgencia</a></li>
+     <li><a href="LeyNumePP.aspx?xNorma=14">Leyes Constitucionales</a></li>
+     <li><a href="Leyes_quechua.aspx">Leyes en quechua</a></li>
+     <li><a href="LeyNumePP.aspx?xNorma=21">Decretos Supremos Extraordinarios</a></li>
+     <li><a href="informacion_juridica.aspx">Informaci&oacute;n Jurídica</a></li>
+     <li><a href="enlaces.aspx">Otros enlaces de interés</a></li>           
+   </ul>
+   <!--[if lte IE 6]>
+<style>.p7TMM05 .p7TMM, .p7TMM05 a, .p7TMM05 li {height:1%;}</style>
+<![endif]-->
+   <!--[if IE 5]>
+<style>.p7TMM05 a, .p7TMM05 a {overflow: visible !important;}</style>
+<![endif]-->
+   <script type="text/javascript">
+<!--
+    P7_TMMop('p7TMM_1', 3, 0, 0, 3, 1, 1, 0, 0, -1);
+    //-->
+   </script>
+ </div>
+    
+</div>
+
+    <!-- Inicio box_right_int--> 
+  </div>
+  <!-- FIN CUERPO -->
+  <!-- INICIO PIE DE PAGINA -->
+  <div id="box_horizontal">
+    <div id='line'></div>
+    <div id='direccion'>Congreso de la Rep&uacute;blica<br />
+      Departamento de Investigaci&oacute;n y Documentaci&oacute;n Parlamentaria<br />
+      Av. Abancay 251 - Lima, Per&uacute;<br />
+    Central telef&oacute;nica: 311-7777<!-- FIN PIE DE PAGINA --></div>
+  </div>
+</div>
+
+   
+    
+
+<script type="text/javascript">
+//<![CDATA[
+Sys.Application.initialize();
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.CalendarBehavior, {"button":$get("ctl00_ContentPlaceHolder1_ImgFechaIni"),"format":"dd/MM/yyyy","id":"ctl00_ContentPlaceHolder1_CalendarExtender1"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtFechaIni"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.CalendarBehavior, {"button":$get("ctl00_ContentPlaceHolder1_ImgFechaFin"),"format":"dd/MM/yyyy","id":"ctl00_ContentPlaceHolder1_CalendarExtender2"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtFechaFin"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.MaskedEditBehavior, {"ClientStateFieldID":"ctl00_ContentPlaceHolder1_MaskedEditExtender1_ClientState","CultureAMPMPlaceholder":"a.m.;p.m.","CultureCurrencySymbolPlaceholder":"S/.","CultureDateFormat":"DMY","CultureDatePlaceholder":"/","CultureDecimalPlaceholder":".","CultureName":"es-PE","CultureThousandsPlaceholder":",","CultureTimePlaceholder":":","Mask":"99/99/9999","MaskType":1,"id":"ctl00_ContentPlaceHolder1_MaskedEditExtender1"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtFechaIni"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.MaskedEditBehavior, {"ClientStateFieldID":"ctl00_ContentPlaceHolder1_MaskedEditExtender2_ClientState","CultureAMPMPlaceholder":"a.m.;p.m.","CultureCurrencySymbolPlaceholder":"S/.","CultureDateFormat":"DMY","CultureDatePlaceholder":"/","CultureDecimalPlaceholder":".","CultureName":"es-PE","CultureThousandsPlaceholder":",","CultureTimePlaceholder":":","Mask":"99/99/9999","MaskType":1,"id":"ctl00_ContentPlaceHolder1_MaskedEditExtender2"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtFechaFin"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.FilteredTextBoxBehavior, {"FilterType":3,"ValidChars":"1234567890-","id":"ctl00_ContentPlaceHolder1_FilteredTextBoxExtender1"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtNroNormaI"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.FilteredTextBoxBehavior, {"FilterType":3,"ValidChars":"1234567890-","id":"ctl00_ContentPlaceHolder1_FilteredTextBoxExtender2"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtNroNormaF"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.FilteredTextBoxBehavior, {"FilterMode":2,"InvalidChars":"*/\u0027¿¡^`+çÇªº!\"·$%&()=?\\|@#~€¬][{}\u003c\u003e\u0027","id":"ctl00_ContentPlaceHolder1_FilteredTextBoxExtender3"}, null, null, $get("ctl00_ContentPlaceHolder1_TxtBuscar"));
+});
+//]]>
+</script>
+</form>
+</body>
+</html>
