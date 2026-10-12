@@ -1,6 +1,8 @@
 import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA } from "../lib/db";
 import { cargarResumen, fechasConResumen, ayerLima } from "../lib/resumenes";
 import ResumenIA from "./ResumenIA";
+import BotonResumir from "./BotonResumir";
+import Marcar from "./Marcar";
 
 export const dynamic = "force-dynamic";
 
@@ -111,6 +113,7 @@ export default async function Pagina({ searchParams }) {
           Solo gobierno central
         </a>
         <a className="atajo" href="/resumenes">Resúmenes diarios</a>
+        <a className="atajo" href="/buscar">Buscar en todo</a>
         <a className="atajo" href="/proyectos">Proyectos de ley →</a>
       </nav>
 
@@ -188,8 +191,19 @@ export default async function Pagina({ searchParams }) {
       </form>
 
       <p className="resumen">
-        {total.toLocaleString("es-PE")} resultados · página {f.pagina} de {paginas.toLocaleString("es-PE")}
+        {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
       </p>
+
+      {hayFiltros && (
+        <BotonResumir
+          ambito="normas"
+          cantidad={total}
+          filtros={{
+            q: f.q, fecha: f.fecha, desde: f.desde, hasta: f.hasta, anio: f.anio, sector: f.sector,
+            rubro: f.rubro, tipo: f.tipo, central: f.central ? "1" : "", leyes: f.leyes ? "1" : "",
+          }}
+        />
+      )}
 
       {filas.length === 0 ? (
         <p className="vacio">
@@ -207,6 +221,11 @@ export default async function Pagina({ searchParams }) {
               </div>
               <p className="sumilla">{n.sumilla}</p>
               <div className="etiquetas">
+                <Marcar
+                  tipo="N"
+                  id={String(n.id)}
+                  etiqueta={`${[n.tipo, n.numero].filter(Boolean).join(" N° ")} (${n.fecha})`}
+                />
                 {n.rubro && <span className="etq">{n.rubro}</span>}
                 {n.sector && <span className="etq gris">{n.sector}</span>}
                 {n.extraordinaria && <span className="etq gris">Edición extraordinaria</span>}

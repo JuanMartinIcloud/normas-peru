@@ -1,0 +1,165 @@
+import { consultar, leerFiltros, construirWhere } from "../../../../lib/db";
+import { leerFiltrosProyectos, whereProyectos } from "../../../../lib/proyectos";
+import { urlProyecto } from "../../../../lib/resumenes";
+import { generarJSON, ErrorIA } from "../../../../lib/gemini";
+import { claveDe, buscarGuardada, guardarConsulta } from "../../../../lib/consultasIA";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
+
+const LIMITE = 150; // cuantos resultados (los mas recientes) se envian a la IA por grupo
+
+const corta = (t, n) => {
+  const s = String(t || "").replace(/\s+/g, " ").trim();
+  return s.length <= n ? s : `${s.slice(0, n - 1)}…`;
+};
+
+const PUNTOS = {
+  type: "OBJECT",
+  properties: {
+    panorama: { type: "STRING" },
+    puntos: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: { texto: { type: "STRING" }, refs: { type: "ARRAY", items: { type: "STRING" } } },
+        required: ["texto", "refs"],
+      },
+    },
+  },
+  required: ["panorama", "puntos"],
+};
+
+const ESQUEMA = {
+  type: "OBJECT",
+  properties: { normas: PUNTOS, proyectos: PUNTOS },
+  required: ["normas", "proyectos"],
+};
+
+const INSTRUCCIONES = `Eres un asistente de un estudio de abogados en Perú. Recibes el resultado de una búsqueda
+en normas legales (El Peruano) y en proyectos de ley del Congreso. Resume lo encontrado.
+
+Reglas:
+- Español claro y profesional, para abogados.
+- Usa solo los datos recibidos (sumillas y títulos oficiales). No inventes efectos, fechas ni cifras.
+- "normas": resume las normas legales; "proyectos": resume los proyectos de ley (menciona su estado
+  cuando sea relevante, por ejemplo si ya fueron aprobados o publicados).
+- En cada grupo, "panorama" son 2 a 4 oraciones con lo esencial y "puntos" agrupa los documentos por
+  subtema o por idea común (un punto puede citar varios documentos). Ordena de lo más a lo menos relevante.
+- Cada documento tiene un código entre corchetes ([N12] norma, [P34] proyecto). En "refs" pon los
+  códigos sin corchetes. Usa solo códigos que existan.
+- Si un grupo no tiene documentos, deja "panorama" vacío y "puntos" como lista vacía.
+- Responde solo con el JSON pedido.`;
+
+function limpiarGrupo(g, validas) {
+  const puntos = [];
+  for (const p of (g && g.puntos) || []) {
+    const texto = String((p && p.texto) || "").trim();
+    if (!texto) continue;
+    const refs = [];
+    for (const r of p.refs || []) {
+      const c = String(r).replace(/[\[\]\s]/g, "").toUpperCase();
+      if (validas.has(c) && !refs.includes(c)) refs.push(c);
+    }
+    puntos.push({ texto, refs });
+  }
+  return { panorama: String((g && g.panorama) || "").trim(), puntos };
+}
+
+export async function POST(request) {
+  let cuerpo;
+  try {
+    cuerpo = await request.json();
+  } catch {
+    return Response.json({ error: "Pedido inválido" }, { status: 400 });
+  }
+  const ambito = ["normas", "proyectos", "ambos"].includes(cuerpo.ambito) ? cuerpo.ambito : "ambos";
+  const crudos = cuerpo.filtros && typeof cuerpo.filtros === "object" ? cuerpo.filtros : {};
+  const texto = {};
+  for (const [k, v] of Object.entries(crudos)) if (typeof v === "string" || typeof v === "boolean") texto[k] = String(v === true ? "1" : v);
+
+  const fn = leerFiltros(texto);
+  const fp = leerFiltrosProyectos(texto);
+
+  try {
+    const pedidos = [];
+    if (ambito !== "proyectos") {
+      const { where, params } = construirWhere(fn);
+      pedidos.push(
+        consultar(
+          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf
+           FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${LIMITE}`,
+          params
+        ),
+        consultar(`SELECT count(*)::int AS n FROM normas ${where}`, params)
+      );
+    } else pedidos.push([], [{ n: 0 }]);
+    if (ambito !== "normas") {
+      const { where, params } = whereProyectos(fp);
+      pedidos.push(
+        consultar(
+          `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
+                  titulo, proponente, estado
+           FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${LIMITE}`,
+          params
+        ),
+        consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${where}`, params)
+      );
+    } else pedidos.push([], [{ n: 0 }]);
+    const [normas, [tn], proyectos, [tp]] = await Promise.all(pedidos);
+
+    if (!normas.length && !proyectos.length) {
+      return Response.json({ error: "No hay resultados para resumir con estos filtros." }, { status: 404 });
+    }
+
+    const referencias = {};
+    for (const n of normas) {
+      referencias[`N${n.id}`] = {
+        texto: [n.tipo, n.numero].filter(Boolean).join(" N° ") || "Norma",
+        url: n.url_detalle || n.url_pdf || null,
+      };
+    }
+    for (const p of proyectos) referencias[`P${p.id}`] = { texto: `PL ${p.numero}`, url: urlProyecto(p) };
+
+    const totales = {
+      normas: { total: tn.n, incluidas: normas.length },
+      proyectos: { total: tp.n, incluidas: proyectos.length },
+    };
+    const clave = claveDe("resumir", { ambito, fn, fp, ids: Object.keys(referencias) });
+    const guardada = await buscarGuardada(clave);
+    if (guardada) {
+      return Response.json({ ...guardada.resultado, referencias, totales, modelo: guardada.modelo, guardado: true });
+    }
+
+    const busqueda = [
+      fn.q || fp.q ? `Búsqueda: "${fn.q || fp.q}"` : "Búsqueda: sin palabra clave (documentos más recientes)",
+      fn.desde || fn.hasta ? `Fechas: ${fn.desde || "inicio"} a ${fn.hasta || "hoy"}` : "",
+    ].filter(Boolean);
+    const lineas = [...busqueda, "", `NORMAS LEGALES (${normas.length} de ${tn.n}):`];
+    for (const n of normas) {
+      lineas.push(`[N${n.id}] ${n.fecha} | ${[n.tipo, n.numero].filter(Boolean).join(" N° ")} | ${n.entidad || ""} | ${corta(n.sumilla, 500)}`);
+    }
+    if (!normas.length) lineas.push("(ninguna)");
+    lineas.push("", `PROYECTOS DE LEY (${proyectos.length} de ${tp.n}):`);
+    for (const p of proyectos) {
+      lineas.push(`[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${p.estado || "-"} | ${corta(p.titulo, 400)}`);
+    }
+    if (!proyectos.length) lineas.push("(ninguno)");
+
+    const { datos, modelo } = await generarJSON({
+      instrucciones: INSTRUCCIONES,
+      partes: [{ text: lineas.join("\n") }],
+      esquema: ESQUEMA,
+    });
+    const validas = new Set(Object.keys(referencias));
+    const resultado = {
+      normas: limpiarGrupo(datos.normas, validas),
+      proyectos: limpiarGrupo(datos.proyectos, validas),
+    };
+    await guardarConsulta(clave, "resumir", { ambito, fn, fp }, resultado, modelo);
+    return Response.json({ ...resultado, referencias, totales, modelo, guardado: false });
+  } catch (e) {
+    const estado = e instanceof ErrorIA ? e.estado : 500;
+    return Response.json({ error: String(e.message || e) }, { status: estado });
+  }
+}

@@ -1,43 +1,10 @@
 import { consultar, POR_PAGINA } from "../../lib/db";
 import { urlProyecto } from "../../lib/resumenes";
+import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
+import BotonResumir from "../BotonResumir";
+import Marcar from "../Marcar";
 
 export const dynamic = "force-dynamic";
-
-const FECHA = /^\d{4}-\d{2}-\d{2}$/;
-
-function leer(sp = {}) {
-  const v = (k) => (typeof sp[k] === "string" ? sp[k].trim() : "");
-  return {
-    q: v("q").slice(0, 200),
-    periodo: /^\d{4}$/.test(v("periodo")) ? v("periodo") : "",
-    estado: v("estado").slice(0, 100),
-    rubro: v("rubro").slice(0, 100),
-    proponente: v("proponente").slice(0, 100),
-    desde: FECHA.test(v("desde")) ? v("desde") : "",
-    hasta: FECHA.test(v("hasta")) ? v("hasta") : "",
-    pagina: Math.max(1, parseInt(v("p"), 10) || 1),
-  };
-}
-
-function armarWhere(f) {
-  const cond = [];
-  const params = [];
-  const p = (x) => {
-    params.push(x);
-    return `$${params.length}`;
-  };
-  if (f.periodo) cond.push(`periodo = ${p(f.periodo)}`);
-  if (f.estado) cond.push(`estado = ${p(f.estado)}`);
-  if (f.rubro) cond.push(`rubro = ${p(f.rubro)}`);
-  if (f.proponente) cond.push(`proponente = ${p(f.proponente)}`);
-  if (f.desde) cond.push(`fecha_presentacion >= ${p(f.desde)}`);
-  if (f.hasta) cond.push(`fecha_presentacion <= ${p(f.hasta)}`);
-  if (f.q) {
-    const like = p(`%${f.q}%`);
-    cond.push(`(titulo ILIKE ${like} OR autor ILIKE ${like} OR numero ILIKE ${like})`);
-  }
-  return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };
-}
 
 function enlace(f, cambios = {}) {
   const base = { ...f, ...cambios };
@@ -51,7 +18,7 @@ function enlace(f, cambios = {}) {
 }
 
 async function cargar(f) {
-  const { where, params } = armarWhere(f);
+  const { where, params } = whereProyectos(f);
   const offset = (f.pagina - 1) * POR_PAGINA;
   const [resumen, periodos, estados, rubros, proponentes, filas, total] = await Promise.all([
     consultar(`SELECT count(*)::int AS total, min(fecha_presentacion)::text AS primera, max(fecha_presentacion)::text AS ultima FROM proyectos_ley`),
@@ -83,7 +50,7 @@ function Opciones({ lista }) {
 }
 
 export default async function Proyectos({ searchParams }) {
-  const f = leer(searchParams || {});
+  const f = leerFiltrosProyectos(searchParams || {});
   let datos;
   try {
     datos = await cargar(f);
@@ -115,6 +82,7 @@ export default async function Proyectos({ searchParams }) {
         <a className="atajo" href="/">Normas legales</a>
         <a className="atajo activo" href="/proyectos">Proyectos de ley</a>
         <a className="atajo" href="/resumenes">Resúmenes diarios</a>
+        <a className="atajo" href="/buscar">Buscar en todo</a>
       </nav>
 
       <form className="filtros" method="get" action="/proyectos">
@@ -153,8 +121,19 @@ export default async function Proyectos({ searchParams }) {
       </form>
 
       <p className="resumen">
-        {total.toLocaleString("es-PE")} resultados · página {f.pagina} de {paginas.toLocaleString("es-PE")}
+        {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
       </p>
+
+      {(f.q || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta) && (
+        <BotonResumir
+          ambito="proyectos"
+          cantidad={total}
+          filtros={{
+            q: f.q, periodo: f.periodo, estado: f.estado, rubro: f.rubro,
+            proponente: f.proponente, desde: f.desde, hasta: f.hasta,
+          }}
+        />
+      )}
 
       {filas.length === 0 ? (
         <p className="vacio">No hay proyectos para esta búsqueda.</p>
@@ -170,14 +149,19 @@ export default async function Proyectos({ searchParams }) {
               <p className="sumilla">{n.titulo}</p>
               {n.autor && <p className="entidad">Autores: {n.autor}</p>}
               <div className="etiquetas">
+                <Marcar tipo="P" id={String(n.id)} etiqueta={`Proyecto ${n.numero}`} />
                 {n.estado && <span className="etq">{n.estado}</span>}
                 {n.rubro && <span className="etq gris">{n.rubro}</span>}
                 <span className="etq gris">Periodo {n.periodo}</span>
-                {urlProyecto(n) && (
-                  <span className="enlaces">
-                    <a href={urlProyecto(n)} target="_blank" rel="noopener noreferrer">Ver expediente</a>
-                  </span>
-                )}
+                <span className="enlaces">
+                  <a href={`/proyectos/similares?id=${n.id}`}>Similares</a>
+                  {urlProyecto(n) && (
+                    <>
+                      {" · "}
+                      <a href={urlProyecto(n)} target="_blank" rel="noopener noreferrer">Ver expediente</a>
+                    </>
+                  )}
+                </span>
               </div>
             </article>
           ))}

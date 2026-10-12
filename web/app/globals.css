@@ -74,6 +74,7 @@ h1 { font-size: 1.6rem; margin: 0 0 4px; }
 }
 .filtros .ancho { grid-column: 1 / -1; }
 .filtros .check { flex-direction: row; align-items: center; gap: 8px; color: var(--texto); }
+.filtros .check input { flex: none; width: 18px; height: 18px; }
 .acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; grid-column: 1 / -1; }
 .boton {
   font: inherit;
@@ -190,3 +191,54 @@ a.ia-ref:hover { border-color: var(--acento); }
 .ia-nota { color: var(--suave); font-size: 0.8rem; margin-top: 16px; }
 .ia .acciones { margin-top: 8px; }
 .ia-pendiente { color: var(--suave); font-size: 0.9rem; margin: 0 0 10px; }
+
+/* Busqueda con IA, seleccion y union de documentos */
+.ia-boton { margin: 0 0 16px; }
+.ia-boton .boton[disabled] { opacity: 0.7; cursor: progress; }
+.ia-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.marcar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--suave);
+  cursor: pointer;
+  padding: 2px 8px 2px 4px;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+}
+.marcar input { accent-color: var(--acento); margin: 0; }
+.seccion { font-size: 1.15rem; margin: 28px 0 10px; }
+.mas { margin: 10px 0 0; }
+.seleccionados { margin: 0 0 8px; padding-left: 20px; display: grid; gap: 6px; }
+.quitar {
+  font: inherit;
+  font-size: 0.8rem;
+  background: none;
+  border: none;
+  color: var(--acento);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.documento p { text-align: justify; }
+.doc-titulo { font-size: 1.2rem; margin: 0 0 8px; }
+.bandeja {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--tarjeta);
+  border-top: 2px solid var(--acento);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 16px;
+}
+.bandeja-texto { font-weight: 600; }
+.bandeja-acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bandeja-ayuda { color: var(--suave); font-size: 0.9rem; }
+body:has(.bandeja) .contenedor { padding-bottom: 140px; }

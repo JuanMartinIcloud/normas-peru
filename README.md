@@ -49,6 +49,18 @@ Requiere el secreto `GEMINI_API_KEY` (clave gratuita de Google AI Studio) en *Se
 
 La base se actualiza sola la primera vez que corre cualquier script (`asegurar_esquema` en `src/db.py`).
 
+## Consultas con IA desde la web
+
+- **Buscar en todo** (`/buscar`): una sola búsqueda en normas y proyectos de ley.
+- **Resumir con IA**: botón en `/buscar`, en la portada (con filtros) y en `/proyectos`. Resume hasta 150 resultados por grupo a partir de sumillas y títulos (`/api/ia/resumir`).
+- **Seleccionar documentos**: casilla en cada norma o proyecto (hasta 6, se guardan en el navegador). La barra inferior permite **Unir en un texto** o **Proponer proyecto unificado** (`/unir`, `/api/ia/unir`). La IA lee el texto completo de cada norma (página de El Peruano) y el PDF de cada proyecto (portal del Congreso).
+- **Similares** (`/proyectos/similares?id=`): proyectos cuyo título trata lo mismo.
+- **Descargar en Word** (`/api/word`).
+- Las respuestas de la IA se guardan en la tabla `consultas_ia` (se crea sola) para no gastar cupo en consultas repetidas.
+- `/api/ia/diagnostico` comprueba, sin gastar cupo, que Vercel tenga la clave y pueda leer El Peruano y el Congreso.
+
+Requiere la variable `GEMINI_API_KEY` también en Vercel (*Settings → Environment Variables*).
+
 ## Siguientes etapas
 
 1. Descarga de PDFs a R2 y resúmenes basados en el texto completo de cada norma.
