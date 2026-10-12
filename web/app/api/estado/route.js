@@ -20,6 +20,18 @@ export async function GET() {
               pg_size_pretty(pg_total_relation_size('normas')) AS normas,
               pg_size_pretty(pg_total_relation_size('proyectos_ley')) AS proyectos`
     );
+    try {
+      const [b] = await consultar(
+        `SELECT (SELECT count(*)::int FROM proyectos_ley WHERE sumilla_revisada) AS proyectos_con_sumilla,
+                (SELECT count(*)::int FROM normas WHERE texto_estado = 'ok') AS normas_con_texto,
+                (SELECT count(*)::int FROM normas WHERE texto_estado IN ('sin_pdf', 'sin_texto')) AS normas_sin_texto,
+                (SELECT min(fecha)::text FROM normas WHERE texto_estado = 'ok') AS texto_desde,
+                pg_size_pretty(pg_relation_size('idx_normas_texto')) AS indice_texto`
+      );
+      estado.busqueda = b;
+    } catch (e) {
+      estado.busqueda = { error: String(e.message || e) };
+    }
     const ultimo = await cargarResumen();
     estado.portada = ultimo ? { fecha: ultimo.fecha, referencias: Object.keys(ultimo.referencias).length } : null;
   } catch (e) {
