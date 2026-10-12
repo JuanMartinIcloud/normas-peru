@@ -17,11 +17,11 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Sondear
-        run: python src/probe_congreso.py
+        run: python src/congreso_muestra.py | tee sondeo_congreso_log.txt
       - name: Guardar resultado en el repositorio
         run: |
           git config user.name "JuanMartinIcloud"
           git config user.email "282369089+JuanMartinIcloud@users.noreply.github.com"
-          git add sondeo_congreso
+          cp sondeo_congreso_log.txt sondeo_congreso/log_api.txt; git add sondeo_congreso
           git commit -m "Resultado del sondeo del Congreso" || echo "sin cambios"
           git push
