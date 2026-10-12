@@ -4,7 +4,9 @@ export function consultar(texto, params = []) {
   if (!process.env.DATABASE_URL) {
     throw new Error("Falta la variable DATABASE_URL en Vercel (Settings > Environment Variables).");
   }
-  const sql = neon(process.env.DATABASE_URL);
+  // cache: "no-store" impide que Next.js guarde respuestas viejas de la base:
+  // sin esto, la pagina podia mostrar cifras de hace dias en lugar de las actuales.
+  const sql = neon(process.env.DATABASE_URL, { fetchOptions: { cache: "no-store" } });
   // Versiones nuevas del paquete usan sql.query(texto, params);
   // las 0.x aceptan sql(texto, params) directamente.
   if (typeof sql.query === "function") return sql.query(texto, params);
