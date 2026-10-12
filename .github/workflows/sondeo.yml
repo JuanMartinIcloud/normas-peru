@@ -3,6 +3,9 @@ name: Sondeo de la fuente
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   sondeo:
     runs-on: ubuntu-latest
@@ -13,8 +16,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: python src/probe.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: probe_out
-          path: probe_out/
+      - name: Sondear la fuente
+        run: python src/probe.py 2>&1 | tee probe_log.txt
+      - name: Guardar resultado en el repositorio
+        run: |
+          mkdir -p sondeo
+          cp -r probe_out/. sondeo/ || true
+          cp probe_log.txt sondeo/log.txt
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add sondeo
+          git commit -m "Resultado del sondeo" || echo "sin cambios"
+          git push
