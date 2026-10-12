@@ -30,6 +30,7 @@ export function leerFiltros(sp = {}) {
     rubro: v("rubro").slice(0, 100),
     tipo: v("tipo").slice(0, 100),
     central: v("central") === "1",
+    leyes: v("leyes") === "1",
     pagina,
   };
 }
@@ -53,6 +54,10 @@ export function construirWhere(f) {
   if (f.rubro) cond.push(`rubro = ${p(f.rubro)}`);
   if (f.tipo) cond.push(`tipo = ${p(f.tipo)}`);
   if (f.central) cond.push(`sector NOT IN ('Gobiernos Locales', 'Gobiernos Regionales')`);
+  // Leyes y normas con rango de ley: Ley, Decreto Legislativo, Decreto de Urgencia, Resolución Legislativa
+  if (f.leyes) {
+    cond.push(`tipo ~* '^(ley|decreto legislativo|decreto de urgencia|resoluci[oóÓ]n legislativa)( |$)'`);
+  }
   if (f.q) {
     const a = p(f.q);
     const b = p(`%${f.q}%`);

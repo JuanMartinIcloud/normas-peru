@@ -70,3 +70,34 @@ CREATE TABLE IF NOT EXISTS proyectos_ley (
 CREATE INDEX IF NOT EXISTS idx_proy_fecha  ON proyectos_ley (fecha_presentacion DESC);
 CREATE INDEX IF NOT EXISTS idx_proy_estado ON proyectos_ley (estado);
 CREATE INDEX IF NOT EXISTS idx_proy_rubro  ON proyectos_ley (rubro);
+
+-- ---------------------------------------------------------------------------
+-- Etapa 3: resumenes diarios con IA.
+-- Este mismo bloque lo ejecuta src/db.py automaticamente (asegurar_esquema),
+-- asi que no hace falta correrlo a mano. Se puede repetir sin riesgo.
+-- ---------------------------------------------------------------------------
+
+-- Cuando aparecio cada proyecto en la base y cuando cambio de estado por ultima vez.
+-- A los proyectos que ya existian se les pone como "aparicion" su fecha de presentacion.
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS creado_en TIMESTAMPTZ;
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS estado_cambiado_en TIMESTAMPTZ;
+UPDATE proyectos_ley
+   SET creado_en = COALESCE(fecha_presentacion::timestamp AT TIME ZONE 'America/Lima', actualizado)
+ WHERE creado_en IS NULL;
+ALTER TABLE proyectos_ley ALTER COLUMN creado_en SET DEFAULT now();
+ALTER TABLE proyectos_ley ALTER COLUMN creado_en SET NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_proy_creado        ON proyectos_ley (creado_en DESC);
+CREATE INDEX IF NOT EXISTS idx_proy_estado_cambio ON proyectos_ley (estado_cambiado_en DESC);
+
+-- Un resumen por dia de publicacion
+CREATE TABLE IF NOT EXISTS resumenes (
+    fecha          DATE PRIMARY KEY,                   -- dia que se resume (fecha de publicacion)
+    datos          JSONB       NOT NULL,               -- resumen estructurado (ver src/resumen.py)
+    modelo         TEXT,                               -- modelo de Gemini que lo escribio
+    n_normas       INTEGER     NOT NULL DEFAULT 0,
+    n_proyectos    INTEGER     NOT NULL DEFAULT 0,     -- proyectos nuevos incluidos
+    n_cambios      INTEGER     NOT NULL DEFAULT 0,     -- proyectos que cambiaron de estado
+    ventana_desde  TIMESTAMPTZ,                        -- rango usado para "proyectos nuevos" y "cambios"
+    ventana_hasta  TIMESTAMPTZ,
+    creado_en      TIMESTAMPTZ NOT NULL DEFAULT now()
+);

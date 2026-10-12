@@ -1,7 +1,7 @@
 # Normas legales del Perú → Neon
 
 Descarga las normas legales de El Peruano, las clasifica por sector y rubro y las guarda en Neon (PostgreSQL).
-Etapa 1: gobierno central. Etapa 2 (pendiente): leyes y proyectos de ley del Congreso.
+Etapa 1: normas de El Peruano. Etapa 2: proyectos de ley del Congreso (todas las cámaras y proponentes). Etapa 3: resumen diario con IA.
 
 ## Estado
 
@@ -35,11 +35,23 @@ Neon gratis tiene poco espacio (revisa el límite vigente). Aquí solo se guarda
 - Respeta los términos de uso de cada sitio. La pausa entre solicitudes está en `PAUSA_SEGUNDOS` (1,5 s por defecto).
 - La clasificación es por reglas (entidad y palabras clave). Lo que no calza queda como `Otros` o `Sin clasificar`, y se puede refinar después, con IA si quieres.
 
+## Resumen diario con IA (Gemini)
+
+Cada madrugada el flujo *Resumen diario con IA* (`.github/workflows/resumen.yml`, `src/resumen.py`):
+
+1. Vuelve a descargar las normas de ayer (recoge ediciones extraordinarias tardías) y actualiza los proyectos del Congreso.
+2. Envía a Gemini las sumillas de las normas de ayer, los proyectos de ley nuevos y los que cambiaron de estado.
+3. Guarda el resultado en la tabla `resumenes`; la portada de la web lo muestra y `/resumenes` guarda el historial.
+
+Se ejecuta a las 3:17, 5:17 y 7:17 a. m. (Lima). Los dos últimos son respaldos por si GitHub se retrasa: si el resumen ya existe, terminan sin hacer nada. Si falta algún día de la última semana, lo completa.
+
+Requiere el secreto `GEMINI_API_KEY` (clave gratuita de Google AI Studio) en *Settings → Secrets and variables → Actions*. Opcional: la variable `GEMINI_MODELOS` para cambiar los modelos (por defecto `gemini-flash-latest,gemini-3.5-flash-lite,gemini-2.5-flash`).
+
+La base se actualiza sola la primera vez que corre cualquier script (`asegurar_esquema` en `src/db.py`).
+
 ## Siguientes etapas
 
-1. Menú web en Vercel: hoy, por año, por rubro y buscador.
-2. Leyes y proyectos de ley del Congreso (tabla `proyectos_ley` ya creada).
-3. Descarga de PDFs a R2.
+1. Descarga de PDFs a R2 y resúmenes basados en el texto completo de cada norma.
 
 ## Web (Vercel)
 

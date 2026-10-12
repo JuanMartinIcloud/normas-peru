@@ -9,21 +9,27 @@ import congreso
 import db
 
 
+def actualizar(conn) -> int:
+    """Recorre todos los periodos y camaras. Con conn=None solo cuenta. Devuelve cuantos proceso."""
+    total = 0
+    for per in congreso.periodos():
+        for camara in congreso.CAMARAS:
+            vistos = 0
+            for lote, _ in congreso.paginas(per["perParId"], camara):
+                filas = [congreso.normalizar(p, camara) for p in lote]
+                vistos += len(filas)
+                if conn:
+                    total += db.upsert_proyectos(conn, filas)
+            if vistos:
+                print(f"periodo {per['desPerParAbrev']} camara {camara}: {vistos} proyectos")
+    return total
+
+
 def main():
     sin_bd = "--sin-bd" in sys.argv
     conn = None if sin_bd else db.conectar()
-    total_guardados = 0
     try:
-        for per in congreso.periodos():
-            for camara in congreso.CAMARAS:
-                vistos = 0
-                for lote, total in congreso.paginas(per["perParId"], camara):
-                    filas = [congreso.normalizar(p, camara) for p in lote]
-                    vistos += len(filas)
-                    if conn:
-                        total_guardados += db.upsert_proyectos(conn, filas)
-                if vistos:
-                    print(f"periodo {per['desPerParAbrev']} camara {camara}: {vistos} proyectos")
+        total_guardados = actualizar(conn)
     finally:
         if conn:
             conn.close()

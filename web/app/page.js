@@ -1,4 +1,6 @@
 import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA } from "../lib/db";
+import { cargarResumen, ayerLima } from "../lib/resumenes";
+import ResumenIA from "./ResumenIA";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,7 @@ function enlace(f, cambios = {}) {
     if (base[k]) qs.set(k, base[k]);
   }
   if (base.central) qs.set("central", "1");
+  if (base.leyes) qs.set("leyes", "1");
   if (base.pagina && base.pagina > 1) qs.set("p", String(base.pagina));
   const s = qs.toString();
   return s ? `/?${s}` : "/";
@@ -74,7 +77,20 @@ export default async function Pagina({ searchParams }) {
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
   const hoy = hoyLima();
   const csv = enlace(f, { pagina: 1 }).replace("/?", "/api/csv?").replace(/^\/$/, "/api/csv");
-  const hayFiltros = f.q || f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central;
+  const hayFiltros =
+    f.q || f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central || f.leyes;
+
+  // Resumen con IA: solo en la portada (sin filtros, primera pagina).
+  // Si falla, la pagina sigue funcionando sin el resumen.
+  let resumenIA = null;
+  if (!hayFiltros && f.pagina === 1) {
+    try {
+      resumenIA = await cargarResumen();
+    } catch (e) {
+      resumenIA = null;
+    }
+  }
+  const ayer = ayerLima();
 
   return (
     <main className="contenedor">
@@ -87,11 +103,27 @@ export default async function Pagina({ searchParams }) {
       <nav className="atajos" aria-label="Atajos">
         <a className={`atajo ${f.fecha === hoy ? "activo" : ""}`} href={enlace({}, { fecha: hoy })}>Hoy</a>
         <a className={`atajo ${!hayFiltros ? "activo" : ""}`} href="/">Más recientes</a>
+        <a className={`atajo ${f.leyes ? "activo" : ""}`} href={enlace(f, { leyes: !f.leyes, pagina: 1 })}>
+          Leyes y normas con rango de ley
+        </a>
         <a className={`atajo ${f.central ? "activo" : ""}`} href={enlace(f, { central: !f.central, pagina: 1 })}>
           Solo gobierno central
         </a>
+        <a className="atajo" href="/resumenes">Resúmenes diarios</a>
         <a className="atajo" href="/proyectos">Proyectos de ley →</a>
       </nav>
+
+      {!hayFiltros && f.pagina === 1 && (
+        <>
+          {(!resumenIA || resumenIA.fecha < ayer) && (
+            <p className="ia-pendiente">
+              El resumen con IA de lo publicado ayer se prepara cada madrugada y estará listo antes de las 8:00 a. m.
+              {resumenIA ? " Mientras tanto, este es el último disponible." : ""}
+            </p>
+          )}
+          {resumenIA && <ResumenIA resumen={resumenIA} />}
+        </>
+      )}
 
       {anios.length > 0 && (
         <div className="panel">
@@ -143,6 +175,10 @@ export default async function Pagina({ searchParams }) {
           <input type="checkbox" name="central" value="1" defaultChecked={f.central} />
           Solo gobierno central (excluye municipalidades y gobiernos regionales)
         </label>
+        <label className="check ancho">
+          <input type="checkbox" name="leyes" value="1" defaultChecked={f.leyes} />
+          Solo leyes y normas con rango de ley (leyes, decretos legislativos, decretos de urgencia, resoluciones legislativas)
+        </label>
         <div className="acciones">
           <button className="boton" type="submit">Buscar</button>
           <a className="boton sec" href="/">Limpiar</a>
@@ -157,7 +193,7 @@ export default async function Pagina({ searchParams }) {
       {filas.length === 0 ? (
         <p className="vacio">
           No hay normas para esta búsqueda.
-          {f.fecha === hoy && " Las de hoy se cargan cada noche a las 10:30 p. m. (hora de Lima)."}
+          {f.fecha === hoy && " Las normas del día se cargan automáticamente por la noche y se revisan de nuevo de madrugada."}
         </p>
       ) : (
         <div className="lista">

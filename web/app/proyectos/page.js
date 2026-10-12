@@ -1,4 +1,5 @@
 import { consultar, POR_PAGINA } from "../../lib/db";
+import { urlProyecto } from "../../lib/resumenes";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,7 @@ async function cargar(f) {
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM proyectos_ley WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT proponente AS valor, count(*)::int AS n FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30`),
     consultar(
-      `SELECT id, periodo, camara, numero, fecha_presentacion::text AS fecha, titulo, autor, proponente, estado, rubro
+      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, autor, proponente, estado, rubro
        FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       params
     ),
@@ -113,6 +114,7 @@ export default async function Proyectos({ searchParams }) {
       <nav className="atajos" aria-label="Secciones">
         <a className="atajo" href="/">Normas legales</a>
         <a className="atajo activo" href="/proyectos">Proyectos de ley</a>
+        <a className="atajo" href="/resumenes">Resúmenes diarios</a>
       </nav>
 
       <form className="filtros" method="get" action="/proyectos">
@@ -171,6 +173,11 @@ export default async function Proyectos({ searchParams }) {
                 {n.estado && <span className="etq">{n.estado}</span>}
                 {n.rubro && <span className="etq gris">{n.rubro}</span>}
                 <span className="etq gris">Periodo {n.periodo}</span>
+                {urlProyecto(n) && (
+                  <span className="enlaces">
+                    <a href={urlProyecto(n)} target="_blank" rel="noopener noreferrer">Ver expediente</a>
+                  </span>
+                )}
               </div>
             </article>
           ))}

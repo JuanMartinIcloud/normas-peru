@@ -2,12 +2,13 @@ name: Descarga diaria
 
 on:
   schedule:
-    # 03:30 UTC = 22:30 hora de Lima (cuando ya salio la edicion del dia)
+    # 03:30 UTC = 22:30 hora de Lima. Descarga el dia anterior y el actual
+    # (GitHub a veces la ejecuta con horas de retraso; repasar ayer evita huecos).
     - cron: "30 3 * * *"
   workflow_dispatch:
     inputs:
       fecha:
-        description: "Fecha a descargar (YYYY-MM-DD). Vacio = hoy"
+        description: "Fecha a descargar (YYYY-MM-DD). Vacio = ayer y hoy"
         required: false
         default: ""
 

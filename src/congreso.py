@@ -65,13 +65,27 @@ def paginas(per_id: int, camara: str):
             return
 
 
+PORTAL = "https://wb2server.congreso.gob.pe/spley-portal/#"
+_PREFIJO_CAMARA = {"S": "senado", "D": "diputados"}   # cualquier otra = "congreso"
+
+
+def url_expediente(periodo, camara: str, num_pley) -> str | None:
+    """Enlace a la ficha del proyecto en el portal del Congreso (mismo formato que usa el portal)."""
+    if not periodo or num_pley in (None, ""):
+        return None
+    prefijo = _PREFIJO_CAMARA.get(camara or "C", "congreso")
+    return f"{PORTAL}/{prefijo}/expediente/{periodo}/{num_pley}"
+
+
 def normalizar(p: dict, camara: str) -> dict:
     titulo = (p.get("titulo") or "").strip()
     fecha = (p.get("fecPresentacion") or "")[:10] or None
     numero = p.get("proyectoLey") or str(p.get("pleyNum"))
+    periodo = str(p.get("perParId"))
+    cam = p.get("codTipoParl") or camara
     return {
-        "periodo": str(p.get("perParId")),
-        "camara": p.get("codTipoParl") or camara,
+        "periodo": periodo,
+        "camara": cam,
         "numero": numero,
         "num_pley": p.get("pleyNum"),
         "fecha_presentacion": fecha,
@@ -80,5 +94,5 @@ def normalizar(p: dict, camara: str) -> dict:
         "proponente": p.get("desProponente"),
         "estado": p.get("desEstado"),
         "rubro": clasificar_rubro(titulo),
-        "url": None,
+        "url": url_expediente(periodo, cam, p.get("pleyNum")),
     }

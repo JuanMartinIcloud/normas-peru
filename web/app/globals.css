@@ -132,3 +132,61 @@ h1 { font-size: 1.6rem; margin: 0 0 4px; }
 }
 .panel h2 { font-size: 1rem; margin: 0 0 8px; }
 .anios { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Resumen diario con IA */
+.ia {
+  background: var(--tarjeta);
+  border: 1px solid var(--linea);
+  border-left: 4px solid var(--acento);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.ia summary {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: baseline;
+  gap: 2px 6px;
+  list-style: none;
+}
+.ia-titulo, .ia-cifras { grid-column: 2; }
+.ia summary::-webkit-details-marker { display: none; }
+.ia summary::before { content: "▸"; color: var(--acento); }
+.ia details[open] > summary::before { content: "▾"; }
+.ia-titulo { font-weight: 700; font-size: 1.1rem; }
+.ia-titulo::first-letter { text-transform: uppercase; }
+.ia-cifras { color: var(--suave); font-size: 0.85rem; }
+.ia h3 { font-size: 0.95rem; margin: 18px 0 6px; color: var(--acento); }
+.ia p { margin: 8px 0; }
+.ia-panorama { font-size: 1.02rem; }
+.ia-destacadas { display: grid; gap: 10px; }
+.ia-destacada {
+  background: var(--fondo);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.ia-destacada p { margin: 4px 0 6px; }
+.ia-puntos { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.ia-refs { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: middle; }
+.ia-ref {
+  font-size: 0.75rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--linea);
+  background: var(--fondo);
+  color: var(--acento);
+  text-decoration: none;
+  white-space: nowrap;
+}
+a.ia-ref:hover { border-color: var(--acento); }
+.ia-aviso {
+  background: var(--acento-claro);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+}
+.ia-nota { color: var(--suave); font-size: 0.8rem; margin-top: 16px; }
+.ia .acciones { margin-top: 8px; }
+.ia-pendiente { color: var(--suave); font-size: 0.9rem; margin: 0 0 10px; }
