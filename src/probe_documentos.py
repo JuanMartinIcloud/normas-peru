@@ -51,7 +51,7 @@ def main():
         with open(f"{OUT}/expediente_{periodo}_{num}.json", "w", encoding="utf-8") as f:
             json.dump(datos, f, ensure_ascii=False, indent=1)
         d = datos.get("data") or {}
-        archivos = d.get("archivos") or []
+        archivos = [a for s in (d.get("seguimientos") or []) for a in (s.get("archivos") or [])]
         print("claves de data:", list(d.keys()), "| archivos:", len(archivos))
         if archivos:
             a = archivos[0]
