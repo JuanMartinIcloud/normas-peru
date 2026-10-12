@@ -99,7 +99,7 @@ export async function POST(request) {
       pedidos.push(
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, proponente, estado
+                  titulo, sumilla, proponente, estado
            FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${LIMITE}`,
           params
         ),
@@ -133,6 +133,8 @@ export async function POST(request) {
 
     const busqueda = [
       fn.q || fp.q ? `Búsqueda: "${fn.q || fp.q}"` : "Búsqueda: sin palabra clave (documentos más recientes)",
+      fn.terminos.length ? `Términos relacionados incluidos: ${fn.terminos.join("; ")}` : "",
+      "Nota: algunas normas coinciden por su texto completo y no por su sumilla.",
       fn.desde || fn.hasta ? `Fechas: ${fn.desde || "inicio"} a ${fn.hasta || "hoy"}` : "",
     ].filter(Boolean);
     const lineas = [...busqueda, "", `NORMAS LEGALES (${normas.length} de ${tn.n}):`];
@@ -142,7 +144,10 @@ export async function POST(request) {
     if (!normas.length) lineas.push("(ninguna)");
     lineas.push("", `PROYECTOS DE LEY (${proyectos.length} de ${tp.n}):`);
     for (const p of proyectos) {
-      lineas.push(`[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${p.estado || "-"} | ${corta(p.titulo, 400)}`);
+      lineas.push(
+        `[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${p.estado || "-"} | ${corta(p.titulo, 400)}` +
+          (p.sumilla ? ` | sumilla: ${corta(p.sumilla, 400)}` : "")
+      );
     }
     if (!proyectos.length) lineas.push("(ninguno)");
 

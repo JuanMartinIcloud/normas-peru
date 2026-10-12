@@ -20,6 +20,17 @@ const ANIO = /^\d{4}$/;
 
 export const POR_PAGINA = 50;
 
+// Terminos adicionales de busqueda (los que sugiere la IA), separados por "|" en el parametro t
+export function leerTerminos(valor) {
+  const lista = typeof valor === "string" ? valor.split("|") : [];
+  const limpios = [];
+  for (const t of lista) {
+    const x = t.replace(/\s+/g, " ").trim().slice(0, 80);
+    if (x && !limpios.some((y) => y.toLowerCase() === x.toLowerCase())) limpios.push(x);
+  }
+  return limpios.slice(0, 8);
+}
+
 // Lee y limpia los filtros que vienen en la direccion de la pagina
 export function leerFiltros(sp = {}) {
   const v = (k) => (typeof sp[k] === "string" ? sp[k].trim() : "");
@@ -35,6 +46,7 @@ export function leerFiltros(sp = {}) {
     tipo: v("tipo").slice(0, 100),
     central: v("central") === "1",
     leyes: v("leyes") === "1",
+    terminos: leerTerminos(sp.t),
     pagina,
   };
 }
@@ -62,12 +74,20 @@ export function construirWhere(f) {
   if (f.leyes) {
     cond.push(`tipo ~* '^(ley|decreto legislativo|decreto de urgencia|resoluci[oóÓ]n legislativa)( |$)'`);
   }
-  if (f.q) {
-    const a = p(f.q);
-    const b = p(`%${f.q}%`);
-    cond.push(
-      `(to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')) @@ plainto_tsquery('spanish', ${a}) OR numero ILIKE ${b})`
-    );
+  // Busca en la sumilla, numero y entidad, y tambien en el texto completo de la norma
+  // (texto_tsv: disponible para las normas cuyo PDF ya se leyo)
+  const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
+  if (buscados.length) {
+    const partes = [];
+    for (const termino of buscados) {
+      const a = p(termino);
+      partes.push(
+        `to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')) @@ plainto_tsquery('spanish', ${a})`,
+        `texto_tsv @@ plainto_tsquery('spanish', ${a})`
+      );
+    }
+    if (f.q && /\d/.test(f.q)) partes.push(`numero ILIKE ${p(`%${f.q}%`)}`);
+    cond.push(`(${partes.join(" OR ")})`);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };
 }
@@ -76,4 +96,19 @@ export function hoyLima() {
   // Fecha de hoy en Lima (UTC-5), formato AAAA-MM-DD
   const d = new Date(Date.now() - 5 * 3600 * 1000);
   return d.toISOString().slice(0, 10);
+}
+
+// true si las palabras buscadas no aparecen en la sumilla (o sea, la norma salio por su texto completo
+// o por un termino sugerido). Solo sirve para mostrar una etiqueta orientativa.
+export function coincideFueraDeSumilla(texto, q) {
+  if (!q) return false;
+  const base = (s) =>
+    String(s || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase();
+  const t = base(texto);
+  const palabras = base(q).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 3);
+  if (!palabras.length) return false;
+  return !palabras.every((w) => t.includes(w.slice(0, Math.max(4, w.length - 2))));
 }

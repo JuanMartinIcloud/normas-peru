@@ -1,4 +1,4 @@
-import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA } from "../lib/db";
+import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, coincideFueraDeSumilla } from "../lib/db";
 import { cargarResumen, fechasConResumen, ayerLima } from "../lib/resumenes";
 import ResumenIA from "./ResumenIA";
 import BotonResumir from "./BotonResumir";
@@ -15,6 +15,7 @@ function enlace(f, cambios = {}) {
   }
   if (base.central) qs.set("central", "1");
   if (base.leyes) qs.set("leyes", "1");
+  if (base.terminos && base.terminos.length) qs.set("t", base.terminos.join("|"));
   if (base.pagina && base.pagina > 1) qs.set("p", String(base.pagina));
   const s = qs.toString();
   return s ? `/?${s}` : "/";
@@ -80,7 +81,8 @@ export default async function Pagina({ searchParams }) {
   const hoy = hoyLima();
   const csv = enlace(f, { pagina: 1 }).replace("/?", "/api/csv?").replace(/^\/$/, "/api/csv");
   const hayFiltros =
-    f.q || f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central || f.leyes;
+    f.q || f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central || f.leyes ||
+    f.terminos.length > 0;
 
   // Resumen con IA: solo en la portada (sin filtros, primera pagina).
   // Si falla, la pagina sigue funcionando sin el resumen.
@@ -201,6 +203,7 @@ export default async function Pagina({ searchParams }) {
           filtros={{
             q: f.q, fecha: f.fecha, desde: f.desde, hasta: f.hasta, anio: f.anio, sector: f.sector,
             rubro: f.rubro, tipo: f.tipo, central: f.central ? "1" : "", leyes: f.leyes ? "1" : "",
+            t: f.terminos.join("|"),
           }}
         />
       )}
@@ -226,6 +229,9 @@ export default async function Pagina({ searchParams }) {
                   id={String(n.id)}
                   etiqueta={`${[n.tipo, n.numero].filter(Boolean).join(" N° ")} (${n.fecha})`}
                 />
+                {coincideFueraDeSumilla(`${n.sumilla} ${n.tipo} ${n.numero} ${n.entidad}`, f.q) && (
+                  <span className="etq gris">Coincide en el texto completo o en un término relacionado</span>
+                )}
                 {n.rubro && <span className="etq">{n.rubro}</span>}
                 {n.sector && <span className="etq gris">{n.sector}</span>}
                 {n.extraordinaria && <span className="etq gris">Edición extraordinaria</span>}

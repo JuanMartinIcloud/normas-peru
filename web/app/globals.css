@@ -242,3 +242,5 @@ a.ia-ref:hover { border-color: var(--acento); }
 .bandeja-acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .bandeja-ayuda { color: var(--suave); font-size: 0.9rem; }
 body:has(.bandeja) .contenedor { padding-bottom: 140px; }
+.terminos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 12px; font-size: 0.9rem; }
+.terminos .etq { text-decoration: none; }

@@ -12,6 +12,7 @@ function enlace(f, cambios = {}) {
   for (const k of ["q", "periodo", "estado", "rubro", "proponente", "desde", "hasta"]) {
     if (base[k]) qs.set(k, base[k]);
   }
+  if (base.terminos && base.terminos.length) qs.set("t", base.terminos.join("|"));
   if (base.pagina > 1) qs.set("p", String(base.pagina));
   const s = qs.toString();
   return s ? `/proyectos?${s}` : "/proyectos";
@@ -27,7 +28,7 @@ async function cargar(f) {
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM proyectos_ley WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT proponente AS valor, count(*)::int AS n FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30`),
     consultar(
-      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, autor, proponente, estado, rubro
+      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro
        FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       params
     ),
@@ -124,13 +125,13 @@ export default async function Proyectos({ searchParams }) {
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
       </p>
 
-      {(f.q || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta) && (
+      {(f.q || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta || f.terminos.length > 0) && (
         <BotonResumir
           ambito="proyectos"
           cantidad={total}
           filtros={{
             q: f.q, periodo: f.periodo, estado: f.estado, rubro: f.rubro,
-            proponente: f.proponente, desde: f.desde, hasta: f.hasta,
+            proponente: f.proponente, desde: f.desde, hasta: f.hasta, t: f.terminos.join("|"),
           }}
         />
       )}
@@ -147,6 +148,7 @@ export default async function Proyectos({ searchParams }) {
                 <span className="fecha">{n.fecha}</span>
               </div>
               <p className="sumilla">{n.titulo}</p>
+              {n.sumilla && <p className="entidad">{n.sumilla}</p>}
               {n.autor && <p className="entidad">Autores: {n.autor}</p>}
               <div className="etiquetas">
                 <Marcar tipo="P" id={String(n.id)} etiqueta={`Proyecto ${n.numero}`} />

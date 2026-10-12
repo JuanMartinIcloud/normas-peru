@@ -1,8 +1,9 @@
-import { consultar, leerFiltros, construirWhere } from "../../lib/db";
+import { consultar, leerFiltros, construirWhere, coincideFueraDeSumilla } from "../../lib/db";
 import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
 import { urlProyecto } from "../../lib/resumenes";
 import BotonResumir from "../BotonResumir";
 import Marcar from "../Marcar";
+import BotonAmpliar from "./BotonAmpliar";
 
 export const metadata = { title: "Buscar en todo · Normas Legales del Perú" };
 
@@ -10,7 +11,7 @@ const MOSTRAR = 20;
 
 function qs(f, extra = {}) {
   const p = new URLSearchParams();
-  for (const k of ["q", "desde", "hasta"]) if (f[k]) p.set(k, f[k]);
+  for (const k of ["q", "desde", "hasta", "t"]) if (f[k]) p.set(k, f[k]);
   for (const [k, v] of Object.entries(extra)) p.set(k, v);
   const s = p.toString();
   return s ? `?${s}` : "";
@@ -18,10 +19,10 @@ function qs(f, extra = {}) {
 
 export default async function Buscar({ searchParams }) {
   const sp = searchParams || {};
-  const base = { q: sp.q, desde: sp.desde, hasta: sp.hasta };
+  const base = { q: sp.q, desde: sp.desde, hasta: sp.hasta, t: sp.t };
   const fn = leerFiltros(base);
   const fp = leerFiltrosProyectos(base);
-  const filtros = { q: fn.q, desde: fn.desde, hasta: fn.hasta };
+  const filtros = { q: fn.q, desde: fn.desde, hasta: fn.hasta, t: fn.terminos.join("|") };
   const hayBusqueda = Boolean(fn.q || fn.desde || fn.hasta);
 
   let normas = [];
@@ -42,7 +43,7 @@ export default async function Buscar({ searchParams }) {
         consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, proponente, estado
+                  titulo, sumilla, proponente, estado
            FROM proyectos_ley ${wp.where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${MOSTRAR}`,
           wp.params
         ),
@@ -100,6 +101,23 @@ export default async function Buscar({ searchParams }) {
           <p className="resumen">
             {totalN.toLocaleString("es-PE")} normas legales · {totalP.toLocaleString("es-PE")} proyectos de ley
           </p>
+          {fn.terminos.length > 0 && (
+            <p className="terminos">
+              <span>Incluye también:</span>
+              {fn.terminos.map((t) => (
+                <a
+                  key={t}
+                  className="etq"
+                  href={`/buscar${qs({ ...filtros, t: fn.terminos.filter((x) => x !== t).join("|") })}`}
+                  title="Quitar este término"
+                >
+                  {t} ✕
+                </a>
+              ))}
+              <a href={`/buscar${qs({ ...filtros, t: "" })}`}>Quitar todos</a>
+            </p>
+          )}
+          {fn.q && fn.terminos.length === 0 && <BotonAmpliar q={fn.q} desde={fn.desde} hasta={fn.hasta} />}
           <BotonResumir ambito="ambos" filtros={filtros} cantidad={totalN + totalP} />
 
           <h2 className="seccion">Normas legales</h2>
@@ -119,6 +137,9 @@ export default async function Buscar({ searchParams }) {
                     <p className="sumilla">{n.sumilla}</p>
                     <div className="etiquetas">
                       <Marcar tipo="N" id={n.id} etiqueta={`${nombre} (${n.fecha})`} />
+                      {coincideFueraDeSumilla(`${n.sumilla} ${nombre} ${n.entidad}`, fn.q) && (
+                        <span className="etq gris">Coincide en el texto completo o en un término relacionado</span>
+                      )}
                       <span className="enlaces">
                         {n.url_detalle && <a href={n.url_detalle} target="_blank" rel="noopener noreferrer">Ver</a>}
                       </span>
@@ -145,6 +166,7 @@ export default async function Buscar({ searchParams }) {
                     <span className="fecha">{p.fecha}</span>
                   </div>
                   <p className="sumilla">{p.titulo}</p>
+                  {p.sumilla && <p className="entidad">{p.sumilla}</p>}
                   <div className="etiquetas">
                     <Marcar tipo="P" id={p.id} etiqueta={`Proyecto ${p.numero}`} />
                     {p.estado && <span className="etq">{p.estado}</span>}
