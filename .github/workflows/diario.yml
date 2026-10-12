@@ -1,0 +1,27 @@
+name: Descarga diaria
+
+on:
+  schedule:
+    # 03:30 UTC = 22:30 hora de Lima (cuando ya salio la edicion del dia)
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  diario:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Descargar normas de hoy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ELPERUANO_ENDPOINT: ${{ vars.ELPERUANO_ENDPOINT }}
+          ELPERUANO_METODO: ${{ vars.ELPERUANO_METODO }}
+          ELPERUANO_PARAM_DESDE: ${{ vars.ELPERUANO_PARAM_DESDE }}
+          ELPERUANO_PARAM_HASTA: ${{ vars.ELPERUANO_PARAM_HASTA }}
+        run: python src/run_dia.py

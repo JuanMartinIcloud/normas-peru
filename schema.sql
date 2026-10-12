@@ -1,0 +1,54 @@
+-- Esquema para Neon (PostgreSQL). Ejecutar una vez: psql "$DATABASE_URL" -f schema.sql
+
+CREATE TABLE IF NOT EXISTS normas (
+    id              BIGSERIAL PRIMARY KEY,
+    fuente          TEXT        NOT NULL DEFAULT 'elperuano',
+    fecha           DATE        NOT NULL,              -- fecha de publicacion
+    tipo            TEXT,                              -- Ley, Decreto Supremo, Resolucion Ministerial...
+    numero          TEXT,                              -- ej. 012-2026-MINSA
+    entidad         TEXT,                              -- entidad emisora
+    sector          TEXT,                              -- sector normalizado (Salud, Economia...)
+    rubro           TEXT,                              -- rubro tematico
+    sumilla         TEXT,
+    url_pdf         TEXT,
+    url_detalle     TEXT,
+    extraordinaria  BOOLEAN     NOT NULL DEFAULT FALSE,
+    texto_r2_key    TEXT,                              -- ruta del texto/PDF en Cloudflare R2 (opcional)
+    hash_unico      TEXT        NOT NULL,              -- evita duplicados
+    creado_en       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT normas_hash_unico UNIQUE (hash_unico)
+);
+
+CREATE INDEX IF NOT EXISTS idx_normas_fecha  ON normas (fecha DESC);
+CREATE INDEX IF NOT EXISTS idx_normas_tipo   ON normas (tipo);
+CREATE INDEX IF NOT EXISTS idx_normas_sector ON normas (sector);
+CREATE INDEX IF NOT EXISTS idx_normas_rubro  ON normas (rubro);
+
+-- Buscador de texto en espanol sobre sumilla, numero y entidad
+CREATE INDEX IF NOT EXISTS idx_normas_busqueda ON normas
+    USING GIN (to_tsvector('spanish',
+        coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')));
+
+-- Punto de control: que dias ya se descargaron (permite reanudar el historico)
+CREATE TABLE IF NOT EXISTS descargas (
+    fecha       DATE PRIMARY KEY,
+    estado      TEXT        NOT NULL,                  -- ok | vacio | error
+    cantidad    INTEGER     NOT NULL DEFAULT 0,
+    detalle     TEXT,
+    actualizado TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Para la segunda etapa: proyectos de ley del Congreso
+CREATE TABLE IF NOT EXISTS proyectos_ley (
+    id            BIGSERIAL PRIMARY KEY,
+    periodo       TEXT,
+    numero        TEXT NOT NULL,
+    fecha_presentacion DATE,
+    titulo        TEXT,
+    autor         TEXT,
+    comision      TEXT,
+    estado        TEXT,
+    rubro         TEXT,
+    url           TEXT,
+    UNIQUE (periodo, numero)
+);
