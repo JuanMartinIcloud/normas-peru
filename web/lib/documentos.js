@@ -1,7 +1,6 @@
 import { createCipheriv } from "node:crypto";
-import { parse } from "node-html-parser";
 
-// Obtiene el texto completo de una norma (pagina de El Peruano) y el PDF de un proyecto de ley (Congreso)
+// Obtiene el PDF oficial de una norma (El Peruano) y el de un proyecto de ley (Congreso)
 
 const AGENTE = "Mozilla/5.0 (compatible; normas-peru/0.2; consulta de documentos publicos)";
 const API_CONGRESO = "https://api.congreso.gob.pe/spley-portal-service";
@@ -21,21 +20,26 @@ async function pedir(url, opciones = {}, segundos = 60) {
 
 // ---------------------------------------------------------------- El Peruano
 
-// Devuelve el texto completo de la norma, o "" si no se pudo leer
-export async function textoNorma(norma) {
-  const url = norma.url_detalle;
-  if (!url || !/^https:\/\/[a-z0-9.-]*elperuano\.pe\//i.test(url)) return "";
-  const r = await pedir(url, { headers: { "User-Agent": AGENTE, Accept: "text/html" } });
+const EPDOC = "https://epdoc2.elperuano.pe/EpPo/VistaDE.asp";
+
+// Codigo de la norma (ej. "2562861-1"), tomado de su direccion en El Peruano
+export function codigoNorma(norma) {
+  const m = /\/dispositivo\/[A-Z]+\/(\d+-\d+)/.exec(norma.url_detalle || "");
+  return m ? m[1] : null;
+}
+
+// PDF oficial de la norma (servicio de documentos de El Peruano). Devuelve { pdf, nombre } o null
+export async function pdfNorma(norma) {
+  const codigo = codigoNorma(norma);
+  const fecha = String(norma.fecha || "").replace(/-/g, "");
+  if (!codigo || !/^\d{8}$/.test(fecha)) return null;
+  const ref = Buffer.from(`${codigo}${fecha}`).toString("base64");
+  const r = await pedir(`${EPDOC}?Referencias=${encodeURIComponent(ref)}`, { headers: { "User-Agent": AGENTE } }, 90);
   if (!r.ok) throw new Error(`El Peruano respondió HTTP ${r.status}`);
-  const raiz = parse(await r.text());
-  const cuerpo = raiz.querySelector("div.story") || raiz.querySelector("article");
-  if (!cuerpo) return "";
-  // Un parrafo por linea, sin espacios repetidos
-  const bloques = cuerpo.querySelectorAll("p, h1, h2, h3, h4, li, td");
-  const lineas = (bloques.length ? bloques : [cuerpo])
-    .map((b) => b.text.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
-  return lineas.join("\n").slice(0, 300000);
+  const pdf = Buffer.from(await r.arrayBuffer());
+  if (pdf.subarray(0, 4).toString("latin1") !== "%PDF") throw new Error("El Peruano no devolvió un PDF");
+  if (pdf.length > MAX_PDF) throw new Error("El PDF de la norma es demasiado grande (más de 45 MB)");
+  return { pdf, nombre: `${[norma.tipo, norma.numero].filter(Boolean).join(" ")}.pdf` };
 }
 
 // ---------------------------------------------------------------- Congreso

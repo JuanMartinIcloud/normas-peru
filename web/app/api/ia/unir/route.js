@@ -1,7 +1,7 @@
 import { consultar } from "../../../../lib/db";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, partePDF, ErrorIA } from "../../../../lib/gemini";
-import { textoNorma, documentoProyecto } from "../../../../lib/documentos";
+import { pdfNorma, documentoProyecto } from "../../../../lib/documentos";
 import { claveDe, buscarGuardada, guardarConsulta } from "../../../../lib/consultasIA";
 
 export const dynamic = "force-dynamic";
@@ -125,8 +125,8 @@ export async function POST(request) {
       docs.map(async (d) => {
         try {
           if (d.t === "N") {
-            const texto = await textoNorma(d.fila);
-            return texto ? { texto } : { aviso: "El Peruano no mostró el texto completo; se usó la sumilla." };
+            const doc = await pdfNorma(d.fila);
+            return doc ? { pdf: doc.pdf, nombre: doc.nombre } : { aviso: "La norma no tiene PDF en El Peruano; se usó la sumilla." };
           }
           const doc = await documentoProyecto(d.fila);
           if (doc.pdf) return { pdf: doc.pdf, nombre: doc.nombre, sumilla: doc.sumilla };
