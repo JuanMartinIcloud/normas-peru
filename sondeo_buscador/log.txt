@@ -1,5 +1,6 @@
-/ 404 721
-/dispositivo/NL/2562861-1 404 721
-/?s=violencia%20psicologica 404 721
-scripts: []
-0 rutas encontradas
+https://busquedas.elperuano.pe/dispositivo/NL/2562861-1 -> 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+https://busquedas.elperuano.pe/dispositivo/NL/2562861-1/pdf -> 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+https://busquedas.elperuano.pe/cuadernillo/NL/20261009 -> 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjU2MjcxMS0xMjAyNjEwMDk= -> 200 application/pdf; Charset=UTF-8 1339839 b'%PDF-1.7\n%\xc7\xec\x8f\xa2\n97 0 obj\n<</Linearized 1/L 1294211/H[ 312839 '
+https://diariooficial.elperuano.pe/Normas -> 200 text/html; charset=utf-8 22786 b'<!DOCTYPE html>\r\n<!--[if lt IE 7]>      <html class="no-js l'
+https://busquedas.elperuano.pe/ -> 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
