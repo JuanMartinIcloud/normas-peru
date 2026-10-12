@@ -1,0 +1,29 @@
+name: Sondeo del buscador de El Peruano
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sondeo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Sondear
+        run: python src/probe_buscador.py 2>&1 | tee sondeo_buscador_log.txt
+      - name: Guardar resultado en el repositorio
+        run: |
+          mkdir -p sondeo_buscador
+          cp sondeo_buscador_log.txt sondeo_buscador/log.txt
+          git config user.name "JuanMartinIcloud"
+          git config user.email "282369089+JuanMartinIcloud@users.noreply.github.com"
+          git add sondeo_buscador
+          git commit -m "Resultado del sondeo del buscador" || echo "sin cambios"
+          git push
