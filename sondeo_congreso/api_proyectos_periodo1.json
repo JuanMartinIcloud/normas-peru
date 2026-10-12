@@ -1,0 +1,75 @@
+{
+ "code": 200,
+ "status": "success",
+ "data": {
+  "proyectos": [
+   {
+    "perParId": 2021,
+    "pleyNum": 14864,
+    "proyectoLey": "14864/2025-CR",
+    "desEstado": "PRESENTADO",
+    "fecPresentacion": "2026-07-22T00:00:00.000-05:00",
+    "titulo": "PROYECTO DE LEY QUE RESTITUYE LA COMPETENCIA DE LA JURISDICCIÓN ORDINARIA SOBRE LOS PROCESOS PENALES SEGUIDOS CONTRA MILITARES Y POLICÍAS",
+    "desProponente": "Congreso",
+    "autores": "Luque Ibarra, Ruth; Bazán Narro, Sigrid Tesoro; Paredes Piqué, Susel Ana María",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 14864
+   },
+   {
+    "perParId": 2021,
+    "pleyNum": 14863,
+    "proyectoLey": "14863/2025-PE",
+    "desEstado": "PRESENTADO",
+    "fecPresentacion": "2026-07-20T00:00:00.000-05:00",
+    "titulo": "PROYECTO DE LEY QUE MODIFICA LA LEY N.° 27943, LEY DEL SISTEMA PORTUARIO NACIONAL, A FIN DE OTORGAR LA FACULTAD DE EJECUCIÓN COACTIVA A LA AUTORIDAD PORTUARIA NACIONAL",
+    "desProponente": "PODER EJECUTIVO",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 14864
+   },
+   {
+    "perParId": 2021,
+    "pleyNum": 14862,
+    "proyectoLey": "14862/2025-PE",
+    "desEstado": "PRESENTADO",
+    "fecPresentacion": "2026-07-17T00:00:00.000-05:00",
+    "titulo": "PROYECTO DE LEY DE CREACIÓN DEL DISTRITO DE WINCHINKIM EN LA PROVINCIA DE CONDORCANQUI DEL DEPARTAMENTO DE AMAZONAS",
+    "desProponente": "PODER EJECUTIVO",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 14864
+   },
+   {
+    "perParId": 2021,
+    "pleyNum": 14861,
+    "proyectoLey": "14861/2025-GR",
+    "desEstado": "PRESENTADO",
+    "fecPresentacion": "2026-07-16T00:00:00.000-05:00",
+    "titulo": "PROYECTO DE LEY QUE DISPONE LA EXPROPIACIÓN DE LOS LOTES 17, 18 Y 19 EMPLAZADOS EN LA MANZANA 70, UBICADOS EN EL DISTRITO DE HUAMACHUCO, PROVINCIA DE SÁNCHEZ CARRIÓN, REGIÓN LA LIBERTAD, QUE FORMAN PARTE DE LA CASA DONDE NACIÓ EL PRÓCER DE LA INDEPENDENCIA Y TRIBUNO DE LA REPÚBLICA DOCTOR JOSÉ FAUSTINO SÁNCHEZ CARRIÓN.",
+    "desProponente": "Gobiernos Regionales",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 14864
+   },
+   {
+    "perParId": 2021,
+    "pleyNum": 14860,
+    "proyectoLey": "14860/2025-CR",
+    "desEstado": "EN COMISIÓN",
+    "fecPresentacion": "2026-07-13T00:00:00.000-05:00",
+    "titulo": "PROYECTO DE LEY QUE DECLARA DE INTERÉS NACIONAL Y NECESIDAD PÚBLICA LA CREACIÓN DEL DISTRITO DE TACA, UBICADO EN EL DISTRITO DE CANARIA DE LA PROVINCIA DE VÍCTOR FAJARDO DEL DEPARTAMENTO DE AYACUCHO",
+    "desProponente": "Congreso",
+    "autores": "Palacios Huamán, Margot",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 14864
+   }
+  ],
+  "rowsTotal": 14864
+ },
+ "timestamp": "2026-10-11T23:04:51.486-05:00"
+}

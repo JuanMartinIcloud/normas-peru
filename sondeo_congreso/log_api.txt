@@ -1,0 +1,8 @@
+periodos: HTTP 200 1444 bytes
+cantidad de periodos: 2
+   {'perParId': 2026, 'desPerParAbrev': '2026-2031'}
+   {'perParId': 2021, 'desPerParAbrev': '2021-2026'}
+proyectos periodo 2026: HTTP 200, 2512 bytes
+   rowsTotal: 6 | proyectos devueltos: 5
+proyectos periodo 2021: HTTP 200, 2436 bytes
+   rowsTotal: 14864 | proyectos devueltos: 5

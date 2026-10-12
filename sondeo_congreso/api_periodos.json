@@ -1,0 +1,81 @@
+{
+ "code": 200,
+ "status": "success",
+ "data": [
+  {
+   "perParId": 2026,
+   "desPerPar": "Periodo Parlamentario 2026 - 2031",
+   "desPerParAbrev": "2026-2031",
+   "fecIni": "2026-07-27 00:00:00.0",
+   "fecFin": "2031-07-26 00:00:00.0",
+   "activo": true,
+   "periodosLegislativos": [
+    {
+     "perParId": 2026,
+     "perLegId": 2026,
+     "desPerLeg": "2026 - 2027",
+     "desPerLegAbrev": "2026",
+     "fecIni": "2026-07-27T00:00:00",
+     "fecFin": "2027-07-26T00:00:00",
+     "activo": true
+    }
+   ]
+  },
+  {
+   "perParId": 2021,
+   "desPerPar": "Periodo Parlamentario 2021 - 2026",
+   "desPerParAbrev": "2021-2026",
+   "fecIni": "2021-07-22 00:00:00.0",
+   "fecFin": "2026-07-26 00:00:00.0",
+   "activo": true,
+   "periodosLegislativos": [
+    {
+     "perParId": 2021,
+     "perLegId": 2021,
+     "desPerLeg": "2021 - 2022",
+     "desPerLegAbrev": "2021",
+     "fecIni": "2021-07-27T00:00:00",
+     "fecFin": "2022-07-26T00:00:00",
+     "activo": true
+    },
+    {
+     "perParId": 2021,
+     "perLegId": 2022,
+     "desPerLeg": "2022 - 2023",
+     "desPerLegAbrev": "2022",
+     "fecIni": "2022-07-27T00:00:00",
+     "fecFin": "2023-07-26T00:00:00",
+     "activo": true
+    },
+    {
+     "perParId": 2021,
+     "perLegId": 2023,
+     "desPerLeg": "2023 - 2024",
+     "desPerLegAbrev": "2023",
+     "fecIni": "2023-07-27T00:00:00",
+     "fecFin": "2024-07-26T00:00:00",
+     "activo": true
+    },
+    {
+     "perParId": 2021,
+     "perLegId": 2024,
+     "desPerLeg": "2024 - 2025",
+     "desPerLegAbrev": "2024",
+     "fecIni": "2024-07-27T00:00:00",
+     "fecFin": "2025-07-26T00:00:00",
+     "activo": true
+    },
+    {
+     "perParId": 2021,
+     "perLegId": 2025,
+     "desPerLeg": "2025 - 2026",
+     "desPerLegAbrev": "2025",
+     "fecIni": "2025-07-27T00:00:00",
+     "fecFin": "2026-07-26T00:00:00",
+     "activo": true
+    }
+   ]
+  }
+ ],
+ "timestamp": "2026-10-11T23:04:50.594-05:00"
+}

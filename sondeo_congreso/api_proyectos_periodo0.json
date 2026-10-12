@@ -1,0 +1,75 @@
+{
+ "code": 200,
+ "status": "success",
+ "data": {
+  "proyectos": [
+   {
+    "perParId": 2026,
+    "pleyNum": 6,
+    "proyectoLey": "00006-2026-2031-CR",
+    "desEstado": "EN COMISIÓN",
+    "fecPresentacion": "2026-10-02T00:00:00.000-05:00",
+    "titulo": "PROPOSICIÓN DE LEY QUE EXONERA AL PODER JUDICIAL DE LO DISPUESTO EN LOS ARTÍCULOS 6, 8 Y 9 DE LA LEY 32513, LEY DE PRESUPUESTO PARA EL AÑO FISCAL 2026, ASÍ COMO DE LAS DISPOSICIONES EQUIVALENTES QUE SE ESTABLEZCAN EN LAS LEYES DE PRESUPUESTO DE LOS AÑOS SUBSIGUIENTES, HASTA CULMINAR SU IMPLEMENTACIÓN, PARA DAR CUMPLIMIENTO DE LA LEY 32504, “LEY QUE INCORPORA A LOS TRABAJADORES DEL PODER JUDICIAL CONTRATADOS A PLAZO INDETERMINADO BAJO EL RÉGIMEN LABORAL DEL DECRETO LEGISLATIVO 1057, DECRETO LEGISLATIVO QUE REGULA EL RÉGIMEN ESPECIAL DE CONTRATACIÓN ADMINISTRATIVA DE SERVICIOS, EN EL RÉGIMEN LABORAL DEL DECRETO LEGISLATIVO 728, LEY DE FOMENTO DEL EMPLEO”",
+    "desProponente": "Poder Judicial",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 6
+   },
+   {
+    "perParId": 2026,
+    "pleyNum": 5,
+    "proyectoLey": "00005-2026-2031-CR",
+    "desEstado": "EN COMISIÓN",
+    "fecPresentacion": "2026-09-30T00:00:00.000-05:00",
+    "titulo": "LEY QUE APRUEBA CRÉDITOS SUPLEMENTARIOS PARA EL FINANCIAMIENTO DE ACCIONES FRENTE AL FENÓMENO EL NIÑO 2026-2027, IMPULSO DE LA INFRAESTRUCTURA, EL FORTALECIMIENTO DE LA SEGURIDAD CIUDADANA, SALUD, EDUCACIÓN Y OTROS SERVICIOS Y OBLIGACIONES ESENCIALES",
+    "desProponente": "PODER EJECUTIVO",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 6
+   },
+   {
+    "perParId": 2026,
+    "pleyNum": 4,
+    "proyectoLey": "00004-2026-2031-CR",
+    "desEstado": "EN COMISIÓN",
+    "fecPresentacion": "2026-08-28T00:00:00.000-05:00",
+    "titulo": "LEY DE ENDEUDAMIENTO DEL SECTOR PÚBLICO PARA EL AÑO FISCAL 2027",
+    "desProponente": "PODER EJECUTIVO",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 6
+   },
+   {
+    "perParId": 2026,
+    "pleyNum": 3,
+    "proyectoLey": "00003-2026-2031-CR",
+    "desEstado": "EN COMISIÓN",
+    "fecPresentacion": "2026-08-28T00:00:00.000-05:00",
+    "titulo": "LEY DE EQUILIBRIO FINANCIERO DEL PRESUPUESTO DEL SECTOR PÚBLICO PARA EL AÑO FISCAL 2027",
+    "desProponente": "PODER EJECUTIVO",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 6
+   },
+   {
+    "perParId": 2026,
+    "pleyNum": 2,
+    "proyectoLey": "00002-2026-2031-CR",
+    "desEstado": "EN COMISIÓN",
+    "fecPresentacion": "2026-08-28T00:00:00.000-05:00",
+    "titulo": "LEY DE PRESUPUESTO DEL SECTOR PÚBLICO PARA EL AÑO FISCAL 2027",
+    "desProponente": "PODER EJECUTIVO",
+    "autores": "",
+    "codTipoParl": "C",
+    "codTipoParlActual": "C",
+    "rowsTotal": 6
+   }
+  ],
+  "rowsTotal": 6
+ },
+ "timestamp": "2026-10-11T23:04:50.964-05:00"
+}
