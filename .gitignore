@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 probe_out/
 .env
+node_modules/
+.next/
+.env*.local

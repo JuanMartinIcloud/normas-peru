@@ -40,3 +40,12 @@ Neon gratis tiene poco espacio (revisa el límite vigente). Aquí solo se guarda
 1. Menú web en Vercel: hoy, por año, por rubro y buscador.
 2. Leyes y proyectos de ley del Congreso (tabla `proyectos_ley` ya creada).
 3. Descarga de PDFs a R2.
+
+## Web (Vercel)
+
+La carpeta `web/` es una página Next.js que lee la base de Neon: atajo "Hoy", año, rubro, sector, tipo, fechas, buscador y descarga CSV para Excel.
+
+1. En Vercel: *Add New > Project*, importar este repositorio.
+2. En *Root Directory* elegir `web`.
+3. En *Environment Variables* agregar `DATABASE_URL` con la misma cadena de Neon.
+4. *Deploy*.
