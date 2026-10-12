@@ -38,7 +38,8 @@ CABECERAS_CONGRESO = {
 EPDOC = "https://epdoc2.elperuano.pe/EpPo/VistaDE.asp"
 PAUSA_CONGRESO = 0.5
 PAUSA_PERUANO = 1.5
-MAX_TEXTO = 400_000          # caracteres por norma que se indexan
+MAX_TEXTO = 60_000           # caracteres por norma que se leen (los anexos largos se omiten)
+MAX_PALABRAS = 200           # palabras distintas que se guardan por norma (las mas repetidas)
 MAX_ERRORES_SEGUIDOS = 15    # si la fuente falla tanto, se deja para la proxima ejecucion
 
 _s = requests.Session()
@@ -136,6 +137,16 @@ def pdf_norma(url_detalle: str, fecha) -> bytes | None:
 
 def cargar_textos(conn, dias: int, hasta: float) -> int:
     with conn.cursor() as cur:
+        # Normas guardadas con mas palabras que el limite actual: se vuelven a procesar
+        cur.execute(
+            """UPDATE normas SET texto_estado = NULL, texto_tsv = NULL
+               WHERE texto_tsv IS NOT NULL AND length(texto_tsv) > %s""",
+            (MAX_PALABRAS,),
+        )
+        if cur.rowcount:
+            print(f"{cur.rowcount} normas se volveran a procesar con el limite de {MAX_PALABRAS} palabras")
+    conn.commit()
+    with conn.cursor() as cur:
         cur.execute(
             """SELECT id, fecha, url_detalle FROM normas
                WHERE texto_estado IS NULL AND url_detalle IS NOT NULL
@@ -170,11 +181,17 @@ def cargar_textos(conn, dias: int, hasta: float) -> int:
                 texto = ""
             estado = "ok" if len(texto.strip()) >= 200 else "sin_texto"
         with conn.cursor() as cur:
+            # Solo se guardan las palabras mas repetidas de la norma: bastan para encontrarla
+            # por su tema y ocupan una fraccion del espacio (la base gratuita es pequeña)
             cur.execute(
-                """UPDATE normas SET texto_estado = %s,
-                          texto_tsv = CASE WHEN %s = '' THEN NULL ELSE strip(to_tsvector('spanish', %s)) END
-                   WHERE id = %s""",
-                (estado, texto, texto, nid),
+                """UPDATE normas SET texto_estado = %(estado)s,
+                          texto_tsv = (SELECT array_to_tsvector(array_agg(lexeme))
+                                       FROM (SELECT lexeme FROM unnest(to_tsvector('spanish', %(texto)s))
+                                             WHERE length(lexeme) > 2
+                                             ORDER BY coalesce(array_length(positions, 1), 0) DESC, lexeme
+                                             LIMIT %(max)s) t)
+                   WHERE id = %(id)s""",
+                {"estado": estado, "texto": texto, "max": MAX_PALABRAS, "id": nid},
             )
         conn.commit()
         hechos += 1
