@@ -1,46 +1,30 @@
-"""Sondeo del buscador de texto completo de busquedas.elperuano.pe: guarda su codigo y rutas de datos."""
+"""Sondeo: que direcciones de El Peruano responden y con que tipo de contenido."""
 import os
-import re
 
 import requests
 
-BASE = "https://busquedas.elperuano.pe"
 OUT = "sondeo_buscador"
 UA = {"User-Agent": "Mozilla/5.0 (compatible; normas-peru-research/0.1)"}
+URLS = [
+    "https://busquedas.elperuano.pe/dispositivo/NL/2562861-1",
+    "https://busquedas.elperuano.pe/dispositivo/NL/2562861-1/pdf",
+    "https://busquedas.elperuano.pe/cuadernillo/NL/20261009",
+    "https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjU2MjcxMS0xMjAyNjEwMDk=",
+    "https://diariooficial.elperuano.pe/Normas",
+    "https://busquedas.elperuano.pe/",
+]
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    paginas = {}
-    for ruta in ["/", "/dispositivo/NL/2562861-1", "/?s=violencia%20psicologica"]:
-        r = requests.get(BASE + ruta, headers=UA, timeout=60)
-        print(ruta, r.status_code, len(r.text))
-        paginas[ruta] = r.text
-    with open(f"{OUT}/inicio.html", "w", encoding="utf-8") as f:
-        f.write(paginas["/"])
-    scripts = set()
-    for html in paginas.values():
-        scripts |= set(re.findall(r'(?:src|href)="(/assets/[^"]+\.js)"', html))
-    print("scripts:", sorted(scripts))
-    rutas = set()
-    for s in sorted(scripts):
-        js = requests.get(BASE + s, headers=UA, timeout=60).text
-        nombre = s.split("/")[-1]
-        with open(f"{OUT}/{nombre}", "w", encoding="utf-8") as f:
-            f.write(js)
-        for m in re.findall(r'["`\'](/?(?:api|Api|API)[^"`\']{0,120}|https?://[^"`\' ]{4,150})["`\']', js):
-            rutas.add(m)
-        # importaciones dinamicas de otros trozos de codigo
-        for m in re.findall(r'"\./([A-Za-z0-9_.-]+\.js)"', js):
-            sub = requests.get(f"{BASE}/assets/{m}", headers=UA, timeout=60)
-            if sub.ok:
-                with open(f"{OUT}/{m}", "w", encoding="utf-8") as f:
-                    f.write(sub.text)
-                for mm in re.findall(r'["`\'](/?(?:api|Api|API)[^"`\']{0,120}|https?://[^"`\' ]{4,150})["`\']', sub.text):
-                    rutas.add(mm)
-    with open(f"{OUT}/rutas.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(sorted(rutas)))
-    print(len(rutas), "rutas encontradas")
+    for i, u in enumerate(URLS):
+        try:
+            r = requests.get(u, headers=UA, timeout=60)
+            print(u, "->", r.status_code, r.headers.get("content-type"), len(r.content), r.content[:60])
+            with open(f"{OUT}/respuesta_{i}.bin", "wb") as f:
+                f.write(r.content[:300000])
+        except requests.RequestException as e:
+            print(u, "-> ERROR", e)
 
 
 if __name__ == "__main__":
