@@ -1,0 +1,31 @@
+name: Crear tablas
+
+on:
+  workflow_dispatch:
+
+jobs:
+  crear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install psycopg2-binary
+      - name: Ejecutar schema.sql en Neon
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python - <<'PY'
+          import os, psycopg2
+          url = os.environ.get("DATABASE_URL", "")
+          if not url:
+              raise SystemExit("Falta el secreto DATABASE_URL en Settings > Secrets and variables > Actions")
+          conn = psycopg2.connect(url)
+          with conn, conn.cursor() as cur:
+              cur.execute(open("schema.sql", encoding="utf-8").read())
+              cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY 1")
+              print("Tablas en la base:", [r[0] for r in cur.fetchall()])
+          conn.close()
+          PY
