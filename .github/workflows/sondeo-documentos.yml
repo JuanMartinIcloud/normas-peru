@@ -1,0 +1,29 @@
+name: Sondeo de documentos completos
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sondeo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests cryptography
+      - name: Sondear
+        run: python src/probe_documentos.py 2>&1 | tee sondeo_documentos_log.txt
+      - name: Guardar resultado en el repositorio
+        run: |
+          mkdir -p sondeo_documentos
+          cp sondeo_documentos_log.txt sondeo_documentos/log.txt
+          git config user.name "JuanMartinIcloud"
+          git config user.email "282369089+JuanMartinIcloud@users.noreply.github.com"
+          git add sondeo_documentos
+          git commit -m "Resultado del sondeo de documentos" || echo "sin cambios"
+          git push
