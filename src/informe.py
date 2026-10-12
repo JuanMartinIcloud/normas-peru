@@ -44,6 +44,23 @@ def main():
 
     cur.execute("SELECT count(*) FROM proyectos_ley")
     aviso("proyectos_ley_total", cur.fetchone()[0])
+
+    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY 1")
+    aviso("tablas", ", ".join(r[0] for r in cur.fetchall()))
+
+    cur.execute(
+        """SELECT column_name, data_type FROM information_schema.columns
+           WHERE table_schema='public' AND table_name='proyectos_ley' ORDER BY ordinal_position"""
+    )
+    aviso("columnas_proyectos_ley", ", ".join(f"{c}({t})" for c, t in cur.fetchall()))
+
+    cur.execute("SELECT * FROM proyectos_ley ORDER BY 1 DESC LIMIT 2")
+    nombres = [d[0] for d in cur.description]
+    for fila in cur.fetchall():
+        aviso("muestra_proyecto", "; ".join(f"{n}={str(v)[:70]}" for n, v in zip(nombres, fila)))
+
+    cur.execute("SELECT periodo, count(*) FROM proyectos_ley GROUP BY 1 ORDER BY 1")
+    aviso("proyectos_por_periodo", "; ".join(f"{p}:{n}" for p, n in cur.fetchall()))
     conn.close()
 
 
