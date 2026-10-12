@@ -15,7 +15,7 @@ def insertar_normas(conn, filas: list[dict]) -> int:
     if not filas:
         return 0
     cols = ["fecha", "tipo", "numero", "entidad", "sector", "rubro",
-            "sumilla", "url_pdf", "extraordinaria", "hash_unico"]
+            "sumilla", "url_pdf", "url_detalle", "extraordinaria", "hash_unico"]
     valores = [[f[c] for c in cols] for f in filas]
     with conn.cursor() as cur:
         execute_values(

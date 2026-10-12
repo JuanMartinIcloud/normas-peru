@@ -1,6 +1,6 @@
-"""Cliente de El Peruano: descarga y normaliza las normas legales de un rango de fechas."""
+"""Cliente de El Peruano: descarga y normaliza las normas legales de un dia."""
 import hashlib
-import json
+import re
 import time
 from datetime import date
 
@@ -11,77 +11,63 @@ import config
 from classifier import clasificar
 
 _sesion = requests.Session()
-_sesion.headers.update({"User-Agent": config.USER_AGENT, "Accept": "application/json, text/html, */*"})
+_sesion.headers.update({
+    "User-Agent": config.USER_AGENT,
+    "X-Requested-With": "XMLHttpRequest",
+})
 
 
-def _pedir(desde: date, hasta: date) -> requests.Response:
-    params = {
-        config.PARAM_DESDE: desde.strftime(config.FORMATO_FECHA),
-        config.PARAM_HASTA: hasta.strftime(config.FORMATO_FECHA),
+def _pedir(desde: date, hasta: date) -> str:
+    datos = {
+        "cddesde": desde.strftime(config.FORMATO_FECHA),
+        "cdhasta": hasta.strftime(config.FORMATO_FECHA),
     }
     ultimo_error = None
     for intento in range(1, config.REINTENTOS + 1):
         try:
-            if config.METODO == "GET":
-                r = _sesion.get(config.ENDPOINT, params=params, timeout=config.TIMEOUT)
-            else:
-                r = _sesion.post(config.ENDPOINT, data=params, timeout=config.TIMEOUT)
+            r = _sesion.post(config.ENDPOINT, data=datos, timeout=config.TIMEOUT)
             if r.status_code in (429, 500, 502, 503, 504):
                 raise requests.HTTPError(f"HTTP {r.status_code}")
             r.raise_for_status()
-            return r
+            return r.text
         except requests.RequestException as e:
             ultimo_error = e
             time.sleep(min(60, config.PAUSA_SEGUNDOS * (2 ** intento)))
     raise RuntimeError(f"Fallo tras {config.REINTENTOS} intentos: {ultimo_error}")
 
 
-def _campo(item: dict, clave: str):
-    for nombre in config.CAMPOS[clave]:
-        if nombre in item and item[nombre] not in (None, ""):
-            return item[nombre]
-    return None
+def _separar_titulo(titulo: str) -> tuple[str, str]:
+    """'RESOLUCION N° 505-2026-CG' -> ('RESOLUCION', '505-2026-CG')."""
+    titulo = re.sub(r"\s+", " ", titulo).strip()
+    m = re.match(r"^(.*?)\s*N[°ºo]\.?\s*(.+)$", titulo, flags=re.I)
+    if m:
+        return m.group(1).strip().title(), m.group(2).strip()
+    return titulo.title(), ""
 
 
-def _desde_json(datos, fecha: date) -> list[dict]:
-    if isinstance(datos, dict):
-        for k in ("data", "Data", "normas", "Normas", "result", "items"):
-            if isinstance(datos.get(k), list):
-                datos = datos[k]
-                break
-        else:
-            datos = []
-    filas = []
-    for it in datos:
-        if not isinstance(it, dict):
-            continue
-        filas.append({
-            "tipo": _campo(it, "tipo"),
-            "numero": _campo(it, "numero"),
-            "entidad": _campo(it, "entidad"),
-            "sumilla": _campo(it, "sumilla"),
-            "url_pdf": _campo(it, "url_pdf"),
-            "extraordinaria": bool(_campo(it, "extraordinaria")),
-        })
-    return filas
-
-
-def _desde_html(html: str) -> list[dict]:
-    """Respaldo si el endpoint devuelve HTML en vez de JSON (selectores a ajustar tras el sondeo)."""
+def parsear(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
     filas = []
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if ".pdf" not in href.lower():
+    for art in soup.find_all("article"):
+        h4 = art.find("h4")
+        h5 = art.find("h5")
+        if not h5:
             continue
-        contenedor = a.find_parent(["li", "tr", "div"]) or a
+        enlace = h5.find("a")
+        titulo = h5.get_text(" ", strip=True)
+        tipo, numero = _separar_titulo(titulo)
+        url_detalle = enlace["href"] if enlace and enlace.has_attr("href") else None
+        texto = art.find("div", class_="ediciones_texto")
+        parrafos = texto.find_all("p") if texto else []
+        sumilla = parrafos[-1].get_text(" ", strip=True) if parrafos else ""
         filas.append({
-            "tipo": None,
-            "numero": a.get_text(strip=True) or None,
-            "entidad": None,
-            "sumilla": contenedor.get_text(" ", strip=True),
-            "url_pdf": href if href.startswith("http") else config.BASE_URL + "/" + href.lstrip("/"),
-            "extraordinaria": False,
+            "tipo": tipo,
+            "numero": numero,
+            "entidad": h4.get_text(" ", strip=True) if h4 else None,
+            "sumilla": sumilla,
+            "url_detalle": url_detalle,
+            "url_pdf": f"{url_detalle}/pdf" if url_detalle else None,
+            "extraordinaria": art.find("strong", class_="extraordinaria") is not None,
         })
     return filas
 
@@ -89,33 +75,29 @@ def _desde_html(html: str) -> list[dict]:
 def _hash(fecha: date, f: dict) -> str:
     base = "|".join([
         fecha.isoformat(), str(f.get("tipo")), str(f.get("numero")),
-        str(f.get("entidad")), (f.get("sumilla") or "")[:200], str(f.get("url_pdf")),
+        str(f.get("entidad")), str(f.get("url_detalle")),
     ])
     return hashlib.sha256(base.encode("utf-8")).hexdigest()
 
 
 def descargar_dia(fecha: date) -> list[dict]:
     """Devuelve las normas de un dia, ya clasificadas y listas para insertar."""
-    r = _pedir(fecha, fecha)
+    html = _pedir(fecha, fecha)
     time.sleep(config.PAUSA_SEGUNDOS)
-    try:
-        filas = _desde_json(r.json(), fecha)
-    except (json.JSONDecodeError, ValueError):
-        filas = _desde_html(r.text)
-
     resultado = []
-    for f in filas:
+    for f in parsear(html):
         c = clasificar(f.get("entidad") or "", f.get("sumilla") or "", f.get("tipo") or "")
         resultado.append({
             "fecha": fecha,
-            "tipo": f.get("tipo"),
-            "numero": f.get("numero"),
-            "entidad": f.get("entidad"),
+            "tipo": f["tipo"],
+            "numero": f["numero"],
+            "entidad": f["entidad"],
             "sector": c["sector"],
             "rubro": c["rubro"],
-            "sumilla": f.get("sumilla"),
-            "url_pdf": f.get("url_pdf"),
-            "extraordinaria": f.get("extraordinaria", False),
+            "sumilla": f["sumilla"],
+            "url_pdf": f["url_pdf"],
+            "url_detalle": f["url_detalle"],
+            "extraordinaria": f["extraordinaria"],
             "hash_unico": _hash(fecha, f),
         })
     return resultado
