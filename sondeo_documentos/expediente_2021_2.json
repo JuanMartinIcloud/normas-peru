@@ -1,0 +1,357 @@
+{
+ "code": 200,
+ "status": "success",
+ "data": {
+  "general": {
+   "pleyId": 2,
+   "perParId": 2021,
+   "proyectoLey": "00002/2021-GL",
+   "desPerParAbrev": "2021-2026",
+   "indBicameral": false,
+   "perParFecInicio": "2021-07-22T00:00:00",
+   "perParFecFin": "2026-07-26T00:00:00",
+   "desLegis": "Primera Legislatura Ordinaria 2021",
+   "fecPresentacion": "2021-08-03",
+   "desProponente": "Gobiernos Locales",
+   "titulo": "Ley que modifica el artículo 186 del Código Penal, para sancionar con el incremento de pena por reincidencia delictiva ",
+   "sumilla": "Propone modificar el artículo 186 del Código Penal, para sancionar con el incremento de pena por reincidencia delictiva. ",
+   "desGpar": "",
+   "estadoId": 35,
+   "desEstado": "CON DICTAMEN",
+   "publico": true
+  },
+  "seguimientos": [
+   {
+    "fecha": "2022-12-28T17:29:32.000-05:00",
+    "desEstado": "CON DICTAMEN",
+    "desComisiones": "Justicia y Derechos Humanos",
+    "detalle": "POR UNANIMIDAD - NO APROBACIÓN Y SU ENVÍO AL ARCHIVO - NO APROBACIÓN (EN RELATORÍA 28/12/2022)",
+    "observacion": "NO APROBACIÓN (EN RELATORÍA 28/12/2022)",
+    "flagInicial": false,
+    "pleyId": 2,
+    "codTipoParl": "C",
+    "estadoId": 35,
+    "idsComisiones": "15",
+    "archivos": [
+     {
+      "proyectoArchivoId": 90919,
+      "seguimientoPleyId": 18295,
+      "seccionId": 255,
+      "pleyId": 2,
+      "uuid": "43c53db3-13d5-405f-ac9f-6a5ec8525e4c",
+      "fecha": "2022-12-28",
+      "nombreArchivo": "20.pdf",
+      "descripcion": "PL 2 (U)",
+      "enlace": null,
+      "publico": true,
+      "activo": true
+     }
+    ],
+    "seguimientoPleyId": 18295
+   },
+   {
+    "fecha": "2021-08-20T13:38:26.000-05:00",
+    "desEstado": "EN COMISIÓN",
+    "desComisiones": "Justicia y Derechos Humanos",
+    "detalle": "",
+    "observacion": "",
+    "flagInicial": false,
+    "pleyId": 2,
+    "codTipoParl": "C",
+    "estadoId": 3,
+    "idsComisiones": "15",
+    "archivos": [
+     {
+      "proyectoArchivoId": 93,
+      "seguimientoPleyId": 48,
+      "seccionId": 10,
+      "pleyId": 2,
+      "uuid": "6a48a6f5-619f-432f-862c-a72de07ac9c3",
+      "fecha": "2021-08-20",
+      "nombreArchivo": "PL002.pdf",
+      "descripcion": "PL002",
+      "enlace": null,
+      "publico": true,
+      "activo": true
+     }
+    ],
+    "seguimientoPleyId": 48
+   },
+   {
+    "fecha": "2021-08-03T00:00:00.000-05:00",
+    "desEstado": "PRESENTADO",
+    "desComisiones": null,
+    "detalle": "LEY QUE MODIFICA EL ARTÍCULO 186 DEL CÓDIGO PENAL, PARA SANCIONAR CON EL INCREMENTO DE PENA POR REINCIDENCIA DELICTIVA",
+    "observacion": "Ley que modifica el artículo 186 del Código Penal, para sancionar con el incremento de pena por reincidencia delictiva ",
+    "flagInicial": true,
+    "pleyId": 2,
+    "codTipoParl": "C",
+    "estadoId": 1,
+    "idsComisiones": null,
+    "archivos": [
+     {
+      "proyectoArchivoId": 31,
+      "seguimientoPleyId": 3,
+      "seccionId": 8,
+      "pleyId": 2,
+      "uuid": "ee94f89d-c3dc-4b45-ba43-6b00e28fbd67",
+      "fecha": "2021-08-03",
+      "nombreArchivo": "PL-00002",
+      "descripcion": "PL-00002",
+      "enlace": null,
+      "publico": true,
+      "activo": true
+     }
+    ],
+    "seguimientoPleyId": 3
+   }
+  ],
+  "acumulados": [],
+  "documentosAnexos": [
+   {
+    "documentoAnexoId": 12471,
+    "pleyId": 2,
+    "fecha": "2025-04-03",
+    "descripcion": "EL 12-04-2025, EL ÁREA DE TRÁMITE DOCUMENTARIO HA REMITIDO AL ÁREA DE ARCHIVO LOS DOCUMENTOS RECIBIDOS EN FÍSICO Y EL EXPEDIENTE DIGITAL PARA SU CUSTODIA Y CONSERVACIÓN, PRECISANDO QUE SU PROCESO SE ENCUENTRA PENDIENTE POR CONCLUIR SU ETAPA PROCESAL.",
+    "uuid": "3edaefb9-b9f5-4b17-ad6c-bc18732a64c9",
+    "enlace": null,
+    "activo": true,
+    "codTipoParl": "C"
+   },
+   {
+    "documentoAnexoId": 188,
+    "pleyId": 2,
+    "fecha": "2022-02-21",
+    "descripcion": "Oficio, solicita celeridad en el tramite de los Proyectos de Ley presentados por la Municipalidad de Comas en materia de Seguridad Ciudadana.",
+    "uuid": "6bb92c5f-aea0-4a65-a0d9-18c9237db801",
+    "enlace": null,
+    "activo": true,
+    "codTipoParl": "C"
+   }
+  ],
+  "estudioComisiones": [
+   {
+    "comisionId": 15,
+    "comisionNombre": "Comisión de Justicia y Derechos Humanos",
+    "subsecciones": [
+     {
+      "ecSubseccionId": 1,
+      "ecSubseccionNombre": "Informe de admisibilidad",
+      "ecOrden": 1,
+      "adjuntos": [
+       {
+        "ecAdjuntoId": 137974,
+        "codTipoParl": "C",
+        "fecha": "2026-05-08T00:00:00",
+        "nombreAdjunto": "INF-ADM-PL-002-2021-GL",
+        "descripcion": "INF-ADM-PL-002-2021-GL",
+        "enlace": null,
+        "publico": null,
+        "uuid": "6f6a836c-38d0-4055-9083-8bb0b2e129a8"
+       }
+      ]
+     },
+     {
+      "ecSubseccionId": 2,
+      "ecSubseccionNombre": "Pedidos de opinión",
+      "ecOrden": 2,
+      "adjuntos": [
+       {
+        "ecAdjuntoId": 137963,
+        "codTipoParl": "C",
+        "fecha": "2021-09-14T00:00:00",
+        "nombreAdjunto": "MINJUS Oficio P.O. 011 ",
+        "descripcion": "MINJUS Oficio P.O. 011 ",
+        "enlace": null,
+        "publico": null,
+        "uuid": "58a214dc-0146-49c1-a0ae-aff7ecc67399"
+       },
+       {
+        "ecAdjuntoId": 137964,
+        "codTipoParl": "C",
+        "fecha": "2021-09-14T00:00:00",
+        "nombreAdjunto": "Pj Oficio P.O. 012 ",
+        "descripcion": "Pj Oficio P.O. 012 ",
+        "enlace": null,
+        "publico": null,
+        "uuid": "5c415968-6023-45d7-9985-b6ef91b67dae"
+       },
+       {
+        "ecAdjuntoId": 137965,
+        "codTipoParl": "C",
+        "fecha": "2021-09-14T00:00:00",
+        "nombreAdjunto": "MP Oficio P.O. 013 ",
+        "descripcion": "MP Oficio P.O. 013 ",
+        "enlace": null,
+        "publico": null,
+        "uuid": "a755c1ce-14a9-4716-9496-8050312d1714"
+       },
+       {
+        "ecAdjuntoId": 137966,
+        "codTipoParl": "C",
+        "fecha": "2021-09-14T00:00:00",
+        "nombreAdjunto": "DP Oficio P.O. 014 ",
+        "descripcion": "DP Oficio P.O. 014 ",
+        "enlace": null,
+        "publico": null,
+        "uuid": "bec78e37-90e2-4949-a743-8d5b2a2f64fc"
+       },
+       {
+        "ecAdjuntoId": 137968,
+        "codTipoParl": "C",
+        "fecha": "2021-12-02T00:00:00",
+        "nombreAdjunto": " MINJUS Reiterativo Of. P.O. 319",
+        "descripcion": " MINJUS Reiterativo Of. P.O. 319",
+        "enlace": null,
+        "publico": null,
+        "uuid": "028af565-3480-484b-9bc1-e3a9167b36af"
+       },
+       {
+        "ecAdjuntoId": 137969,
+        "codTipoParl": "C",
+        "fecha": "2021-12-02T00:00:00",
+        "nombreAdjunto": "MP Reiterativo Of. P.O. 320 ",
+        "descripcion": "MP Reiterativo Of. P.O. 320 ",
+        "enlace": null,
+        "publico": null,
+        "uuid": "a3c31b28-f575-4af0-a384-a7f28b49cace"
+       },
+       {
+        "ecAdjuntoId": 137970,
+        "codTipoParl": "C",
+        "fecha": "2021-12-02T00:00:00",
+        "nombreAdjunto": "DP Reiterativo Of. P.O. 321 ",
+        "descripcion": "DP Reiterativo Of. P.O. 321 ",
+        "enlace": null,
+        "publico": null,
+        "uuid": "6d6e7945-787f-4774-a0ae-1fa9c5834e6f"
+       }
+      ]
+     },
+     {
+      "ecSubseccionId": 3,
+      "ecSubseccionNombre": "Respuestas de opinión",
+      "ecOrden": 3,
+      "adjuntos": [
+       {
+        "ecAdjuntoId": 137967,
+        "codTipoParl": "C",
+        "fecha": "2021-10-22T00:00:00",
+        "nombreAdjunto": "PJ Oficio 3457 Resulta no viable",
+        "descripcion": "PJ Oficio 3457 Resulta no viable",
+        "enlace": null,
+        "publico": null,
+        "uuid": "0946ed93-5ef9-4363-827b-ab3299e0fc10"
+       },
+       {
+        "ecAdjuntoId": 137971,
+        "codTipoParl": "C",
+        "fecha": "2021-12-03T00:00:00",
+        "nombreAdjunto": "MINJUS Oficio 2473 Resulta no viable",
+        "descripcion": "MINJUS Oficio 2473 Resulta no viable",
+        "enlace": null,
+        "publico": null,
+        "uuid": "5de5a869-1263-41dd-914e-7249a1347ef6"
+       },
+       {
+        "ecAdjuntoId": 137972,
+        "codTipoParl": "C",
+        "fecha": "2022-09-05T00:00:00",
+        "nombreAdjunto": "2774-935911-20229783930-3121",
+        "descripcion": "935911-DP -OFIC.573-2022.",
+        "enlace": null,
+        "publico": null,
+        "uuid": "7e965f93-8947-4394-97e3-69f6ddebb039"
+       }
+      ]
+     },
+     {
+      "ecSubseccionId": 7,
+      "ecSubseccionNombre": "Predictamen",
+      "ecOrden": 7,
+      "adjuntos": [
+       {
+        "ecAdjuntoId": 137973,
+        "codTipoParl": "C",
+        "fecha": "2022-12-28T00:00:00",
+        "nombreAdjunto": "PL 2 (U)",
+        "descripcion": "DIC(U) -COMISIÓN DE JUSTICIA Y DERECHOS HUMANOS",
+        "enlace": null,
+        "publico": null,
+        "uuid": "8b9ebbf7-566e-4527-b732-96065e9536e0"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "subseccionesEstudioComision": [
+   {
+    "ecSubseccionId": 1,
+    "codTipoParl": "C",
+    "nombre": "Informe de admisibilidad",
+    "descripcion": null,
+    "orden": 1,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 2,
+    "codTipoParl": "C",
+    "nombre": "Pedidos de opinión",
+    "descripcion": null,
+    "orden": 2,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 3,
+    "codTipoParl": "C",
+    "nombre": "Respuestas de opinión",
+    "descripcion": null,
+    "orden": 3,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 4,
+    "codTipoParl": "C",
+    "nombre": "Opiniones y pedidos ciudadanos sobre la propuesta legislativa",
+    "descripcion": null,
+    "orden": 4,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 5,
+    "codTipoParl": "C",
+    "nombre": "Informes adicionales",
+    "descripcion": null,
+    "orden": 5,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 6,
+    "codTipoParl": "C",
+    "nombre": "Otros documentos",
+    "descripcion": null,
+    "orden": 6,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 7,
+    "codTipoParl": "C",
+    "nombre": "Predictamen",
+    "descripcion": null,
+    "orden": 7,
+    "activo": true
+   },
+   {
+    "ecSubseccionId": 8,
+    "codTipoParl": "C",
+    "nombre": "Acta de la sesión",
+    "descripcion": null,
+    "orden": 8,
+    "activo": true
+   }
+  ],
+  "firmantes": []
+ },
+ "timestamp": "2026-10-12T16:30:06.767-05:00"
+}
