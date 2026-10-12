@@ -13,11 +13,26 @@ async function revisarBuscador() {
   const inicio = await fetch(`${EP}/`, { headers: AGENTE, cache: "no-store" });
   const html = await inicio.text();
   r.portada = { estado: inicio.status, bytes: html.length };
-  const modulo = (html.match(/"routes\/_index"[\s\S]{0,600}?"module":\s*"([^"]+)"/) || [])[1];
-  r.modulo_busqueda = modulo || null;
-  if (modulo && /^\/assets\/[\w.()-]+\.js$/.test(modulo)) {
-    const js = await (await fetch(`${EP}${modulo}`, { headers: AGENTE, cache: "no-store" })).text();
-    r.codigo_busqueda = js.slice(0, 40000);
+  // La portada puede no responder; se usa la pagina de una norma para conocer el codigo del sitio
+  const [n] = await consultar(
+    `SELECT url_detalle FROM normas WHERE url_detalle LIKE 'https://busquedas.elperuano.pe/%' ORDER BY fecha DESC, id DESC LIMIT 1`
+  );
+  const pagina = await fetch(n.url_detalle, { headers: AGENTE, cache: "no-store" });
+  const htmlNorma = await pagina.text();
+  r.norma = { url: n.url_detalle, estado: pagina.status, bytes: htmlNorma.length };
+  const archivos = [...new Set(htmlNorma.match(/\/assets\/[\w.()-]+\.js/g) || [])];
+  r.archivos = archivos;
+  r.codigo = {};
+  for (const a of archivos.slice(0, 15)) {
+    const js = await (await fetch(`${EP}${a}`, { headers: AGENTE, cache: "no-store" })).text();
+    const pistas = [];
+    const re = /buscar|search|query|navigate\(|\/api\/|fetch\(|https?:\/\/[\w.-]+/gi;
+    let m;
+    while ((m = re.exec(js)) && pistas.length < 40) {
+      pistas.push(js.slice(Math.max(0, m.index - 150), m.index + 200));
+      re.lastIndex = m.index + 200;
+    }
+    r.codigo[a] = { bytes: js.length, pistas };
   }
   return r;
 }
