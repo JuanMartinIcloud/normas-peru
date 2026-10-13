@@ -49,7 +49,20 @@ async function cargar(f) {
   } catch (e) {
     frags = {};
   }
-  return { resumen: resumen[0], anios, sectores, rubros, tipos, filas, total: total[0].n, frags };
+  // Si con los filtros puestos (fecha, año, sector...) no sale nada, cuenta cuántas hay en todas las fechas
+  let sinFiltros = 0;
+  const otrosFiltros = f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central || f.leyes;
+  if (f.q && total[0].n === 0 && otrosFiltros) {
+    const g = { q: f.q, terminos: f.terminos, clavesTexto: f.clavesTexto };
+    const w = construirWhere(g);
+    try {
+      const [c] = await consultar(`SELECT count(*)::int AS n FROM normas ${w.where}`, w.params);
+      sinFiltros = c.n;
+    } catch (e) {
+      sinFiltros = 0;
+    }
+  }
+  return { resumen: resumen[0], anios, sectores, rubros, tipos, filas, total: total[0].n, frags, sinFiltros };
 }
 
 function Opciones({ lista }) {
@@ -86,7 +99,7 @@ export default async function Pagina({ searchParams }) {
     );
   }
 
-  const { resumen, anios, sectores, rubros, tipos, filas, total, frags } = datos;
+  const { resumen, anios, sectores, rubros, tipos, filas, total, frags, sinFiltros } = datos;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
   const hoy = hoyLima();
   const csv = enlace(f, { pagina: 1 }).replace("/?", "/api/csv?").replace(/^\/$/, "/api/csv");
@@ -223,8 +236,15 @@ export default async function Pagina({ searchParams }) {
 
       {filas.length === 0 ? (
         <p className="vacio">
-          No hay normas para esta búsqueda.
-          {f.fecha === hoy && " Las normas del día se cargan automáticamente por la noche y se revisan de nuevo de madrugada."}
+          No hay normas para esta búsqueda con los filtros elegidos.
+          {sinFiltros > 0 ? (
+            <>
+              {" "}En todas las fechas hay {sinFiltros.toLocaleString("es-PE")}:{" "}
+              <a href={enlace({ q: f.q, terminos: f.terminos })}>ver las {sinFiltros.toLocaleString("es-PE")} →</a>
+            </>
+          ) : (
+            f.fecha === hoy && " Las normas del día se cargan automáticamente por la noche y se revisan de nuevo de madrugada."
+          )}
         </p>
       ) : (
         <div className="lista">
