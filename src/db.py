@@ -18,6 +18,11 @@ _ETAPAS = [
                                      WHERE schemaname = 'public' AND indexname = 'idx_normas_texto')
                          AND EXISTS (SELECT 1 FROM pg_indexes
                                      WHERE schemaname = 'public' AND indexname = 'idx_proy_busqueda')"""),
+    ("-- Etapa 5:", """SELECT EXISTS (SELECT 1 FROM pg_indexes
+                                     WHERE schemaname = 'public' AND indexname = 'idx_textos_busqueda')
+                         AND EXISTS (SELECT 1 FROM information_schema.columns
+                                     WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
+                                       AND column_name = 'texto_base')"""),
 ]
 
 

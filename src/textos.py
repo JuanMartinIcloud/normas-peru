@@ -1,11 +1,9 @@
-"""Prepara la busqueda dentro del contenido:
+"""Guarda la sumilla extensa de cada proyecto de ley (expediente del Congreso).
 
-1. Proyectos de ley: guarda la sumilla extensa del expediente del Congreso.
-2. Normas: lee el PDF oficial de El Peruano y guarda sus palabras para el buscador
-   (solo las palabras indexadas, no el texto, para no llenar la base gratuita).
+El texto completo de normas y proyectos lo guarda src/indexar.py; este archivo tambien
+reune funciones que ese programa usa (lectura de PDF, cifrado del portal del Congreso).
 
     python src/textos.py                       # hasta 50 minutos de trabajo
-    python src/textos.py --max-minutos 20 --dias 60
 
 Se reanuda solo: cada ejecucion continua con lo que falta. Respeta una pausa entre
 pedidos para no cargar los servidores del Estado.
@@ -105,7 +103,7 @@ def cargar_sumillas(conn, hasta: float) -> int:
 # --------------------------------------------------------------------------- normas
 
 
-def texto_pdf(datos: bytes) -> str:
+def texto_pdf(datos: bytes, maximo: int = MAX_TEXTO) -> str:
     lector = PdfReader(io.BytesIO(datos))
     partes = []
     total = 0
@@ -116,11 +114,11 @@ def texto_pdf(datos: bytes) -> str:
             t = ""
         partes.append(t)
         total += len(t)
-        if total >= MAX_TEXTO:
+        if total >= maximo:
             break
     texto = "\n".join(partes)
     texto = re.sub(r"-\n(?=[a-záéíóúñ])", "", texto)   # une palabras cortadas al final de linea
-    return re.sub(r"[ \t]+", " ", texto)[:MAX_TEXTO]
+    return re.sub(r"[ \t]+", " ", texto)[:maximo]
 
 
 def pdf_norma(url_detalle: str, fecha) -> bytes | None:
@@ -205,18 +203,14 @@ def cargar_textos(conn, dias: int, hasta: float) -> int:
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--max-minutos", type=float, default=50)
-    p.add_argument("--dias", type=int, default=60, help="antiguedad maxima de las normas a leer")
+    p.add_argument("--dias", type=int, default=60, help="(ya no se usa; se conserva por compatibilidad)")
     a = p.parse_args()
-    inicio = time.time()
-    hasta = inicio + a.max_minutos * 60
+    hasta = time.time() + a.max_minutos * 60
 
     conn = db.conectar()
     try:
-        # Mitad del tiempo para cada tarea; si una termina antes, la otra aprovecha lo que sobra
-        cargar_sumillas(conn, inicio + a.max_minutos * 30)
-        cargar_textos(conn, a.dias, hasta)
-        if time.time() < hasta:
-            cargar_sumillas(conn, hasta)
+        # El texto completo de las normas ahora lo guarda src/indexar.py
+        cargar_sumillas(conn, hasta)
     finally:
         conn.close()
 

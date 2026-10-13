@@ -1,0 +1,37 @@
+name: Indexar textos completos
+
+on:
+  schedule:
+    # Cada hora. Solo corre si el repositorio es publico (minutos ilimitados);
+    # siendo privado se agotarian los 2 000 minutos gratuitos del mes.
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+jobs:
+  indexar:
+    if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 59
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { tipo: normas, parte: 0, de: 3 }
+          - { tipo: normas, parte: 1, de: 3 }
+          - { tipo: normas, parte: 2, de: 3 }
+          - { tipo: proyectos, parte: 0, de: 1 }
+    concurrency:
+      group: indexar-${{ matrix.tipo }}-${{ matrix.parte }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Texto completo (${{ matrix.tipo }} ${{ matrix.parte }})
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TEXTOS_URLS: ${{ secrets.TEXTOS_URLS }}
+        run: python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 54
