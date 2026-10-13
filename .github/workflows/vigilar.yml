@@ -1,0 +1,26 @@
+name: Alarma de consumo de Neon
+
+on:
+  schedule:
+    - cron: "13 12 * * *"    # 7:13 a. m. Lima
+  workflow_dispatch:
+
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests psycopg2-binary
+      - name: Revisar limites
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+        run: python src/vigilar.py
