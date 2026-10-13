@@ -25,5 +25,5 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Sumillas de proyectos y textos de normas
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
         run: python src/textos.py --max-minutos 50 --dias "${{ github.event.inputs.dias || '60' }}"

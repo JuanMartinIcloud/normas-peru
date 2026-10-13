@@ -15,7 +15,7 @@ jobs:
       - run: pip install psycopg2-binary
       - name: Ejecutar schema.sql en Neon
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
         run: |
           python - <<'PY'
           import os, psycopg2

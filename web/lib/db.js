@@ -2,14 +2,18 @@ import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
 import { clavesPorTexto } from "./textos";
 
+// Base principal. La original (DATABASE_URL) agoto su cuota gratuita del mes; mientras tanto se usa
+// la base de la variable TEXTOS_URL_4. Para volver a la original basta quitar "TEXTOS_URL_4 ||".
+const URL_PRINCIPAL = (process.env.TEXTOS_URL_4 || process.env.DATABASE_URL || "").trim();
+
 export function consultar(texto, params = []) {
   sinCache(); // cada consulta se hace en el momento, nunca se reutiliza una respuesta guardada
-  if (!process.env.DATABASE_URL) {
+  if (!URL_PRINCIPAL) {
     throw new Error("Falta la variable DATABASE_URL en Vercel (Settings > Environment Variables).");
   }
   // cache: "no-store" impide que Next.js guarde respuestas viejas de la base:
   // sin esto, la pagina podia mostrar cifras de hace dias en lugar de las actuales.
-  const sql = neon(process.env.DATABASE_URL, { fetchOptions: { cache: "no-store" } });
+  const sql = neon(URL_PRINCIPAL, { fetchOptions: { cache: "no-store" } });
   // Versiones nuevas del paquete usan sql.query(texto, params);
   // las 0.x aceptan sql(texto, params) directamente.
   if (typeof sql.query === "function") return sql.query(texto, params);

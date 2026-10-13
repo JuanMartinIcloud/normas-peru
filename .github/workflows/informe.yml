@@ -15,9 +15,9 @@ jobs:
       - run: pip install psycopg2-binary
       - name: Consultar la base
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
         run: python src/informe.py
       - name: Detalle de proyectos de ley
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
         run: python src/informe.py proyectos

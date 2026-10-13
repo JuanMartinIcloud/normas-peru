@@ -19,5 +19,5 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Descargar proyectos de ley
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
         run: python src/run_congreso.py

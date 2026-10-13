@@ -16,6 +16,7 @@ export function claveProyecto(p) {
 function bases() {
   const lista = [];
   for (let i = 1; i <= 9; i++) {
+    if (i === 4) continue; // TEXTOS_URL_4 se usa por ahora como base principal (ver lib/db.js)
     const url = (process.env[`TEXTOS_URL_${i}`] || "").trim();
     if (url) lista.push({ numero: i, url });
   }
