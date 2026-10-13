@@ -21,9 +21,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { tipo: normas, parte: 0, de: 3 }
-          - { tipo: normas, parte: 1, de: 3 }
-          - { tipo: normas, parte: 2, de: 3 }
+          - { tipo: normas, parte: 0, de: 6 }
+          - { tipo: normas, parte: 1, de: 6 }
+          - { tipo: normas, parte: 2, de: 6 }
+          - { tipo: normas, parte: 3, de: 6 }
+          - { tipo: normas, parte: 4, de: 6 }
+          - { tipo: normas, parte: 5, de: 6 }
           - { tipo: proyectos, parte: 0, de: 1 }
     steps:
       - uses: actions/checkout@v4

@@ -30,7 +30,7 @@ from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, text
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
 LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "940"))   # cada base gratuita de Neon admite 1 GB
-PAUSA = {"normas": 1.5, "proyectos": 1.0}
+PAUSA = {"normas": 1.0, "proyectos": 1.0}
 MAX_ERRORES_SEGUIDOS = 12
 # Las escrituras se juntan y se envian en bloque cada 20 minutos de reloj (:00, :20, :40), a la vez en
 # todos los trabajadores. Asi cada base de texto se enciende unos minutos por bloque y se apaga sola
