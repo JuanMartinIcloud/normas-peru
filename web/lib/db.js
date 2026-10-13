@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
-import { idsPorTexto } from "./textos";
+import { clavesPorTexto } from "./textos";
 
 export function consultar(texto, params = []) {
   sinCache(); // cada consulta se hace en el momento, nunca se reutiliza una respuesta guardada
@@ -76,7 +76,7 @@ export function construirWhere(f) {
     cond.push(`tipo ~* '^(ley|decreto legislativo|decreto de urgencia|resoluci[oóÓ]n legislativa)( |$)'`);
   }
   // Busca en la sumilla, numero y entidad (admite "frase exacta", OR y -palabra) y, ademas,
-  // en el texto completo: f.idsTexto trae los ids hallados alli (ver prepararBusqueda)
+  // en el texto completo: f.clavesTexto trae las normas halladas alli (ver prepararBusqueda)
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
   if (buscados.length) {
     const partes = buscados.map(
@@ -84,7 +84,7 @@ export function construirWhere(f) {
         `to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')) @@ websearch_to_tsquery('spanish', ${p(termino)})`
     );
     if (f.q && /\d/.test(f.q)) partes.push(`numero ILIKE ${p(`%${f.q.replace(/"/g, "")}%`)}`);
-    if (f.idsTexto && f.idsTexto.length) partes.push(`id = ANY(${p(f.idsTexto)}::bigint[])`);
+    if (f.clavesTexto && f.clavesTexto.length) partes.push(`hash_unico = ANY(${p(f.clavesTexto)}::text[])`);
     cond.push(`(${partes.join(" OR ")})`);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };
@@ -116,10 +116,10 @@ export async function prepararBusqueda(f, tipo) {
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
   if (!buscados.length) return f;
   try {
-    f.idsTexto = await idsPorTexto(tipo, buscados);
+    f.clavesTexto = await clavesPorTexto(tipo, buscados);
   } catch (e) {
     // Si la busqueda en el texto completo falla, se sigue con la de sumillas y se avisa
-    f.idsTexto = [];
+    f.clavesTexto = [];
     f.avisoTexto = String(e.message || e);
   }
   return f;

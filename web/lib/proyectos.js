@@ -43,8 +43,10 @@ export function whereProyectos(f) {
       const like = p(`%${f.q.replace(/"/g, "")}%`);
       partes.push(`titulo ILIKE ${like}`, `autor ILIKE ${like}`, `numero ILIKE ${like}`);
     }
-    // Ids hallados en el texto completo del PDF del proyecto (ver prepararBusqueda)
-    if (f.idsTexto && f.idsTexto.length) partes.push(`id = ANY(${p(f.idsTexto)}::bigint[])`);
+    // Proyectos hallados en el texto completo de su PDF (ver prepararBusqueda)
+    if (f.clavesTexto && f.clavesTexto.length) {
+      partes.push(`(periodo || '|' || camara || '|' || numero) = ANY(${p(f.clavesTexto)}::text[])`);
+    }
     cond.push(`(${partes.join(" OR ")})`);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };

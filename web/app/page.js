@@ -36,7 +36,7 @@ async function cargar(f) {
     consultar(`SELECT tipo AS valor, count(*)::int AS n FROM normas WHERE tipo IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 40`),
     consultar(
       `SELECT id, fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria,
-              texto_base
+              hash_unico
        FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       params
     ),
@@ -45,7 +45,7 @@ async function cargar(f) {
 
   let frags = {};
   try {
-    frags = await fragmentos("N", filas, [f.q, ...f.terminos]);
+    frags = await fragmentos("N", filas.map((n) => n.hash_unico), [f.q, ...f.terminos]);
   } catch (e) {
     frags = {};
   }
@@ -236,7 +236,7 @@ export default async function Pagina({ searchParams }) {
                 <span className="fecha">{n.fecha}</span>
               </div>
               <p className="sumilla">{n.sumilla}</p>
-              <Fragmento texto={frags[String(n.id)]} />
+              <Fragmento texto={frags[n.hash_unico]} />
               <div className="etiquetas">
                 <Marcar
                   tipo="N"

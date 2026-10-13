@@ -1,5 +1,5 @@
 import { consultar, leerFiltros, construirWhere, prepararBusqueda } from "../../../../lib/db";
-import { fragmentos } from "../../../../lib/textos";
+import { fragmentos, claveProyecto } from "../../../../lib/textos";
 import { leerFiltrosProyectos, whereProyectos } from "../../../../lib/proyectos";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, ErrorIA } from "../../../../lib/gemini";
@@ -96,7 +96,7 @@ export async function POST(request) {
       const { where, params } = construirWhere(fn);
       pedidos.push(
         consultar(
-          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, texto_base
+          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
            FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${LIMITE}`,
           params
         ),
@@ -108,7 +108,7 @@ export async function POST(request) {
       pedidos.push(
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, sumilla, proponente, estado, texto_base
+                  titulo, sumilla, proponente, estado
            FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${LIMITE}`,
           params
         ),
@@ -143,8 +143,8 @@ export async function POST(request) {
     // Pasajes del texto completo donde aparece lo buscado (si hay busqueda por palabras)
     const terminos = [fn.q || fp.q, ...(fn.terminos || [])].filter(Boolean);
     const [fragN, fragP] = await Promise.all([
-      fragmentos("N", normas, terminos).catch(() => ({})),
-      fragmentos("P", proyectos, terminos).catch(() => ({})),
+      fragmentos("N", normas.map((n) => n.hash_unico), terminos).catch(() => ({})),
+      fragmentos("P", proyectos.map(claveProyecto), terminos).catch(() => ({})),
     ]);
     const limpiarFrag = (t) => corta(String(t || "").replace(/\[\[|\]\]/g, ""), 450);
 
@@ -158,7 +158,7 @@ export async function POST(request) {
     for (const n of normas) {
       lineas.push(
         `[N${n.id}] ${n.fecha} | ${[n.tipo, n.numero].filter(Boolean).join(" N° ")} | ${n.entidad || ""} | ${corta(n.sumilla, 500)}` +
-          (fragN[n.id] ? ` | pasaje del texto: ${limpiarFrag(fragN[n.id])}` : "")
+          (fragN[n.hash_unico] ? ` | pasaje del texto: ${limpiarFrag(fragN[n.hash_unico])}` : "")
       );
     }
     if (!normas.length) lineas.push("(ninguna)");
@@ -167,7 +167,7 @@ export async function POST(request) {
       lineas.push(
         `[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${p.estado || "-"} | ${corta(p.titulo, 400)}` +
           (p.sumilla ? ` | sumilla: ${corta(p.sumilla, 400)}` : "") +
-          (fragP[p.id] ? ` | pasaje del texto: ${limpiarFrag(fragP[p.id])}` : "")
+          (fragP[claveProyecto(p)] ? ` | pasaje del texto: ${limpiarFrag(fragP[claveProyecto(p)])}` : "")
       );
     }
     if (!proyectos.length) lineas.push("(ninguno)");

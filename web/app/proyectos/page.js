@@ -1,5 +1,5 @@
 import { consultar, POR_PAGINA, prepararBusqueda } from "../../lib/db";
-import { fragmentos } from "../../lib/textos";
+import { fragmentos, claveProyecto } from "../../lib/textos";
 import Fragmento from "../Fragmento";
 import { urlProyecto } from "../../lib/resumenes";
 import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
@@ -31,7 +31,7 @@ async function cargar(f) {
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM proyectos_ley WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT proponente AS valor, count(*)::int AS n FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30`),
     consultar(
-      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro, texto_base
+      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro
        FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       params
     ),
@@ -39,7 +39,7 @@ async function cargar(f) {
   ]);
   let frags = {};
   try {
-    frags = await fragmentos("P", filas, [f.q, ...f.terminos]);
+    frags = await fragmentos("P", filas.map(claveProyecto), [f.q, ...f.terminos]);
   } catch (e) {
     frags = {};
   }
@@ -158,7 +158,7 @@ export default async function Proyectos({ searchParams }) {
               </div>
               <p className="sumilla">{n.titulo}</p>
               {n.sumilla && <p className="entidad">{n.sumilla}</p>}
-              <Fragmento texto={frags[String(n.id)]} />
+              <Fragmento texto={frags[claveProyecto(n)]} />
               {n.autor && <p className="entidad">Autores: {n.autor}</p>}
               <div className="etiquetas">
                 <Marcar tipo="P" id={String(n.id)} etiqueta={`Proyecto ${n.numero}`} />

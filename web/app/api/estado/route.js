@@ -23,20 +23,16 @@ export async function GET() {
     );
     try {
       const [b] = await consultar(
-        `SELECT (SELECT count(*)::int FROM proyectos_ley WHERE sumilla_revisada) AS proyectos_con_sumilla,
-                (SELECT count(*)::int FROM normas WHERE texto_estado = 'ok') AS normas_con_texto,
-                (SELECT count(*)::int FROM normas WHERE texto_estado IN ('sin_pdf', 'sin_texto')) AS normas_sin_texto,
-                (SELECT count(*)::int FROM normas WHERE texto_estado IS NULL) AS normas_pendientes,
-                (SELECT count(*)::int FROM proyectos_ley WHERE texto_estado = 'ok') AS proyectos_con_texto,
-                (SELECT count(*)::int FROM proyectos_ley WHERE texto_estado IN ('sin_pdf', 'sin_texto')) AS proyectos_sin_texto,
-                (SELECT count(*)::int FROM proyectos_ley WHERE texto_estado IS NULL) AS proyectos_pendientes,
-                (SELECT min(fecha)::text FROM normas WHERE texto_estado = 'ok') AS normas_texto_desde,
-                pg_size_pretty(pg_total_relation_size('textos')) AS tamano_textos`
+        `SELECT (SELECT count(*)::int FROM proyectos_ley WHERE sumilla_revisada) AS proyectos_con_sumilla`
       );
       estado.busqueda = b;
-      estado.bases_texto = await estadoBases();
     } catch (e) {
       estado.busqueda = { error: String(e.message || e) };
+    }
+    try {
+      estado.textos = await estadoBases();
+    } catch (e) {
+      estado.textos = { error: String(e.message || e) };
     }
     const ultimo = await cargarResumen();
     estado.portada = ultimo ? { fecha: ultimo.fecha, referencias: Object.keys(ultimo.referencias).length } : null;

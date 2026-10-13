@@ -1,5 +1,5 @@
 import { consultar, leerFiltros, construirWhere, prepararBusqueda } from "../../lib/db";
-import { fragmentos } from "../../lib/textos";
+import { fragmentos, claveProyecto } from "../../lib/textos";
 import Fragmento from "../Fragmento";
 import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
 import { urlProyecto } from "../../lib/resumenes";
@@ -41,14 +41,14 @@ export default async function Buscar({ searchParams }) {
       const wp = whereProyectos(fp);
       const [a, b, c, d] = await Promise.all([
         consultar(
-          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, texto_base
+          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
            FROM normas ${wn.where} ORDER BY fecha DESC, id DESC LIMIT ${MOSTRAR}`,
           wn.params
         ),
         consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, sumilla, proponente, estado, texto_base
+                  titulo, sumilla, proponente, estado
            FROM proyectos_ley ${wp.where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${MOSTRAR}`,
           wp.params
         ),
@@ -60,8 +60,8 @@ export default async function Buscar({ searchParams }) {
       totalP = d[0].n;
       const terminos = [fn.q, ...fn.terminos];
       [fragN, fragP] = await Promise.all([
-        fragmentos("N", normas, terminos).catch(() => ({})),
-        fragmentos("P", proyectos, terminos).catch(() => ({})),
+        fragmentos("N", normas.map((n) => n.hash_unico), terminos).catch(() => ({})),
+        fragmentos("P", proyectos.map(claveProyecto), terminos).catch(() => ({})),
       ]);
     } catch (e) {
       error = String(e.message || e);
@@ -148,7 +148,7 @@ export default async function Buscar({ searchParams }) {
                       <span className="fecha">{n.fecha}</span>
                     </div>
                     <p className="sumilla">{n.sumilla}</p>
-                    <Fragmento texto={fragN[n.id]} />
+                    <Fragmento texto={fragN[n.hash_unico]} />
                     <div className="etiquetas">
                       <Marcar tipo="N" id={n.id} etiqueta={`${nombre} (${n.fecha})`} />
                       <span className="enlaces">
@@ -178,7 +178,7 @@ export default async function Buscar({ searchParams }) {
                   </div>
                   <p className="sumilla">{p.titulo}</p>
                   {p.sumilla && <p className="entidad">{p.sumilla}</p>}
-                  <Fragmento texto={fragP[p.id]} />
+                  <Fragmento texto={fragP[claveProyecto(p)]} />
                   <div className="etiquetas">
                     <Marcar tipo="P" id={p.id} etiqueta={`Proyecto ${p.numero}`} />
                     {p.estado && <span className="etq">{p.estado}</span>}

@@ -121,22 +121,10 @@ CREATE INDEX IF NOT EXISTS idx_normas_texto ON normas USING GIN (texto_tsv);
 
 -- ---------------------------------------------------------------------------
 -- Etapa 5: texto completo de todas las normas y proyectos (busqueda e IA).
--- Tambien la ejecuta src/db.py automaticamente. Se puede repetir sin riesgo.
--- El texto se guarda en la tabla "textos" de esta base y, cuando se llena, en bases
--- adicionales (secretos TEXTOS_URL_1, TEXTOS_URL_2...). En cada documento se anota en que base quedo.
+-- El texto NO se guarda en esta base: va a las bases de texto (secretos TEXTOS_URL_1, _2...),
+-- en la tabla "documentos" que crea src/indexar.py. Esta base solo se consulta al empezar.
+-- Las columnas texto_estado/texto_base quedan de una version anterior y ya no se usan.
 -- ---------------------------------------------------------------------------
 ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
-ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_estado TEXT;   -- ok | sin_texto | sin_pdf
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_estado TEXT;
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
--- Las normas procesadas antes con el metodo de 200 palabras se vuelven a leer completas
-UPDATE normas SET texto_estado = NULL, texto_tsv = NULL WHERE texto_estado IS NOT NULL AND texto_base IS NULL;
-CREATE INDEX IF NOT EXISTS idx_normas_texto_pend ON normas (fecha DESC) WHERE texto_estado IS NULL;
-
-CREATE TABLE IF NOT EXISTS textos (
-    tipo      CHAR(1)     NOT NULL,          -- N = norma, P = proyecto de ley
-    doc_id    BIGINT      NOT NULL,          -- id en la tabla normas o proyectos_ley
-    texto     TEXT        NOT NULL,
-    creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (tipo, doc_id)
-);
-CREATE INDEX IF NOT EXISTS idx_textos_busqueda ON textos USING GIN (to_tsvector('spanish', texto));

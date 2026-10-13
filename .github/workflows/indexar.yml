@@ -7,6 +7,11 @@ on:
     - cron: "7 * * * *"
   workflow_dispatch:
 
+# Una sola tanda a la vez (si llega otra, espera a que termine la actual)
+concurrency:
+  group: indexar
+  cancel-in-progress: false
+
 jobs:
   indexar:
     if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
@@ -20,9 +25,6 @@ jobs:
           - { tipo: normas, parte: 1, de: 3 }
           - { tipo: normas, parte: 2, de: 3 }
           - { tipo: proyectos, parte: 0, de: 1 }
-    concurrency:
-      group: indexar-${{ matrix.tipo }}-${{ matrix.parte }}
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,31 +40,30 @@ jobs:
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
-        run: python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 54
+        run: python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 52
 
-  # Al terminar, si quedan documentos pendientes, vuelve a lanzarse sola (sin esperar el horario).
-  # Solo con el repositorio publico, para no gastar minutos de un repositorio privado.
+  # Si la tanda termino bien y aun queda trabajo, lanza la siguiente sin esperar el horario.
+  # No consulta la base principal: el avance esta en la base de texto 1.
   relanzar:
     needs: indexar
-    if: always() && github.event.repository.private == false
+    if: needs.indexar.result == 'success' && github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       actions: write
     steps:
-      - name: Contar pendientes
+      - name: Revisar si queda trabajo
         id: cuenta
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
         run: |
           pip install psycopg2-binary >/dev/null
           python3 - <<'PY'
           import os, psycopg2
-          c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
-          cur.execute("""SELECT (SELECT count(*) FROM normas WHERE texto_estado IS NULL AND url_detalle IS NOT NULL)
-                              + (SELECT count(*) FROM proyectos_ley WHERE texto_estado IS NULL AND num_pley IS NOT NULL)""")
+          c = psycopg2.connect(os.environ["TEXTOS_URL_1"]); cur = c.cursor()
+          cur.execute("SELECT count(*) FROM avance WHERE NOT terminado")
           n = cur.fetchone()[0]
-          print(f"Pendientes: {n}")
+          print(f"Trabajadores con trabajo pendiente: {n}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"pendientes={n}\n")
           PY

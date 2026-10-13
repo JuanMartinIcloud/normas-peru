@@ -1,9 +1,7 @@
 name: Textos completos para el buscador
 
 on:
-  schedule:
-    # Cada 4 horas. Mientras haya pendientes trabaja hasta 50 minutos; luego tarda segundos.
-    - cron: "41 */4 * * *"
+  # Ya no corre solo: la sumilla de cada proyecto ahora la guarda "Indexar textos completos".
   workflow_dispatch:
     inputs:
       dias:
