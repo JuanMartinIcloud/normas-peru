@@ -1,5 +1,6 @@
 import { consultar, hoyLima } from "../../../lib/db";
 import { cargarResumen, ayerLima } from "../../../lib/resumenes";
+import { estadoBases } from "../../../lib/textos";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export async function GET() {
                 pg_size_pretty(pg_total_relation_size('textos')) AS tamano_textos`
       );
       estado.busqueda = b;
+      estado.bases_texto = await estadoBases();
     } catch (e) {
       estado.busqueda = { error: String(e.message || e) };
     }

@@ -85,3 +85,27 @@ export async function textoCompleto(tipo, id, base) {
   const filas = await enBase(url, `SELECT texto FROM textos WHERE tipo = $1 AND doc_id = $2`, [tipo, String(id)]);
   return filas[0] ? filas[0].texto : "";
 }
+
+// Estado de cada base de texto: tamano y documentos guardados (para /api/estado)
+export async function estadoBases() {
+  const salida = [];
+  const lista = bases();
+  for (let i = 0; i < lista.length; i++) {
+    if (!lista[i]) continue;
+    try {
+      const [t] = await enBase(lista[i], `SELECT pg_size_pretty(pg_database_size(current_database())) AS tamano`, []);
+      let documentos = 0;
+      try {
+        const [c] = await enBase(lista[i], `SELECT count(*)::int AS n FROM textos`, []);
+        documentos = c.n;
+      } catch (e) {
+        if (!tablaFaltante(e)) throw e;
+        documentos = "tabla aun no creada";
+      }
+      salida.push({ base: i, tamano: t.tamano, documentos });
+    } catch (e) {
+      salida.push({ base: i, error: String(e.message || e) });
+    }
+  }
+  return salida;
+}
