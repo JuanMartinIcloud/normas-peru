@@ -8,8 +8,8 @@
 - Empieza por lo mas reciente y se reanuda solo (cada ejecucion sigue con lo pendiente).
 - Varios trabajadores pueden correr a la vez: cada uno toma una parte distinta (id % de == parte).
 - El texto va a la tabla "textos" de la base principal; cuando esta llega al limite, a las bases
-  adicionales del secreto TEXTOS_URLS (cadenas de conexion separadas por coma). En cada documento
-  se anota el numero de base: 0 = principal, 1 = primera adicional, etc.
+  adicionales de los secretos TEXTOS_URL_1, TEXTOS_URL_2, ... (una cadena de conexion de Neon en
+  cada uno). En cada documento se anota el numero de base: 0 = principal, 1 = TEXTOS_URL_1, etc.
 - Si El Peruano o el Congreso responden con errores, espera cada vez mas antes de seguir.
 """
 import argparse
@@ -56,8 +56,13 @@ class Bases:
     """Conexiones a la base principal (0) y a las adicionales (1, 2, ...)."""
 
     def __init__(self, principal):
+        # Posicion fija: la base i es siempre TEXTOS_URL_i (si falta alguna, su lugar queda vacio)
         self.conexiones = [principal]
-        for url in [u.strip() for u in os.getenv("TEXTOS_URLS", "").split(",") if u.strip()]:
+        for i in range(1, 10):
+            url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
+            if not url:
+                self.conexiones.append(None)
+                continue
             c = psycopg2.connect(url)
             with c.cursor() as cur:
                 cur.execute("SELECT pg_advisory_xact_lock(724502)")
@@ -81,6 +86,8 @@ class Bases:
             return self.actual
         self.revisado = 0
         for i in range(len(self.conexiones)):
+            if self.conexiones[i] is None:
+                continue
             if self.tamano_mb(i) < LIMITE_MB:
                 if i != self.actual:
                     print(f"Guardando textos en la base {i} ({self.tamano_mb(i):.0f} MB usados)")
@@ -88,7 +95,7 @@ class Bases:
                 return i
         raise SystemExit(
             f"::error title=Bases llenas::Todas las bases de texto llegaron a {LIMITE_MB} MB. "
-            "Hay que crear otra base gratuita en Neon y agregarla al secreto TEXTOS_URLS."
+            "Hay que crear otra base gratuita en Neon y agregarla como secreto TEXTOS_URL_<numero>."
         )
 
     def guardar(self, tipo, doc_id, texto) -> int:
@@ -105,7 +112,8 @@ class Bases:
 
     def cerrar(self):
         for c in self.conexiones[1:]:
-            c.close()
+            if c is not None:
+                c.close()
 
 
 # --------------------------------------------------------------------------- descargas

@@ -2,16 +2,15 @@ import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
 
 // Busqueda en el TEXTO COMPLETO de normas y proyectos (tabla "textos").
-// Base 0 = la principal (DATABASE_URL); 1, 2... = las adicionales de TEXTOS_URLS (separadas por coma).
+// Base 0 = la principal (DATABASE_URL); base i = la de la variable TEXTOS_URL_i (i = 1 a 9).
 
 const MAX_IDS = 50000;
 
+// Lista con posicion fija: bases()[i] es la base i (null si esa variable no existe)
 function bases() {
-  const extra = (process.env.TEXTOS_URLS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return [process.env.DATABASE_URL, ...extra];
+  const lista = [process.env.DATABASE_URL];
+  for (let i = 1; i <= 9; i++) lista.push((process.env[`TEXTOS_URL_${i}`] || "").trim() || null);
+  return lista;
 }
 
 function enBase(url, texto, params) {
@@ -39,7 +38,7 @@ export async function idsPorTexto(tipo, terminos) {
                WHERE tipo = $1 AND to_tsvector('spanish', texto) @@ (${consultaTs(lista, 2)})
                LIMIT ${MAX_IDS}`;
   const respuestas = await Promise.all(
-    bases().map((url) =>
+    bases().filter(Boolean).map((url) =>
       enBase(url, sql, [tipo, ...lista]).catch((e) => {
         if (tablaFaltante(e)) return [];
         throw e;

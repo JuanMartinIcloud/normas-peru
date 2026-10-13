@@ -33,5 +33,9 @@ jobs:
       - name: Texto completo (${{ matrix.tipo }} ${{ matrix.parte }})
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          TEXTOS_URLS: ${{ secrets.TEXTOS_URLS }}
+          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
         run: python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 54

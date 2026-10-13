@@ -123,7 +123,7 @@ CREATE INDEX IF NOT EXISTS idx_normas_texto ON normas USING GIN (texto_tsv);
 -- Etapa 5: texto completo de todas las normas y proyectos (busqueda e IA).
 -- Tambien la ejecuta src/db.py automaticamente. Se puede repetir sin riesgo.
 -- El texto se guarda en la tabla "textos" de esta base y, cuando se llena, en bases
--- adicionales (secreto TEXTOS_URLS). En cada documento se anota en que base quedo.
+-- adicionales (secretos TEXTOS_URL_1, TEXTOS_URL_2...). En cada documento se anota en que base quedo.
 -- ---------------------------------------------------------------------------
 ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_estado TEXT;   -- ok | sin_texto | sin_pdf
