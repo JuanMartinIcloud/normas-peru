@@ -42,7 +42,16 @@ jobs:
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
-        run: python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 52
+        run: |
+          set +e
+          python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 52 > salida.log 2>&1
+          codigo=$?
+          cat salida.log
+          if [ $codigo -ne 0 ]; then
+            # Las ultimas lineas quedan como avisos visibles en GitHub (los registros completos no siempre se pueden leer)
+            tail -n 9 salida.log | while IFS= read -r linea; do echo "::error::${linea:0:900}"; done
+          fi
+          exit $codigo
 
   # Si la tanda termino bien y aun queda trabajo, lanza la siguiente sin esperar el horario.
   # No consulta la base principal: el avance esta en la base de texto 1.
