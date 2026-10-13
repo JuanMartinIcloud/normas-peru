@@ -1,4 +1,4 @@
-import { consultar, leerFiltros, construirWhere, hoyLima } from "../../../lib/db";
+import { consultar, leerFiltros, construirWhere, hoyLima, prepararBusqueda } from "../../../lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,7 @@ export async function GET(request) {
   const sp = Object.fromEntries(url.searchParams.entries());
   if (sp.fecha === "hoy") sp.fecha = hoyLima();
   const f = leerFiltros(sp);
+  await prepararBusqueda(f, "N");
   const { where, params } = construirWhere(f);
 
   try {

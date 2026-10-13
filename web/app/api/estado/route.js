@@ -25,8 +25,12 @@ export async function GET() {
         `SELECT (SELECT count(*)::int FROM proyectos_ley WHERE sumilla_revisada) AS proyectos_con_sumilla,
                 (SELECT count(*)::int FROM normas WHERE texto_estado = 'ok') AS normas_con_texto,
                 (SELECT count(*)::int FROM normas WHERE texto_estado IN ('sin_pdf', 'sin_texto')) AS normas_sin_texto,
-                (SELECT min(fecha)::text FROM normas WHERE texto_estado = 'ok') AS texto_desde,
-                pg_size_pretty(pg_relation_size('idx_normas_texto')) AS indice_texto`
+                (SELECT count(*)::int FROM normas WHERE texto_estado IS NULL) AS normas_pendientes,
+                (SELECT count(*)::int FROM proyectos_ley WHERE texto_estado = 'ok') AS proyectos_con_texto,
+                (SELECT count(*)::int FROM proyectos_ley WHERE texto_estado IN ('sin_pdf', 'sin_texto')) AS proyectos_sin_texto,
+                (SELECT count(*)::int FROM proyectos_ley WHERE texto_estado IS NULL) AS proyectos_pendientes,
+                (SELECT min(fecha)::text FROM normas WHERE texto_estado = 'ok') AS normas_texto_desde,
+                pg_size_pretty(pg_total_relation_size('textos')) AS tamano_textos`
       );
       estado.busqueda = b;
     } catch (e) {

@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
+import { idsPorTexto } from "./textos";
 
 export function consultar(texto, params = []) {
   sinCache(); // cada consulta se hace en el momento, nunca se reutiliza una respuesta guardada
@@ -74,19 +75,16 @@ export function construirWhere(f) {
   if (f.leyes) {
     cond.push(`tipo ~* '^(ley|decreto legislativo|decreto de urgencia|resoluci[oóÓ]n legislativa)( |$)'`);
   }
-  // Busca en la sumilla, numero y entidad, y tambien en el texto completo de la norma
-  // (texto_tsv: disponible para las normas cuyo PDF ya se leyo)
+  // Busca en la sumilla, numero y entidad (admite "frase exacta", OR y -palabra) y, ademas,
+  // en el texto completo: f.idsTexto trae los ids hallados alli (ver prepararBusqueda)
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
   if (buscados.length) {
-    const partes = [];
-    for (const termino of buscados) {
-      const a = p(termino);
-      partes.push(
-        `to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')) @@ plainto_tsquery('spanish', ${a})`,
-        `texto_tsv @@ plainto_tsquery('spanish', ${a})`
-      );
-    }
-    if (f.q && /\d/.test(f.q)) partes.push(`numero ILIKE ${p(`%${f.q}%`)}`);
+    const partes = buscados.map(
+      (termino) =>
+        `to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')) @@ websearch_to_tsquery('spanish', ${p(termino)})`
+    );
+    if (f.q && /\d/.test(f.q)) partes.push(`numero ILIKE ${p(`%${f.q.replace(/"/g, "")}%`)}`);
+    if (f.idsTexto && f.idsTexto.length) partes.push(`id = ANY(${p(f.idsTexto)}::bigint[])`);
     cond.push(`(${partes.join(" OR ")})`);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };
@@ -111,4 +109,18 @@ export function coincideFueraDeSumilla(texto, q) {
   const palabras = base(q).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 3);
   if (!palabras.length) return false;
   return !palabras.every((w) => t.includes(w.slice(0, Math.max(4, w.length - 2))));
+}
+
+// Antes de armar el WHERE: busca lo pedido en el texto completo y guarda los ids hallados
+export async function prepararBusqueda(f, tipo) {
+  const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
+  if (!buscados.length) return f;
+  try {
+    f.idsTexto = await idsPorTexto(tipo, buscados);
+  } catch (e) {
+    // Si la busqueda en el texto completo falla, se sigue con la de sumillas y se avisa
+    f.idsTexto = [];
+    f.avisoTexto = String(e.message || e);
+  }
+  return f;
 }

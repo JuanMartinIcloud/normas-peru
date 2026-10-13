@@ -1,4 +1,6 @@
-import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, coincideFueraDeSumilla } from "../lib/db";
+import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, prepararBusqueda } from "../lib/db";
+import { fragmentos } from "../lib/textos";
+import Fragmento from "./Fragmento";
 import { cargarResumen, fechasConResumen, ayerLima } from "../lib/resumenes";
 import ResumenIA from "./ResumenIA";
 import BotonResumir from "./BotonResumir";
@@ -22,6 +24,7 @@ function enlace(f, cambios = {}) {
 }
 
 async function cargar(f) {
+  await prepararBusqueda(f, "N");
   const { where, params } = construirWhere(f);
   const offset = (f.pagina - 1) * POR_PAGINA;
 
@@ -32,14 +35,21 @@ async function cargar(f) {
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM normas WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT tipo AS valor, count(*)::int AS n FROM normas WHERE tipo IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 40`),
     consultar(
-      `SELECT id, fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria
+      `SELECT id, fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria,
+              texto_base
        FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       params
     ),
     consultar(`SELECT count(*)::int AS n FROM normas ${where}`, params),
   ]);
 
-  return { resumen: resumen[0], anios, sectores, rubros, tipos, filas, total: total[0].n };
+  let frags = {};
+  try {
+    frags = await fragmentos("N", filas, [f.q, ...f.terminos]);
+  } catch (e) {
+    frags = {};
+  }
+  return { resumen: resumen[0], anios, sectores, rubros, tipos, filas, total: total[0].n, frags };
 }
 
 function Opciones({ lista }) {
@@ -76,7 +86,7 @@ export default async function Pagina({ searchParams }) {
     );
   }
 
-  const { resumen, anios, sectores, rubros, tipos, filas, total } = datos;
+  const { resumen, anios, sectores, rubros, tipos, filas, total, frags } = datos;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
   const hoy = hoyLima();
   const csv = enlace(f, { pagina: 1 }).replace("/?", "/api/csv?").replace(/^\/$/, "/api/csv");
@@ -192,6 +202,9 @@ export default async function Pagina({ searchParams }) {
         </div>
       </form>
 
+      {f.avisoTexto && (
+        <p className="ia-aviso">La búsqueda en el texto completo no respondió; se muestran solo las coincidencias en sumillas.</p>
+      )}
       <p className="resumen">
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
       </p>
@@ -223,15 +236,13 @@ export default async function Pagina({ searchParams }) {
                 <span className="fecha">{n.fecha}</span>
               </div>
               <p className="sumilla">{n.sumilla}</p>
+              <Fragmento texto={frags[String(n.id)]} />
               <div className="etiquetas">
                 <Marcar
                   tipo="N"
                   id={String(n.id)}
                   etiqueta={`${[n.tipo, n.numero].filter(Boolean).join(" N° ")} (${n.fecha})`}
                 />
-                {coincideFueraDeSumilla(`${n.sumilla} ${n.tipo} ${n.numero} ${n.entidad}`, f.q) && (
-                  <span className="etq gris">Coincide en el texto completo o en un término relacionado</span>
-                )}
                 {n.rubro && <span className="etq">{n.rubro}</span>}
                 {n.sector && <span className="etq gris">{n.sector}</span>}
                 {n.extraordinaria && <span className="etq gris">Edición extraordinaria</span>}

@@ -1,4 +1,6 @@
-import { consultar, leerFiltros, construirWhere, coincideFueraDeSumilla } from "../../lib/db";
+import { consultar, leerFiltros, construirWhere, prepararBusqueda } from "../../lib/db";
+import { fragmentos } from "../../lib/textos";
+import Fragmento from "../Fragmento";
 import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
 import { urlProyecto } from "../../lib/resumenes";
 import BotonResumir from "../BotonResumir";
@@ -30,20 +32,23 @@ export default async function Buscar({ searchParams }) {
   let totalN = 0;
   let totalP = 0;
   let error = "";
+  let fragN = {};
+  let fragP = {};
   if (hayBusqueda) {
     try {
+      await Promise.all([prepararBusqueda(fn, "N"), prepararBusqueda(fp, "P")]);
       const wn = construirWhere(fn);
       const wp = whereProyectos(fp);
       const [a, b, c, d] = await Promise.all([
         consultar(
-          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf
+          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, texto_base
            FROM normas ${wn.where} ORDER BY fecha DESC, id DESC LIMIT ${MOSTRAR}`,
           wn.params
         ),
         consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, sumilla, proponente, estado
+                  titulo, sumilla, proponente, estado, texto_base
            FROM proyectos_ley ${wp.where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${MOSTRAR}`,
           wp.params
         ),
@@ -53,6 +58,11 @@ export default async function Buscar({ searchParams }) {
       totalN = b[0].n;
       proyectos = c;
       totalP = d[0].n;
+      const terminos = [fn.q, ...fn.terminos];
+      [fragN, fragP] = await Promise.all([
+        fragmentos("N", normas, terminos).catch(() => ({})),
+        fragmentos("P", proyectos, terminos).catch(() => ({})),
+      ]);
     } catch (e) {
       error = String(e.message || e);
     }
@@ -98,6 +108,9 @@ export default async function Buscar({ searchParams }) {
 
       {hayBusqueda && !error && (
         <>
+          {(fn.avisoTexto || fp.avisoTexto) && (
+            <p className="ia-aviso">La búsqueda en el texto completo no respondió; se muestran solo las coincidencias en sumillas y títulos.</p>
+          )}
           <p className="resumen">
             {totalN.toLocaleString("es-PE")} normas legales · {totalP.toLocaleString("es-PE")} proyectos de ley
           </p>
@@ -135,11 +148,9 @@ export default async function Buscar({ searchParams }) {
                       <span className="fecha">{n.fecha}</span>
                     </div>
                     <p className="sumilla">{n.sumilla}</p>
+                    <Fragmento texto={fragN[n.id]} />
                     <div className="etiquetas">
                       <Marcar tipo="N" id={n.id} etiqueta={`${nombre} (${n.fecha})`} />
-                      {coincideFueraDeSumilla(`${n.sumilla} ${nombre} ${n.entidad}`, fn.q) && (
-                        <span className="etq gris">Coincide en el texto completo o en un término relacionado</span>
-                      )}
                       <span className="enlaces">
                         {n.url_detalle && <a href={n.url_detalle} target="_blank" rel="noopener noreferrer">Ver</a>}
                       </span>
@@ -167,6 +178,7 @@ export default async function Buscar({ searchParams }) {
                   </div>
                   <p className="sumilla">{p.titulo}</p>
                   {p.sumilla && <p className="entidad">{p.sumilla}</p>}
+                  <Fragmento texto={fragP[p.id]} />
                   <div className="etiquetas">
                     <Marcar tipo="P" id={p.id} etiqueta={`Proyecto ${p.numero}`} />
                     {p.estado && <span className="etq">{p.estado}</span>}

@@ -2,6 +2,7 @@ import { consultar } from "../../../../lib/db";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, partePDF, ErrorIA } from "../../../../lib/gemini";
 import { pdfNorma, documentoProyecto } from "../../../../lib/documentos";
+import { textoCompleto } from "../../../../lib/textos";
 import { claveDe, buscarGuardada, guardarConsulta } from "../../../../lib/consultasIA";
 
 export const dynamic = "force-dynamic";
@@ -91,7 +92,7 @@ export async function POST(request) {
     const [normas, proyectos] = await Promise.all([
       idsN.length
         ? consultar(
-            `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf
+            `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, texto_base
              FROM normas WHERE id = ANY($1::bigint[])`,
             [idsN]
           )
@@ -99,7 +100,7 @@ export async function POST(request) {
       idsP.length
         ? consultar(
             `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                    titulo, proponente, autor, estado
+                    titulo, proponente, autor, estado, sumilla, texto_base
              FROM proyectos_ley WHERE id = ANY($1::bigint[])`,
             [idsP]
           )
@@ -124,6 +125,11 @@ export async function POST(request) {
     const lecturas = await Promise.all(
       docs.map(async (d) => {
         try {
+          // Si el texto completo ya esta guardado se usa directamente (mas rapido que el PDF)
+          if (d.fila.texto_base !== null && d.fila.texto_base !== undefined) {
+            const texto = await textoCompleto(d.t, d.fila.id, d.fila.texto_base);
+            if (texto) return { texto, sumilla: d.fila.sumilla };
+          }
           if (d.t === "N") {
             const doc = await pdfNorma(d.fila);
             return doc ? { pdf: doc.pdf, nombre: doc.nombre } : { aviso: "La norma no tiene PDF en El Peruano; se usó la sumilla." };

@@ -159,7 +159,8 @@ def pendientes(conn, tipo, parte, de):
         if tipo == "normas":
             cur.execute(
                 """SELECT id, fecha, url_detalle FROM normas
-                   WHERE texto_estado IS NULL AND url_detalle IS NOT NULL AND id %% %s = %s
+                   WHERE (texto_estado IS NULL OR (texto_estado = 'ok' AND texto_base IS NULL))
+                     AND url_detalle IS NOT NULL AND id %% %s = %s
                    ORDER BY fecha DESC, id DESC""",
                 (de, parte),
             )

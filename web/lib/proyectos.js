@@ -33,16 +33,18 @@ export function whereProyectos(f) {
   if (f.desde) cond.push(`fecha_presentacion >= ${p(f.desde)}`);
   if (f.hasta) cond.push(`fecha_presentacion <= ${p(f.hasta)}`);
   // Busca en el titulo y en la sumilla extensa del expediente (por palabras: reconoce plurales y
-  // variantes), y por frase exacta en titulo, autores o numero
+  // variantes; admite "frase exacta"), por texto en titulo, autores o numero, y en el texto completo
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
   if (buscados.length) {
     const partes = buscados.map(
-      (t) => `to_tsvector('spanish', coalesce(titulo,'') || ' ' || coalesce(sumilla,'')) @@ plainto_tsquery('spanish', ${p(t)})`
+      (t) => `to_tsvector('spanish', coalesce(titulo,'') || ' ' || coalesce(sumilla,'')) @@ websearch_to_tsquery('spanish', ${p(t)})`
     );
     if (f.q) {
-      const like = p(`%${f.q}%`);
+      const like = p(`%${f.q.replace(/"/g, "")}%`);
       partes.push(`titulo ILIKE ${like}`, `autor ILIKE ${like}`, `numero ILIKE ${like}`);
     }
+    // Ids hallados en el texto completo del PDF del proyecto (ver prepararBusqueda)
+    if (f.idsTexto && f.idsTexto.length) partes.push(`id = ANY(${p(f.idsTexto)}::bigint[])`);
     cond.push(`(${partes.join(" OR ")})`);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };

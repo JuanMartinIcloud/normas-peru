@@ -1,4 +1,6 @@
-import { consultar, POR_PAGINA } from "../../lib/db";
+import { consultar, POR_PAGINA, prepararBusqueda } from "../../lib/db";
+import { fragmentos } from "../../lib/textos";
+import Fragmento from "../Fragmento";
 import { urlProyecto } from "../../lib/resumenes";
 import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
 import BotonResumir from "../BotonResumir";
@@ -19,6 +21,7 @@ function enlace(f, cambios = {}) {
 }
 
 async function cargar(f) {
+  await prepararBusqueda(f, "P");
   const { where, params } = whereProyectos(f);
   const offset = (f.pagina - 1) * POR_PAGINA;
   const [resumen, periodos, estados, rubros, proponentes, filas, total] = await Promise.all([
@@ -28,13 +31,19 @@ async function cargar(f) {
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM proyectos_ley WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT proponente AS valor, count(*)::int AS n FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30`),
     consultar(
-      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro
+      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro, texto_base
        FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       params
     ),
     consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${where}`, params),
   ]);
-  return { resumen: resumen[0], periodos, estados, rubros, proponentes, filas, total: total[0].n };
+  let frags = {};
+  try {
+    frags = await fragmentos("P", filas, [f.q, ...f.terminos]);
+  } catch (e) {
+    frags = {};
+  }
+  return { resumen: resumen[0], periodos, estados, rubros, proponentes, filas, total: total[0].n, frags };
 }
 
 function Opciones({ lista }) {
@@ -68,7 +77,7 @@ export default async function Proyectos({ searchParams }) {
     );
   }
 
-  const { resumen, periodos, estados, rubros, proponentes, filas, total } = datos;
+  const { resumen, periodos, estados, rubros, proponentes, filas, total, frags } = datos;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
   return (
@@ -149,6 +158,7 @@ export default async function Proyectos({ searchParams }) {
               </div>
               <p className="sumilla">{n.titulo}</p>
               {n.sumilla && <p className="entidad">{n.sumilla}</p>}
+              <Fragmento texto={frags[String(n.id)]} />
               {n.autor && <p className="entidad">Autores: {n.autor}</p>}
               <div className="etiquetas">
                 <Marcar tipo="P" id={String(n.id)} etiqueta={`Proyecto ${n.numero}`} />

@@ -1,4 +1,5 @@
-import { consultar, leerFiltros, construirWhere } from "../../../../lib/db";
+import { consultar, leerFiltros, construirWhere, prepararBusqueda } from "../../../../lib/db";
+import { fragmentos } from "../../../../lib/textos";
 import { leerFiltrosProyectos, whereProyectos } from "../../../../lib/proyectos";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, ErrorIA } from "../../../../lib/gemini";
@@ -81,13 +82,21 @@ export async function POST(request) {
   const fn = leerFiltros(texto);
   const fp = leerFiltrosProyectos(texto);
 
+  // Filtros tal como los pidio el usuario (sin la lista de ids hallados en textos)
+  const filtrosN = { ...fn };
+  const filtrosP = { ...fp };
+
   try {
+    await Promise.all([
+      ambito !== "proyectos" ? prepararBusqueda(fn, "N") : null,
+      ambito !== "normas" ? prepararBusqueda(fp, "P") : null,
+    ]);
     const pedidos = [];
     if (ambito !== "proyectos") {
       const { where, params } = construirWhere(fn);
       pedidos.push(
         consultar(
-          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf
+          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, texto_base
            FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${LIMITE}`,
           params
         ),
@@ -99,7 +108,7 @@ export async function POST(request) {
       pedidos.push(
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, sumilla, proponente, estado
+                  titulo, sumilla, proponente, estado, texto_base
            FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${LIMITE}`,
           params
         ),
@@ -125,28 +134,40 @@ export async function POST(request) {
       normas: { total: tn.n, incluidas: normas.length },
       proyectos: { total: tp.n, incluidas: proyectos.length },
     };
-    const clave = claveDe("resumir", { ambito, fn, fp, ids: Object.keys(referencias) });
+    const clave = claveDe("resumir", { ambito, fn: filtrosN, fp: filtrosP, ids: Object.keys(referencias) });
     const guardada = await buscarGuardada(clave);
     if (guardada) {
       return Response.json({ ...guardada.resultado, referencias, totales, modelo: guardada.modelo, guardado: true });
     }
 
+    // Pasajes del texto completo donde aparece lo buscado (si hay busqueda por palabras)
+    const terminos = [fn.q || fp.q, ...(fn.terminos || [])].filter(Boolean);
+    const [fragN, fragP] = await Promise.all([
+      fragmentos("N", normas, terminos).catch(() => ({})),
+      fragmentos("P", proyectos, terminos).catch(() => ({})),
+    ]);
+    const limpiarFrag = (t) => corta(String(t || "").replace(/\[\[|\]\]/g, ""), 450);
+
     const busqueda = [
       fn.q || fp.q ? `Búsqueda: "${fn.q || fp.q}"` : "Búsqueda: sin palabra clave (documentos más recientes)",
       fn.terminos.length ? `Términos relacionados incluidos: ${fn.terminos.join("; ")}` : "",
-      "Nota: algunas normas coinciden por su texto completo y no por su sumilla.",
+      "Nota: algunos documentos coinciden por su texto completo y no por su sumilla; para ellos se incluye el pasaje donde aparece lo buscado.",
       fn.desde || fn.hasta ? `Fechas: ${fn.desde || "inicio"} a ${fn.hasta || "hoy"}` : "",
     ].filter(Boolean);
     const lineas = [...busqueda, "", `NORMAS LEGALES (${normas.length} de ${tn.n}):`];
     for (const n of normas) {
-      lineas.push(`[N${n.id}] ${n.fecha} | ${[n.tipo, n.numero].filter(Boolean).join(" N° ")} | ${n.entidad || ""} | ${corta(n.sumilla, 500)}`);
+      lineas.push(
+        `[N${n.id}] ${n.fecha} | ${[n.tipo, n.numero].filter(Boolean).join(" N° ")} | ${n.entidad || ""} | ${corta(n.sumilla, 500)}` +
+          (fragN[n.id] ? ` | pasaje del texto: ${limpiarFrag(fragN[n.id])}` : "")
+      );
     }
     if (!normas.length) lineas.push("(ninguna)");
     lineas.push("", `PROYECTOS DE LEY (${proyectos.length} de ${tp.n}):`);
     for (const p of proyectos) {
       lineas.push(
         `[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${p.estado || "-"} | ${corta(p.titulo, 400)}` +
-          (p.sumilla ? ` | sumilla: ${corta(p.sumilla, 400)}` : "")
+          (p.sumilla ? ` | sumilla: ${corta(p.sumilla, 400)}` : "") +
+          (fragP[p.id] ? ` | pasaje del texto: ${limpiarFrag(fragP[p.id])}` : "")
       );
     }
     if (!proyectos.length) lineas.push("(ninguno)");
@@ -161,7 +182,7 @@ export async function POST(request) {
       normas: limpiarGrupo(datos.normas, validas),
       proyectos: limpiarGrupo(datos.proyectos, validas),
     };
-    await guardarConsulta(clave, "resumir", { ambito, fn, fp }, resultado, modelo);
+    await guardarConsulta(clave, "resumir", { ambito, fn: filtrosN, fp: filtrosP }, resultado, modelo);
     return Response.json({ ...resultado, referencias, totales, modelo, guardado: false });
   } catch (e) {
     const estado = e instanceof ErrorIA ? e.estado : 500;

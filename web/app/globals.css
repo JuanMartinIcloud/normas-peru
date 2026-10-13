@@ -244,3 +244,6 @@ a.ia-ref:hover { border-color: var(--acento); }
 body:has(.bandeja) .contenedor { padding-bottom: 140px; }
 .terminos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 12px; font-size: 0.9rem; }
 .terminos .etq { text-decoration: none; }
+.fragmento { margin: 6px 0 8px; font-size: 0.9rem; color: var(--suave); border-left: 3px solid var(--linea); padding-left: 10px; }
+.fragmento mark { background: var(--acento-claro); color: var(--texto); padding: 0 2px; border-radius: 3px; }
+.fragmento-etq { font-weight: 600; }
