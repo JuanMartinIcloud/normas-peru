@@ -72,48 +72,71 @@ class FuenteNoResponde(Exception):
 
 
 class Bases:
-    """Conexiones a las bases de texto TEXTOS_URL_1..9 (posicion fija; None si falta)."""
+    """Bases de texto TEXTOS_URL_1..9.
+
+    No se mantienen conexiones abiertas: Neon apaga la base tras unos minutos sin uso y corta las
+    conexiones. Por eso cada operacion abre su propia conexion, la usa y la cierra.
+    """
 
     def __init__(self):
-        self.conexiones = []
+        self.urls = []
         for i in range(1, 10):
             url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
-            if not url:
-                continue
-            c = psycopg2.connect(url)
-            with c.cursor() as cur:
+            if url:
+                self.urls.append(url)
+        if not self.urls:
+            raise SystemExit("Faltan los secretos TEXTOS_URL_1, TEXTOS_URL_2... (bases de texto)")
+        for url in self.urls:
+            def preparar(cur):
                 cur.execute("SELECT pg_advisory_xact_lock(724502)")
                 cur.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables
                                               WHERE table_schema = 'public' AND table_name = 'documentos')""")
                 if not cur.fetchone()[0]:
                     cur.execute(SQL_BASE_TEXTOS)
                 cur.execute("ALTER TABLE avance ADD COLUMN IF NOT EXISTS cursor_clave TEXT")
-            c.commit()
-            self.conexiones.append(c)
-        if not self.conexiones:
-            raise SystemExit("Faltan los secretos TEXTOS_URL_1, TEXTOS_URL_2... (bases de texto)")
-        self.control = self.conexiones[0]
+            self.ejecutar(url, preparar)
+        self.control = self.urls[0]
         self.actual = None
         self.pendientes = []          # documentos aun no enviados
         self.avance_pendiente = {}    # trabajador -> (cursor, terminado, procesados, cursor_clave)
         self.bloque = int(time.time() // BLOQUE_SEGUNDOS)
 
-    def tamano_mb(self, c) -> float:
-        with c.cursor() as cur:
+    @staticmethod
+    def ejecutar(url, funcion):
+        """Abre una conexion, ejecuta funcion(cursor), confirma y cierra. Reintenta si la base
+        estaba apagada o corto la conexion."""
+        ultimo = None
+        for intento in range(4):
+            try:
+                c = psycopg2.connect(url, connect_timeout=60)
+                try:
+                    with c.cursor() as cur:
+                        resultado = funcion(cur)
+                    c.commit()
+                    return resultado
+                finally:
+                    c.close()
+            except psycopg2.OperationalError as e:
+                ultimo = e
+                print(f"  base de texto no respondio ({str(e).strip()[:120]}); reintento {intento + 1}")
+                time.sleep(10 * (intento + 1))
+        raise ultimo
+
+    def tamano_mb(self, url) -> float:
+        def f(cur):
             cur.execute("SELECT pg_database_size(current_database()) / 1048576.0")
-            mb = float(cur.fetchone()[0])
-        c.commit()
-        return mb
+            return float(cur.fetchone()[0])
+        return self.ejecutar(url, f)
 
     def destino(self):
         """Base con espacio libre (se revisa en cada envio)."""
-        for n, c in enumerate(self.conexiones, start=1):
-            mb = self.tamano_mb(c)
+        for n, url in enumerate(self.urls, start=1):
+            mb = self.tamano_mb(url)
             if mb < LIMITE_MB:
-                if c is not self.actual:
+                if url != self.actual:
                     print(f"Guardando textos en la base de texto {n} ({mb:.0f} MB usados)")
-                self.actual = c
-                return c
+                self.actual = url
+                return url
         raise SystemExit(
             f"::error title=Bases llenas::Todas las bases de texto llegaron a {LIMITE_MB} MB. "
             "Hay que crear otra base gratuita en Neon y agregarla como secreto TEXTOS_URL_<numero>."
@@ -124,11 +147,12 @@ class Bases:
         hechas = set()
         if not claves:
             return hechas
-        for c in self.conexiones:
-            with c.cursor() as cur:
-                cur.execute("SELECT clave FROM documentos WHERE tipo = %s AND clave = ANY(%s)", (tipo, list(claves)))
-                hechas.update(r[0] for r in cur.fetchall())
-            c.commit()
+        lista = list(claves)
+        for url in self.urls:
+            def f(cur):
+                cur.execute("SELECT clave FROM documentos WHERE tipo = %s AND clave = ANY(%s)", (tipo, lista))
+                return [r[0] for r in cur.fetchall()]
+            hechas.update(self.ejecutar(url, f))
         return hechas
 
     def guardar(self, tipo, clave, estado, texto):
@@ -144,38 +168,48 @@ class Bases:
     def enviar(self):
         """Escribe en bloque los documentos pendientes y, despues, el avance."""
         if self.pendientes:
-            c = self.destino()
-            with c.cursor() as cur:
+            lote = self.pendientes
+
+            def f(cur):
                 execute_values(
                     cur,
                     """INSERT INTO documentos (tipo, clave, estado, texto) VALUES %s
                        ON CONFLICT (tipo, clave) DO UPDATE
                        SET estado = EXCLUDED.estado, texto = EXCLUDED.texto, creado_en = now()""",
-                    self.pendientes,
+                    lote,
                     page_size=50,
                 )
-            c.commit()
-            print(f"  enviados {len(self.pendientes)} documentos a la base de texto")
+            self.ejecutar(self.destino(), f)
+            print(f"  enviados {len(lote)} documentos a la base de texto")
             self.pendientes = []
-        for trabajador, (cursor_fecha, terminado, procesados, cursor_clave) in self.avance_pendiente.items():
-            with self.control.cursor() as cur:
-                cur.execute(
-                    """INSERT INTO avance (trabajador, cursor, cursor_clave, terminado, procesados)
-                       VALUES (%s, %s, %s, %s, %s)
-                       ON CONFLICT (trabajador) DO UPDATE SET cursor = EXCLUDED.cursor,
-                           cursor_clave = EXCLUDED.cursor_clave, terminado = EXCLUDED.terminado,
-                           procesados = avance.procesados + EXCLUDED.procesados, actualizado = now()""",
-                    (trabajador, cursor_fecha, cursor_clave, terminado, procesados),
-                )
-            self.control.commit()
-        self.avance_pendiente = {}
+        if self.avance_pendiente:
+            avances = list(self.avance_pendiente.items())
+
+            def g(cur):
+                for trabajador, (cursor_fecha, terminado, procesados, cursor_clave) in avances:
+                    cur.execute(
+                        """INSERT INTO avance (trabajador, cursor, cursor_clave, terminado, procesados)
+                           VALUES (%s, %s, %s, %s, %s)
+                           ON CONFLICT (trabajador) DO UPDATE SET cursor = EXCLUDED.cursor,
+                               cursor_clave = EXCLUDED.cursor_clave, terminado = EXCLUDED.terminado,
+                               procesados = avance.procesados + EXCLUDED.procesados, actualizado = now()""",
+                        (trabajador, cursor_fecha, cursor_clave, terminado, procesados),
+                    )
+            self.ejecutar(self.control, g)
+            self.avance_pendiente = {}
 
     def leer_avance(self, trabajador):
-        with self.control.cursor() as cur:
+        def f(cur):
             cur.execute("SELECT cursor, cursor_clave, terminado FROM avance WHERE trabajador = %s", (trabajador,))
-            fila = cur.fetchone()
-        self.control.commit()
-        return fila
+            return cur.fetchone()
+        return self.ejecutar(self.control, f)
+
+    def limpiar_avance(self, de):
+        """Borra el avance de una configuracion anterior (otro numero de trabajadores)."""
+        def f(cur):
+            cur.execute("DELETE FROM avance WHERE trabajador LIKE 'normas-%%' AND trabajador NOT LIKE %s",
+                        (f"%-de-{de}",))
+        self.ejecutar(self.control, f)
 
     def guardar_avance(self, trabajador, cursor_fecha, terminado, procesados, cursor_clave=None):
         """El avance se escribe junto con los documentos (nunca antes que ellos)."""
@@ -183,11 +217,7 @@ class Bases:
         self.avance_pendiente[trabajador] = (cursor_fecha, terminado, previo[2] + procesados, cursor_clave)
 
     def cerrar(self):
-        try:
-            self.enviar()
-        finally:
-            for c in self.conexiones:
-                c.close()
+        self.enviar()
 
 
 # --------------------------------------------------------------------------- descargas
@@ -330,10 +360,7 @@ def trabajar_normas(parte, de, minutos):
     total = 0
     try:
         # Avance de una configuracion anterior (otro numero de trabajadores): ya no aplica
-        with bases.control.cursor() as cur:
-            cur.execute("DELETE FROM avance WHERE trabajador LIKE 'normas-%%' AND trabajador NOT LIKE %s",
-                        (f"%-de-{de}",))
-        bases.control.commit()
+        bases.limpiar_avance(de)
         hoy = date.today()
         # 1) Lo reciente (ultimos 7 dias): siempre se revisa, para indexar lo nuevo de cada dia
         recientes = normas_de_principal(hoy - timedelta(days=7), hoy + timedelta(days=2), parte, de, 5000)
