@@ -329,6 +329,11 @@ def trabajar_normas(parte, de, minutos):
     errores = {"n": 0, "espera": 30}
     total = 0
     try:
+        # Avance de una configuracion anterior (otro numero de trabajadores): ya no aplica
+        with bases.control.cursor() as cur:
+            cur.execute("DELETE FROM avance WHERE trabajador LIKE 'normas-%%' AND trabajador NOT LIKE %s",
+                        (f"%-de-{de}",))
+        bases.control.commit()
         hoy = date.today()
         # 1) Lo reciente (ultimos 7 dias): siempre se revisa, para indexar lo nuevo de cada dia
         recientes = normas_de_principal(hoy - timedelta(days=7), hoy + timedelta(days=2), parte, de, 5000)
