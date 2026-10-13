@@ -304,6 +304,16 @@ def validar(datos: dict, validas: set) -> dict:
 
 
 def guardar(conn, fecha, datos, modelo, n_normas, n_proy, n_camb, desde, hasta):
+    # Conexion nueva: mientras Gemini escribe (puede tardar minutos) Neon apaga la base y corta
+    # la conexion anterior
+    conn = db.conectar()
+    try:
+        _guardar(conn, fecha, datos, modelo, n_normas, n_proy, n_camb, desde, hasta)
+    finally:
+        conn.close()
+
+
+def _guardar(conn, fecha, datos, modelo, n_normas, n_proy, n_camb, desde, hasta):
     with conn.cursor() as cur:
         cur.execute(
             """INSERT INTO resumenes (fecha, datos, modelo, n_normas, n_proyectos, n_cambios,
@@ -388,12 +398,21 @@ def main():
         for i, d in enumerate(dias):
             if i and not sin_ia:
                 time.sleep(15)   # respeta el limite por minuto de la capa gratuita
+            # Conexion nueva por dia (la anterior pudo cerrarse mientras la base estaba apagada)
+            try:
+                conn.close()
+            except Exception:  # noqa: BLE001
+                pass
+            conn = db.conectar()
             try:
                 # Solo el resumen de ayer incluye los proyectos aparecidos tarde y los cambios de estado
                 resumir_dia(conn, d, con_ventana=(d == ayer),
                             avisos=avisos if d == ayer else [], sin_ia=sin_ia)
             except gemini.ErrorGemini as e:
-                conn.rollback()
+                try:
+                    conn.rollback()
+                except Exception:  # noqa: BLE001
+                    pass
                 fallas.append(f"{d}: {e}")
                 print(f"{d}: ERROR {e}")
         if fallas:
