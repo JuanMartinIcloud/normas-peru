@@ -19,6 +19,7 @@ import base64
 import os
 import re
 import time
+import zlib
 from datetime import date, timedelta
 
 import psycopg2
@@ -204,11 +205,11 @@ class Bases:
             return cur.fetchone()
         return self.ejecutar(self.control, f)
 
-    def limpiar_avance(self, de):
+    def limpiar_avance(self, de, prefijo="normas"):
         """Borra el avance de una configuracion anterior (otro numero de trabajadores)."""
         def f(cur):
-            cur.execute("DELETE FROM avance WHERE trabajador LIKE 'normas-%%' AND trabajador NOT LIKE %s",
-                        (f"%-de-{de}",))
+            cur.execute("DELETE FROM avance WHERE (trabajador = %s OR trabajador LIKE %s) AND trabajador NOT LIKE %s",
+                        (prefijo, f"{prefijo}-%", f"%-de-{de}"))
         self.ejecutar(self.control, f)
 
     def guardar_avance(self, trabajador, cursor_fecha, terminado, procesados, cursor_clave=None):
@@ -393,9 +394,11 @@ def trabajar_normas(parte, de, minutos):
         bases.cerrar()
 
 
-def trabajar_proyectos(minutos):
+def trabajar_proyectos(minutos, parte=0, de=1):
     reloj = Reloj(minutos)
     bases = Bases()
+    nombre = f"proyectos-{parte}-de-{de}"
+    bases.limpiar_avance(de, "proyectos")
     conn = principal()
     with conn.cursor() as cur:
         cur.execute(
@@ -407,7 +410,9 @@ def trabajar_proyectos(minutos):
 
     claves = [f"{p}|{c}|{n}" for p, c, n, _, _ in filas]
     hechas = bases.existentes("P", claves)
-    pendientes = [(k, f) for k, f in zip(claves, filas) if k not in hechas]
+    # Cada trabajador toma su parte (reparto fijo segun la clave)
+    pendientes = [(k, f) for k, f in zip(claves, filas)
+                  if k not in hechas and zlib.crc32(k.encode()) % de == parte]
     print(f"Proyectos: {len(filas)} en total, {len(pendientes)} pendientes")
     sumillas = []
     hechos = 0
@@ -441,7 +446,7 @@ def trabajar_proyectos(minutos):
                 print(f"  {hechos} proyectos procesados")
             time.sleep(PAUSA["proyectos"])
         terminado = hechos >= len(pendientes)
-        bases.guardar_avance("proyectos", None, terminado, hechos)
+        bases.guardar_avance(nombre, None, terminado, hechos)
     finally:
         # Las sumillas se guardan en la principal de una sola vez, al final
         if sumillas:
@@ -470,7 +475,7 @@ def main():
     if a.tipo == "normas":
         trabajar_normas(a.parte, a.de, a.max_minutos)
     else:
-        trabajar_proyectos(a.max_minutos)
+        trabajar_proyectos(a.max_minutos, a.parte, a.de)
 
 
 if __name__ == "__main__":

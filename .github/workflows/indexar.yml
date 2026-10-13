@@ -21,13 +21,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { tipo: normas, parte: 0, de: 6 }
-          - { tipo: normas, parte: 1, de: 6 }
-          - { tipo: normas, parte: 2, de: 6 }
-          - { tipo: normas, parte: 3, de: 6 }
-          - { tipo: normas, parte: 4, de: 6 }
-          - { tipo: normas, parte: 5, de: 6 }
-          - { tipo: proyectos, parte: 0, de: 1 }
+          - { tipo: normas, parte: 0, de: 12 }
+          - { tipo: normas, parte: 1, de: 12 }
+          - { tipo: normas, parte: 2, de: 12 }
+          - { tipo: normas, parte: 3, de: 12 }
+          - { tipo: normas, parte: 4, de: 12 }
+          - { tipo: normas, parte: 5, de: 12 }
+          - { tipo: normas, parte: 6, de: 12 }
+          - { tipo: normas, parte: 7, de: 12 }
+          - { tipo: normas, parte: 8, de: 12 }
+          - { tipo: normas, parte: 9, de: 12 }
+          - { tipo: normas, parte: 10, de: 12 }
+          - { tipo: normas, parte: 11, de: 12 }
+          - { tipo: proyectos, parte: 0, de: 3 }
+          - { tipo: proyectos, parte: 1, de: 3 }
+          - { tipo: proyectos, parte: 2, de: 3 }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
