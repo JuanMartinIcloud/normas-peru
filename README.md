@@ -61,6 +61,12 @@ La base se actualiza sola la primera vez que corre cualquier script (`asegurar_e
 
 Requiere la variable `GEMINI_API_KEY` también en Vercel (*Settings → Environment Variables*).
 
+## Búsqueda dentro del contenido
+
+- El flujo *Textos completos para el buscador* (`src/textos.py`, cada 4 horas) guarda la **sumilla extensa** de cada proyecto (expediente del Congreso) y, para las normas de los últimos 60 días en adelante, lee el **PDF oficial** (`epdoc2.elperuano.pe`) y guarda sus 200 palabras más repetidas en `normas.texto_tsv`. No guarda el texto, para no llenar la base gratuita.
+- `busquedas.elperuano.pe` dejó de responder a consultas automáticas (página "URL cannot be found"); no se usa.
+- En `/buscar`, el botón **Ampliar la búsqueda con IA** (`/api/ia/ampliar`) agrega sinónimos y leyes relacionadas al término buscado.
+
 ## Siguientes etapas
 
 1. Descarga de PDFs a R2 y resúmenes basados en el texto completo de cada norma.
