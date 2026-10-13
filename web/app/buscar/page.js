@@ -1,4 +1,4 @@
-import { consultar, leerFiltros, construirWhere, prepararBusqueda } from "../../lib/db";
+import { consultar, leerFiltros, construirWhere, prepararBusqueda, corregirConsulta } from "../../lib/db";
 import { fragmentos, claveProyecto } from "../../lib/textos";
 import Fragmento from "../Fragmento";
 import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
@@ -19,6 +19,33 @@ function qs(f, extra = {}) {
   return s ? `?${s}` : "";
 }
 
+async function buscarTodo(fn, fp) {
+  await Promise.all([prepararBusqueda(fn, "N"), prepararBusqueda(fp, "P")]);
+  const wn = construirWhere(fn);
+  const wp = whereProyectos(fp);
+  const [a, b, c, d] = await Promise.all([
+    consultar(
+      `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
+       FROM normas ${wn.where} ORDER BY fecha DESC, id DESC LIMIT ${MOSTRAR}`,
+      wn.params
+    ),
+    consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
+    consultar(
+      `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
+              titulo, sumilla, proponente, estado
+       FROM proyectos_ley ${wp.where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${MOSTRAR}`,
+      wp.params
+    ),
+    consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
+  ]);
+  const terminos = [fn.q, ...fn.terminos];
+  const [fragN, fragP] = await Promise.all([
+    fragmentos("N", a.map((n) => n.hash_unico), terminos).catch(() => ({})),
+    fragmentos("P", c.map(claveProyecto), terminos).catch(() => ({})),
+  ]);
+  return { normas: a, totalN: b[0].n, proyectos: c, totalP: d[0].n, fragN, fragP };
+}
+
 export default async function Buscar({ searchParams }) {
   const sp = searchParams || {};
   const base = { q: sp.q, desde: sp.desde, hasta: sp.hasta, t: sp.t };
@@ -34,35 +61,27 @@ export default async function Buscar({ searchParams }) {
   let error = "";
   let fragN = {};
   let fragP = {};
+  let corregidaDe = "";
   if (hayBusqueda) {
     try {
-      await Promise.all([prepararBusqueda(fn, "N"), prepararBusqueda(fp, "P")]);
-      const wn = construirWhere(fn);
-      const wp = whereProyectos(fp);
-      const [a, b, c, d] = await Promise.all([
-        consultar(
-          `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
-           FROM normas ${wn.where} ORDER BY fecha DESC, id DESC LIMIT ${MOSTRAR}`,
-          wn.params
-        ),
-        consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
-        consultar(
-          `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, sumilla, proponente, estado
-           FROM proyectos_ley ${wp.where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${MOSTRAR}`,
-          wp.params
-        ),
-        consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
-      ]);
-      normas = a;
-      totalN = b[0].n;
-      proyectos = c;
-      totalP = d[0].n;
-      const terminos = [fn.q, ...fn.terminos];
-      [fragN, fragP] = await Promise.all([
-        fragmentos("N", normas.map((n) => n.hash_unico), terminos).catch(() => ({})),
-        fragmentos("P", proyectos.map(claveProyecto), terminos).catch(() => ({})),
-      ]);
+      let r = await buscarTodo(fn, fp);
+      // Sin resultados: puede ser una palabra mal escrita ("piscologica"); se corrige y se repite
+      if (r.totalN + r.totalP === 0 && fn.q) {
+        const nueva = await corregirConsulta(fn.q);
+        if (nueva) {
+          const gn = { ...fn, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+          const gp = { ...fp, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+          const otra = await buscarTodo(gn, gp);
+          if (otra.totalN + otra.totalP > 0) {
+            corregidaDe = fn.q;
+            Object.assign(fn, gn);
+            Object.assign(fp, gp);
+            filtros.q = nueva;
+            r = otra;
+          }
+        }
+      }
+      ({ normas, proyectos, totalN, totalP, fragN, fragP } = r);
     } catch (e) {
       error = String(e.message || e);
     }
@@ -110,6 +129,11 @@ export default async function Buscar({ searchParams }) {
         <>
           {(fn.avisoTexto || fp.avisoTexto) && (
             <p className="ia-aviso">La búsqueda en el texto completo no respondió; se muestran solo las coincidencias en sumillas y títulos.</p>
+          )}
+          {corregidaDe && (
+            <p className="ia-aviso">
+              No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{fn.q}»</strong>.
+            </p>
           )}
           <p className="resumen">
             {totalN.toLocaleString("es-PE")} normas legales · {totalP.toLocaleString("es-PE")} proyectos de ley

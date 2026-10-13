@@ -128,3 +128,45 @@ export async function prepararBusqueda(f, tipo) {
   }
   return f;
 }
+
+// Corrector de errores de escritura (por ejemplo "piscologica" -> "psicológica").
+// Usa la tabla "vocabulario" (palabras reales de sumillas y titulos). Devuelve la consulta corregida,
+// o "" si no hay nada que corregir. Solo se usa cuando una busqueda no dio resultados.
+const quitarTildes = (s) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-̂̄-ͯ]/g, "").normalize("NFC"); // conserva la ñ
+
+export async function corregirConsulta(q) {
+  if (!q) return "";
+  const partes = q.split(/(\s+)/);
+  const palabras = [];
+  partes.forEach((p, i) => {
+    const limpia = p.replace(/^[-"(]+|[")]+$/g, "");
+    if (/^\p{L}{4,}$/u.test(limpia) && !/^(or|and)$/i.test(limpia)) palabras.push({ i, limpia });
+  });
+  if (!palabras.length) return "";
+  let filas;
+  try {
+    filas = await consultar(
+      `SELECT t.w,
+              EXISTS (SELECT 1 FROM vocabulario v WHERE v.sin_tilde = t.w) AS existe,
+              (SELECT v.palabra FROM vocabulario v
+                WHERE v.sin_tilde % t.w AND similarity(v.sin_tilde, t.w) >= 0.4
+                ORDER BY similarity(v.sin_tilde, t.w) DESC, v.n DESC LIMIT 1) AS cercana
+       FROM unnest($1::text[]) AS t(w)`,
+      [palabras.map((p) => quitarTildes(p.limpia))]
+    );
+  } catch (e) {
+    return ""; // sin vocabulario no se corrige, la busqueda sigue igual
+  }
+  let cambio = false;
+  const salida = [...partes];
+  const porPalabra = new Map(filas.map((f) => [f.w, f]));
+  palabras.forEach((p) => {
+    const f = porPalabra.get(quitarTildes(p.limpia));
+    if (f && !f.existe && f.cercana && quitarTildes(f.cercana) !== quitarTildes(p.limpia)) {
+      salida[p.i] = partes[p.i].replace(p.limpia, f.cercana);
+      cambio = true;
+    }
+  });
+  return cambio ? salida.join("") : "";
+}

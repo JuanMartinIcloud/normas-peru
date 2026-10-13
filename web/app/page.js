@@ -1,4 +1,4 @@
-import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, prepararBusqueda } from "../lib/db";
+import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, prepararBusqueda, corregirConsulta } from "../lib/db";
 import { fragmentos } from "../lib/textos";
 import Fragmento from "./Fragmento";
 import { cargarResumen, fechasConResumen, ayerLima } from "../lib/resumenes";
@@ -84,8 +84,22 @@ export default async function Pagina({ searchParams }) {
   const f = leerFiltros(sp);
 
   let datos;
+  let corregidaDe = "";
   try {
     datos = await cargar(f);
+    // Sin resultados: puede ser una palabra mal escrita ("piscologica"); se corrige y se repite
+    if (datos.total === 0 && f.q) {
+      const nueva = await corregirConsulta(f.q);
+      if (nueva) {
+        const g = { ...f, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+        const otra = await cargar(g);
+        if (otra.total > 0) {
+          corregidaDe = f.q;
+          Object.assign(f, g);
+          datos = otra;
+        }
+      }
+    }
   } catch (e) {
     return (
       <main className="contenedor">
@@ -217,6 +231,11 @@ export default async function Pagina({ searchParams }) {
 
       {f.avisoTexto && (
         <p className="ia-aviso">La búsqueda en el texto completo no respondió; se muestran solo las coincidencias en sumillas.</p>
+      )}
+      {corregidaDe && (
+        <p className="ia-aviso">
+          No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{f.q}»</strong>.
+        </p>
       )}
       <p className="resumen">
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}

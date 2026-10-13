@@ -1,4 +1,4 @@
-import { consultar, POR_PAGINA, prepararBusqueda } from "../../lib/db";
+import { consultar, POR_PAGINA, prepararBusqueda, corregirConsulta } from "../../lib/db";
 import { fragmentos, claveProyecto } from "../../lib/textos";
 import Fragmento from "../Fragmento";
 import { urlProyecto } from "../../lib/resumenes";
@@ -62,8 +62,22 @@ function Opciones({ lista }) {
 export default async function Proyectos({ searchParams }) {
   const f = leerFiltrosProyectos(searchParams || {});
   let datos;
+  let corregidaDe = "";
   try {
     datos = await cargar(f);
+    // Sin resultados: puede ser una palabra mal escrita; se corrige y se repite la busqueda
+    if (datos.total === 0 && f.q) {
+      const nueva = await corregirConsulta(f.q);
+      if (nueva) {
+        const g = { ...f, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+        const otra = await cargar(g);
+        if (otra.total > 0) {
+          corregidaDe = f.q;
+          Object.assign(f, g);
+          datos = otra;
+        }
+      }
+    }
   } catch (e) {
     return (
       <main className="contenedor">
@@ -130,6 +144,11 @@ export default async function Proyectos({ searchParams }) {
         </div>
       </form>
 
+      {corregidaDe && (
+        <p className="ia-aviso">
+          No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{f.q}»</strong>.
+        </p>
+      )}
       <p className="resumen">
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
       </p>

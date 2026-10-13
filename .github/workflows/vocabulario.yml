@@ -1,0 +1,22 @@
+name: Vocabulario para corregir busquedas
+
+on:
+  schedule:
+    - cron: "41 11 * * *"   # 6:41 a. m. Lima, despues de cargar las normas del dia
+  workflow_dispatch:
+
+jobs:
+  vocabulario:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Actualizar vocabulario
+        env:
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+        run: python src/vocabulario.py
