@@ -32,6 +32,11 @@ MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos 
 LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "940"))   # cada base gratuita de Neon admite 1 GB
 PAUSA = {"normas": 1.5, "proyectos": 1.0}
 MAX_ERRORES_SEGUIDOS = 12
+# Las escrituras se juntan y se envian en bloque cada 20 minutos de reloj (:00, :20, :40), a la vez en
+# todos los trabajadores. Asi cada base de texto se enciende unos minutos por bloque y se apaga sola
+# el resto del tiempo (Neon cuenta las horas que la base esta encendida).
+BLOQUE_SEGUNDOS = 20 * 60
+MAX_PENDIENTES = 600
 LOTE_NORMAS = 1500                  # normas que lee de la base principal por ejecucion y trabajador
 INICIO_HISTORICO = date(2015, 1, 1)
 
@@ -89,7 +94,9 @@ class Bases:
             raise SystemExit("Faltan los secretos TEXTOS_URL_1, TEXTOS_URL_2... (bases de texto)")
         self.control = self.conexiones[0]
         self.actual = None
-        self.revisado = 0
+        self.pendientes = []          # documentos aun no enviados
+        self.avance_pendiente = {}    # trabajador -> (cursor, terminado, procesados, cursor_clave)
+        self.bloque = int(time.time() // BLOQUE_SEGUNDOS)
 
     def tamano_mb(self, c) -> float:
         with c.cursor() as cur:
@@ -99,11 +106,7 @@ class Bases:
         return mb
 
     def destino(self):
-        """Base con espacio libre. Se revisa el tamaño cada 100 documentos."""
-        if self.actual is not None and self.revisado < 100:
-            self.revisado += 1
-            return self.actual
-        self.revisado = 0
+        """Base con espacio libre (se revisa en cada envio)."""
         for n, c in enumerate(self.conexiones, start=1):
             mb = self.tamano_mb(c)
             if mb < LIMITE_MB:
@@ -129,15 +132,43 @@ class Bases:
         return hechas
 
     def guardar(self, tipo, clave, estado, texto):
-        c = self.destino()
-        with c.cursor() as cur:
-            cur.execute(
-                """INSERT INTO documentos (tipo, clave, estado, texto) VALUES (%s, %s, %s, %s)
-                   ON CONFLICT (tipo, clave) DO UPDATE
-                   SET estado = EXCLUDED.estado, texto = EXCLUDED.texto, creado_en = now()""",
-                (tipo, clave, estado, texto),
-            )
-        c.commit()
+        self.pendientes.append((tipo, clave, estado, texto))
+        self.quizas_enviar()
+
+    def quizas_enviar(self):
+        bloque = int(time.time() // BLOQUE_SEGUNDOS)
+        if bloque != self.bloque or len(self.pendientes) >= MAX_PENDIENTES:
+            self.enviar()
+            self.bloque = bloque
+
+    def enviar(self):
+        """Escribe en bloque los documentos pendientes y, despues, el avance."""
+        if self.pendientes:
+            c = self.destino()
+            with c.cursor() as cur:
+                execute_values(
+                    cur,
+                    """INSERT INTO documentos (tipo, clave, estado, texto) VALUES %s
+                       ON CONFLICT (tipo, clave) DO UPDATE
+                       SET estado = EXCLUDED.estado, texto = EXCLUDED.texto, creado_en = now()""",
+                    self.pendientes,
+                    page_size=50,
+                )
+            c.commit()
+            print(f"  enviados {len(self.pendientes)} documentos a la base de texto")
+            self.pendientes = []
+        for trabajador, (cursor_fecha, terminado, procesados, cursor_clave) in self.avance_pendiente.items():
+            with self.control.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO avance (trabajador, cursor, cursor_clave, terminado, procesados)
+                       VALUES (%s, %s, %s, %s, %s)
+                       ON CONFLICT (trabajador) DO UPDATE SET cursor = EXCLUDED.cursor,
+                           cursor_clave = EXCLUDED.cursor_clave, terminado = EXCLUDED.terminado,
+                           procesados = avance.procesados + EXCLUDED.procesados, actualizado = now()""",
+                    (trabajador, cursor_fecha, cursor_clave, terminado, procesados),
+                )
+            self.control.commit()
+        self.avance_pendiente = {}
 
     def leer_avance(self, trabajador):
         with self.control.cursor() as cur:
@@ -147,20 +178,16 @@ class Bases:
         return fila
 
     def guardar_avance(self, trabajador, cursor_fecha, terminado, procesados, cursor_clave=None):
-        with self.control.cursor() as cur:
-            cur.execute(
-                """INSERT INTO avance (trabajador, cursor, cursor_clave, terminado, procesados)
-                   VALUES (%s, %s, %s, %s, %s)
-                   ON CONFLICT (trabajador) DO UPDATE SET cursor = EXCLUDED.cursor,
-                       cursor_clave = EXCLUDED.cursor_clave, terminado = EXCLUDED.terminado,
-                       procesados = avance.procesados + EXCLUDED.procesados, actualizado = now()""",
-                (trabajador, cursor_fecha, cursor_clave, terminado, procesados),
-            )
-        self.control.commit()
+        """El avance se escribe junto con los documentos (nunca antes que ellos)."""
+        previo = self.avance_pendiente.get(trabajador, (None, False, 0, None))
+        self.avance_pendiente[trabajador] = (cursor_fecha, terminado, previo[2] + procesados, cursor_clave)
 
     def cerrar(self):
-        for c in self.conexiones:
-            c.close()
+        try:
+            self.enviar()
+        finally:
+            for c in self.conexiones:
+                c.close()
 
 
 # --------------------------------------------------------------------------- descargas
