@@ -38,6 +38,12 @@ jobs:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
-        run: >
-          python src/resumen.py ${{ github.event.inputs.fecha }}
-          ${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }}
+        run: |
+          set +e
+          python src/resumen.py ${{ github.event.inputs.fecha }} ${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }} > salida.log 2>&1
+          codigo=$?
+          cat salida.log
+          if [ $codigo -ne 0 ]; then
+            tail -n 9 salida.log | while IFS= read -r linea; do echo "::error::${linea:0:900}"; done
+          fi
+          exit $codigo
