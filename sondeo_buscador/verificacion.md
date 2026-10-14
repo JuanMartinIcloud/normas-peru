@@ -1,17 +1,14 @@
 # Verificacion de normas y proyectos
 Normas en el sistema: 247,040. Proyectos: 15,465.
 ## 1. Enlaces de El Peruano reconocibles
-Normas cuyo enlace no permite obtener el PDF: 129
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjU2M18xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjQ5N18xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjM2N18xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjE2Nl8xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjE2N18xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjQ5MV8xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjQwM18xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjE1NF8xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjAyNl8xMjAxNzEyMzE=
-- 2017-12-31 https://epdoc2.elperuano.pe/EpPo/DescargaIN.asp?Referencias=MTYwMjM5N18xMjAxNzEyMzE=
+Normas cuyo enlace no permite obtener el PDF: 1
+- 2021-02-03 https://busquedas.elperuano.pe/normaslegales/designan-miembro-del-directorio-de-la-sociedad-de-beneficenc-resolucion-ministerial-no-032-2021-mimp-1924922-1-1/
+## 1b. Prueba de descarga por formato de enlace (3 por formato)
+- NormasElperuano .html (16,049 normas): 3 de 3 PDF descargados
+- dispositivo (2023+) (64,969 normas): 3 de 3 PDF descargados
+- epdoc Referencias (2,981 normas): 3 de 3 PDF descargados
+- normaslegales/<titulo> (162,834 normas): 3 de 3 PDF descargados
+- otro (207 normas): 3 de 3 PDF descargados
 ## 2. Prueba de descarga del PDF (3 normas al azar por año)
 - 2015: 3 de 3 PDF descargados
 - 2016: 3 de 3 PDF descargados
