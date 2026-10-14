@@ -247,3 +247,11 @@ body:has(.bandeja) .contenedor { padding-bottom: 140px; }
 .fragmento { margin: 6px 0 8px; font-size: 0.9rem; color: var(--suave); border-left: 3px solid var(--linea); padding-left: 10px; }
 .fragmento mark { background: var(--acento-claro); color: var(--texto); padding: 0 2px; border-radius: 3px; }
 .fragmento-etq { font-weight: 600; }
+
+/* Filtrar dentro de los resultados */
+.refinar { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin: 0 0 14px; }
+.refinar label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--suave); flex: 1 1 260px; }
+.refinar input {
+  padding: 9px 11px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; color: var(--texto); background: #fff;
+}
+.pregunta { margin: 0 0 8px; font-size: 0.95rem; }

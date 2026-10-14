@@ -1,6 +1,6 @@
-import { consultar, leerFiltros, construirWhere, prepararBusqueda } from "../../../../lib/db";
+import { consultar, leerFiltros, construirWhere, prepararBusqueda, ordenNormas } from "../../../../lib/db";
 import { fragmentos, claveProyecto } from "../../../../lib/textos";
-import { leerFiltrosProyectos, whereProyectos } from "../../../../lib/proyectos";
+import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../../../lib/proyectos";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, ErrorIA } from "../../../../lib/gemini";
 import { claveDe, buscarGuardada, guardarConsulta } from "../../../../lib/consultasIA";
@@ -94,23 +94,25 @@ export async function POST(request) {
     const pedidos = [];
     if (ambito !== "proyectos") {
       const { where, params } = construirWhere(fn);
+      const ordN = [...params];
       pedidos.push(
         consultar(
           `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
-           FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${LIMITE}`,
-          params
+           FROM normas ${where} ORDER BY ${ordenNormas(fn, ordN)} LIMIT ${LIMITE}`,
+          ordN
         ),
         consultar(`SELECT count(*)::int AS n FROM normas ${where}`, params)
       );
     } else pedidos.push([], [{ n: 0 }]);
     if (ambito !== "normas") {
       const { where, params } = whereProyectos(fp);
+      const ordP = [...params];
       pedidos.push(
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
                   titulo, sumilla, proponente, estado
-           FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${LIMITE}`,
-          params
+           FROM proyectos_ley ${where} ORDER BY ${ordenProyectos(fp, ordP)} LIMIT ${LIMITE}`,
+          ordP
         ),
         consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${where}`, params)
       );

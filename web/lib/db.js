@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
-import { clavesPorTexto } from "./textos";
+import { clavesPorTexto, clavesPorGrupos } from "./textos";
 
 // Base principal. La original (DATABASE_URL) agoto su cuota gratuita del mes; mientras tanto se usa
 // la base de la variable TEXTOS_URL_4. Para volver a la original basta quitar "TEXTOS_URL_4 ||".
@@ -52,6 +52,9 @@ export function leerFiltros(sp = {}) {
     central: v("central") === "1",
     leyes: v("leyes") === "1",
     terminos: leerTerminos(sp.t),
+    refinar: leerTerminos(sp.y),
+    pregunta: v("pregunta").slice(0, 300),
+    orden: v("orden") === "r" ? "r" : "",
     pagina,
   };
 }
@@ -82,16 +85,49 @@ export function construirWhere(f) {
   // Busca en la sumilla, numero y entidad (admite "frase exacta", OR y -palabra) y, ademas,
   // en el texto completo: f.clavesTexto trae las normas halladas alli (ver prepararBusqueda)
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
+  let principal = "";
   if (buscados.length) {
-    const partes = buscados.map(
-      (termino) =>
-        `to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,'')) @@ websearch_to_tsquery('spanish', ${p(termino)})`
-    );
+    const partes = buscados.map((termino) => `${TSV_NORMAS} @@ websearch_to_tsquery('spanish', ${p(termino)})`);
     if (f.q && /\d/.test(f.q)) partes.push(`numero ILIKE ${p(`%${f.q.replace(/"/g, "")}%`)}`);
     if (f.clavesTexto && f.clavesTexto.length) partes.push(`hash_unico = ANY(${p(f.clavesTexto)}::text[])`);
-    cond.push(`(${partes.join(" OR ")})`);
+    principal = `(${partes.join(" OR ")})`;
+  }
+  // Filtros sucesivos ("buscar dentro de estos resultados"): cada uno debe cumplirse ademas
+  const refinar = f.refinar || [];
+  if (refinar.length) {
+    const ref = refinar.map((r, i) => {
+      const alt = [`${TSV_NORMAS} @@ websearch_to_tsquery('spanish', ${p(r)})`];
+      if (/\d/.test(r)) alt.push(`numero ILIKE ${p(`%${r.replace(/"/g, "")}%`)}`);
+      const ks = (f.clavesRefinar || [])[i];
+      if (ks && ks.length) alt.push(`hash_unico = ANY(${p(ks)}::text[])`);
+      return `(${alt.join(" OR ")})`;
+    });
+    let bloque = [principal, ...ref].filter(Boolean).join(" AND ");
+    // documentos cuyo texto completo cumple todo a la vez
+    if (f.clavesTodas && f.clavesTodas.length) bloque = `(${bloque}) OR hash_unico = ANY(${p(f.clavesTodas)}::text[])`;
+    cond.push(`(${bloque})`);
+  } else if (principal) {
+    cond.push(principal);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };
+}
+
+// Expresion de busqueda sobre sumilla, numero y entidad (igual a la del indice de la base)
+export const TSV_NORMAS =
+  "to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,''))";
+
+// Orden de los resultados: por relevancia (busqueda con IA) o por fecha.
+// Recibe los params del WHERE y les agrega los suyos.
+export function ordenNormas(f, params) {
+  const buscados = [f.q, ...(f.terminos || []), ...(f.refinar || [])].filter(Boolean);
+  if (f.orden !== "r" || !buscados.length) return "fecha DESC, id DESC";
+  const q = buscados
+    .map((t) => {
+      params.push(t);
+      return `websearch_to_tsquery('spanish', $${params.length})`;
+    })
+    .join(" || ");
+  return `ts_rank(${TSV_NORMAS}, (${q})) DESC, fecha DESC, id DESC`;
 }
 
 export function hoyLima() {
@@ -118,12 +154,23 @@ export function coincideFueraDeSumilla(texto, q) {
 // Antes de armar el WHERE: busca lo pedido en el texto completo y guarda los ids hallados
 export async function prepararBusqueda(f, tipo) {
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
-  if (!buscados.length) return f;
+  const refinar = f.refinar || [];
+  if (!buscados.length && !refinar.length) return f;
   try {
-    f.clavesTexto = await clavesPorTexto(tipo, buscados);
+    const [principal, porFiltro, todas] = await Promise.all([
+      buscados.length ? clavesPorTexto(tipo, buscados) : [],
+      Promise.all(refinar.map((r) => clavesPorTexto(tipo, [r]))),
+      refinar.length ? clavesPorGrupos(tipo, [buscados, ...refinar.map((r) => [r])]) : [],
+    ]);
+    f.clavesTexto = principal;
+    f.clavesRefinar = porFiltro;
+    f.clavesTodas = todas;
+    if (principal.parcial || todas.parcial || porFiltro.some((x) => x.parcial)) f.avisoTexto = "parcial";
   } catch (e) {
     // Si la busqueda en el texto completo falla, se sigue con la de sumillas y se avisa
     f.clavesTexto = [];
+    f.clavesRefinar = [];
+    f.clavesTodas = [];
     f.avisoTexto = String(e.message || e);
   }
   return f;

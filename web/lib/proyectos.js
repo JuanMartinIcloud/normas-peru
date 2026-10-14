@@ -14,6 +14,9 @@ export function leerFiltrosProyectos(sp = {}) {
     desde: FECHA.test(v("desde")) ? v("desde") : "",
     hasta: FECHA.test(v("hasta")) ? v("hasta") : "",
     terminos: leerTerminos(sp.t),
+    refinar: leerTerminos(sp.y),
+    pregunta: v("pregunta").slice(0, 300),
+    orden: v("orden") === "r" ? "r" : "",
     pagina: Math.max(1, parseInt(v("p"), 10) || 1),
   };
 }
@@ -35,19 +38,54 @@ export function whereProyectos(f) {
   // Busca en el titulo y en la sumilla extensa del expediente (por palabras: reconoce plurales y
   // variantes; admite "frase exacta"), por texto en titulo, autores o numero, y en el texto completo
   const buscados = [f.q, ...(f.terminos || [])].filter(Boolean);
+  let principal = "";
   if (buscados.length) {
-    const partes = buscados.map(
-      (t) => `to_tsvector('spanish', coalesce(titulo,'') || ' ' || coalesce(sumilla,'')) @@ websearch_to_tsquery('spanish', ${p(t)})`
-    );
+    const partes = buscados.map((t) => `${TSV_PROYECTOS} @@ websearch_to_tsquery('spanish', ${p(t)})`);
     if (f.q) {
       const like = p(`%${f.q.replace(/"/g, "")}%`);
       partes.push(`titulo ILIKE ${like}`, `autor ILIKE ${like}`, `numero ILIKE ${like}`);
     }
     // Proyectos hallados en el texto completo de su PDF (ver prepararBusqueda)
     if (f.clavesTexto && f.clavesTexto.length) {
-      partes.push(`(periodo || '|' || camara || '|' || numero) = ANY(${p(f.clavesTexto)}::text[])`);
+      partes.push(`${CLAVE_PROYECTO} = ANY(${p(f.clavesTexto)}::text[])`);
     }
-    cond.push(`(${partes.join(" OR ")})`);
+    principal = `(${partes.join(" OR ")})`;
+  }
+  // Filtros sucesivos ("buscar dentro de estos resultados"): cada uno debe cumplirse ademas
+  const refinar = f.refinar || [];
+  if (refinar.length) {
+    const ref = refinar.map((r, i) => {
+      const like = p(`%${r.replace(/"/g, "")}%`);
+      const alt = [
+        `${TSV_PROYECTOS} @@ websearch_to_tsquery('spanish', ${p(r)})`,
+        `titulo ILIKE ${like}`,
+        `autor ILIKE ${like}`,
+      ];
+      const ks = (f.clavesRefinar || [])[i];
+      if (ks && ks.length) alt.push(`${CLAVE_PROYECTO} = ANY(${p(ks)}::text[])`);
+      return `(${alt.join(" OR ")})`;
+    });
+    let bloque = [principal, ...ref].filter(Boolean).join(" AND ");
+    if (f.clavesTodas && f.clavesTodas.length) bloque = `(${bloque}) OR ${CLAVE_PROYECTO} = ANY(${p(f.clavesTodas)}::text[])`;
+    cond.push(`(${bloque})`);
+  } else if (principal) {
+    cond.push(principal);
   }
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", params };
+}
+
+const TSV_PROYECTOS = "to_tsvector('spanish', coalesce(titulo,'') || ' ' || coalesce(sumilla,''))";
+const CLAVE_PROYECTO = "(periodo || '|' || camara || '|' || numero)";
+
+// Orden de los proyectos: por relevancia (busqueda con IA) o por fecha de presentacion
+export function ordenProyectos(f, params) {
+  const buscados = [f.q, ...(f.terminos || []), ...(f.refinar || [])].filter(Boolean);
+  if (f.orden !== "r" || !buscados.length) return "fecha_presentacion DESC NULLS LAST, id DESC";
+  const q = buscados
+    .map((t) => {
+      params.push(t);
+      return `websearch_to_tsquery('spanish', $${params.length})`;
+    })
+    .join(" || ");
+  return `ts_rank(${TSV_PROYECTOS}, (${q})) DESC, fecha_presentacion DESC NULLS LAST, id DESC`;
 }

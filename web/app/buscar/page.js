@@ -1,11 +1,13 @@
-import { consultar, leerFiltros, construirWhere, prepararBusqueda, corregirConsulta } from "../../lib/db";
+import { consultar, leerFiltros, construirWhere, prepararBusqueda, corregirConsulta, ordenNormas } from "../../lib/db";
 import { fragmentos, claveProyecto } from "../../lib/textos";
 import Fragmento from "../Fragmento";
-import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
+import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../lib/proyectos";
 import { urlProyecto } from "../../lib/resumenes";
 import BotonResumir from "../BotonResumir";
 import Marcar from "../Marcar";
 import BotonAmpliar from "./BotonAmpliar";
+import FormBuscar from "./FormBuscar";
+import FiltrarResultados from "./FiltrarResultados";
 
 export const metadata = { title: "Buscar en todo · Normas Legales del Perú" };
 
@@ -13,7 +15,7 @@ const MOSTRAR = 20;
 
 function qs(f, extra = {}) {
   const p = new URLSearchParams();
-  for (const k of ["q", "desde", "hasta", "t"]) if (f[k]) p.set(k, f[k]);
+  for (const k of ["q", "pregunta", "desde", "hasta", "t", "y", "orden"]) if (f[k]) p.set(k, f[k]);
   for (const [k, v] of Object.entries(extra)) p.set(k, v);
   const s = p.toString();
   return s ? `?${s}` : "";
@@ -23,22 +25,27 @@ async function buscarTodo(fn, fp) {
   await Promise.all([prepararBusqueda(fn, "N"), prepararBusqueda(fp, "P")]);
   const wn = construirWhere(fn);
   const wp = whereProyectos(fp);
+  // El orden puede agregar parametros propios: se usan copias para no alterar los del conteo
+  const pn = [...wn.params];
+  const ordN = ordenNormas(fn, pn);
+  const pp = [...wp.params];
+  const ordP = ordenProyectos(fp, pp);
   const [a, b, c, d] = await Promise.all([
     consultar(
       `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
-       FROM normas ${wn.where} ORDER BY fecha DESC, id DESC LIMIT ${MOSTRAR}`,
-      wn.params
+       FROM normas ${wn.where} ORDER BY ${ordN} LIMIT ${MOSTRAR}`,
+      pn
     ),
     consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
     consultar(
       `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
               titulo, sumilla, proponente, estado
-       FROM proyectos_ley ${wp.where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${MOSTRAR}`,
-      wp.params
+       FROM proyectos_ley ${wp.where} ORDER BY ${ordP} LIMIT ${MOSTRAR}`,
+      pp
     ),
     consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
   ]);
-  const terminos = [fn.q, ...fn.terminos];
+  const terminos = [fn.q, ...fn.terminos, ...fn.refinar];
   const [fragN, fragP] = await Promise.all([
     fragmentos("N", a.map((n) => n.hash_unico), terminos).catch(() => ({})),
     fragmentos("P", c.map(claveProyecto), terminos).catch(() => ({})),
@@ -48,11 +55,16 @@ async function buscarTodo(fn, fp) {
 
 export default async function Buscar({ searchParams }) {
   const sp = searchParams || {};
-  const base = { q: sp.q, desde: sp.desde, hasta: sp.hasta, t: sp.t };
+  const base = {
+    q: sp.q, desde: sp.desde, hasta: sp.hasta, t: sp.t, y: sp.y, pregunta: sp.pregunta, orden: sp.orden,
+  };
   const fn = leerFiltros(base);
   const fp = leerFiltrosProyectos(base);
-  const filtros = { q: fn.q, desde: fn.desde, hasta: fn.hasta, t: fn.terminos.join("|") };
-  const hayBusqueda = Boolean(fn.q || fn.desde || fn.hasta);
+  const filtros = {
+    q: fn.q, pregunta: fn.pregunta, desde: fn.desde, hasta: fn.hasta,
+    t: fn.terminos.join("|"), y: fn.refinar.join("|"), orden: fn.orden,
+  };
+  const hayBusqueda = Boolean(fn.q || fn.desde || fn.hasta || fn.terminos.length || fn.refinar.length);
 
   let normas = [];
   let proyectos = [];
@@ -69,8 +81,9 @@ export default async function Buscar({ searchParams }) {
       if (r.totalN + r.totalP === 0 && fn.q) {
         const nueva = await corregirConsulta(fn.q);
         if (nueva) {
-          const gn = { ...fn, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
-          const gp = { ...fp, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+          const limpio = { clavesTexto: undefined, clavesRefinar: undefined, clavesTodas: undefined, avisoTexto: undefined };
+          const gn = { ...fn, q: nueva, ...limpio };
+          const gp = { ...fp, q: nueva, ...limpio };
           const otra = await buscarTodo(gn, gp);
           if (otra.totalN + otra.totalP > 0) {
             corregidaDe = fn.q;
@@ -99,24 +112,7 @@ export default async function Buscar({ searchParams }) {
         <a className="atajo" href="/resumenes">Resúmenes diarios</a>
       </nav>
 
-      <form className="filtros" method="get" action="/buscar">
-        <label className="ancho">
-          ¿Qué buscas?
-          <input type="search" name="q" defaultValue={fn.q} placeholder="Ej.: violencia juvenil, teletrabajo, Ley 32513" />
-        </label>
-        <label>
-          Desde
-          <input type="date" name="desde" defaultValue={fn.desde} />
-        </label>
-        <label>
-          Hasta
-          <input type="date" name="hasta" defaultValue={fn.hasta} />
-        </label>
-        <div className="acciones">
-          <button className="boton" type="submit">Buscar</button>
-          <a className="boton sec" href="/buscar">Limpiar</a>
-        </div>
-      </form>
+      <FormBuscar texto={fn.pregunta || fn.q} desde={fn.desde} hasta={fn.hasta} />
 
       {error && (
         <div className="error">
@@ -128,7 +124,7 @@ export default async function Buscar({ searchParams }) {
       {hayBusqueda && !error && (
         <>
           {(fn.avisoTexto || fp.avisoTexto) && (
-            <p className="ia-aviso">La búsqueda en el texto completo no respondió; se muestran solo las coincidencias en sumillas y títulos.</p>
+            <p className="ia-aviso">Una parte de la búsqueda dentro de los documentos tardó demasiado y se omitió; los resultados pueden estar incompletos.</p>
           )}
           {corregidaDe && (
             <p className="ia-aviso">
@@ -138,9 +134,14 @@ export default async function Buscar({ searchParams }) {
           <p className="resumen">
             {totalN.toLocaleString("es-PE")} normas legales · {totalP.toLocaleString("es-PE")} proyectos de ley
           </p>
+          {fn.pregunta && (
+            <p className="pregunta">
+              Búsqueda con IA de: <strong>«{fn.pregunta}»</strong>. Resultados ordenados por relevancia.
+            </p>
+          )}
           {fn.terminos.length > 0 && (
             <p className="terminos">
-              <span>Incluye también:</span>
+              <span>{fn.pregunta ? "La IA buscó:" : "Incluye también:"}</span>
               {fn.terminos.map((t) => (
                 <a
                   key={t}
@@ -151,10 +152,27 @@ export default async function Buscar({ searchParams }) {
                   {t} ✕
                 </a>
               ))}
-              <a href={`/buscar${qs({ ...filtros, t: "" })}`}>Quitar todos</a>
+              {!fn.pregunta && <a href={`/buscar${qs({ ...filtros, t: "" })}`}>Quitar todos</a>}
             </p>
           )}
-          {fn.q && fn.terminos.length === 0 && <BotonAmpliar q={fn.q} desde={fn.desde} hasta={fn.hasta} />}
+          {fn.refinar.length > 0 && (
+            <p className="terminos">
+              <span>Filtrado por:</span>
+              {fn.refinar.map((r) => (
+                <a
+                  key={r}
+                  className="etq"
+                  href={`/buscar${qs({ ...filtros, y: fn.refinar.filter((x) => x !== r).join("|") })}`}
+                  title="Quitar este filtro"
+                >
+                  {r} ✕
+                </a>
+              ))}
+              <a href={`/buscar${qs({ ...filtros, y: "" })}`}>Quitar filtros</a>
+            </p>
+          )}
+          <FiltrarResultados ruta="/buscar" params={filtros} refinar={fn.refinar} />
+          {fn.q && !fn.pregunta && fn.terminos.length === 0 && <BotonAmpliar q={fn.q} desde={fn.desde} hasta={fn.hasta} />}
           <BotonResumir ambito="ambos" filtros={filtros} cantidad={totalN + totalP} />
 
           <h2 className="seccion">Normas legales</h2>

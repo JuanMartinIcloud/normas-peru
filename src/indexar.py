@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS documentos (
     creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (tipo, clave)
 );
-CREATE INDEX IF NOT EXISTS idx_documentos_busqueda ON documentos USING GIN (to_tsvector('spanish', texto));
+CREATE INDEX IF NOT EXISTS idx_documentos_busqueda ON documentos USING GIN (to_tsvector('spanish', texto))
+    WITH (fastupdate = off);
 CREATE TABLE IF NOT EXISTS avance (
     trabajador  TEXT PRIMARY KEY,
     cursor      DATE,

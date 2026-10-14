@@ -2,7 +2,8 @@ import { consultar, POR_PAGINA, prepararBusqueda, corregirConsulta } from "../..
 import { fragmentos, claveProyecto } from "../../lib/textos";
 import Fragmento from "../Fragmento";
 import { urlProyecto } from "../../lib/resumenes";
-import { leerFiltrosProyectos, whereProyectos } from "../../lib/proyectos";
+import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../lib/proyectos";
+import FiltrarResultados from "../buscar/FiltrarResultados";
 import BotonResumir from "../BotonResumir";
 import Marcar from "../Marcar";
 
@@ -15,6 +16,9 @@ function enlace(f, cambios = {}) {
     if (base[k]) qs.set(k, base[k]);
   }
   if (base.terminos && base.terminos.length) qs.set("t", base.terminos.join("|"));
+  if (base.refinar && base.refinar.length) qs.set("y", base.refinar.join("|"));
+  if (base.pregunta) qs.set("pregunta", base.pregunta);
+  if (base.orden) qs.set("orden", base.orden);
   if (base.pagina > 1) qs.set("p", String(base.pagina));
   const s = qs.toString();
   return s ? `/proyectos?${s}` : "/proyectos";
@@ -23,6 +27,8 @@ function enlace(f, cambios = {}) {
 async function cargar(f) {
   await prepararBusqueda(f, "P");
   const { where, params } = whereProyectos(f);
+  const pLista = [...params];
+  const orden = ordenProyectos(f, pLista);
   const offset = (f.pagina - 1) * POR_PAGINA;
   const [resumen, periodos, estados, rubros, proponentes, filas, total] = await Promise.all([
     consultar(`SELECT count(*)::int AS total, min(fecha_presentacion)::text AS primera, max(fecha_presentacion)::text AS ultima FROM proyectos_ley`),
@@ -32,14 +38,14 @@ async function cargar(f) {
     consultar(`SELECT proponente AS valor, count(*)::int AS n FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30`),
     consultar(
       `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro
-       FROM proyectos_ley ${where} ORDER BY fecha_presentacion DESC NULLS LAST, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
-      params
+       FROM proyectos_ley ${where} ORDER BY ${orden} LIMIT ${POR_PAGINA} OFFSET ${offset}`,
+      pLista
     ),
     consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${where}`, params),
   ]);
   let frags = {};
   try {
-    frags = await fragmentos("P", filas.map(claveProyecto), [f.q, ...f.terminos]);
+    frags = await fragmentos("P", filas.map(claveProyecto), [f.q, ...f.terminos, ...f.refinar]);
   } catch (e) {
     frags = {};
   }
@@ -69,7 +75,7 @@ export default async function Proyectos({ searchParams }) {
     if (datos.total === 0 && f.q) {
       const nueva = await corregirConsulta(f.q);
       if (nueva) {
-        const g = { ...f, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+        const g = { ...f, q: nueva, clavesTexto: undefined, clavesRefinar: undefined, clavesTodas: undefined, avisoTexto: undefined };
         const otra = await cargar(g);
         if (otra.total > 0) {
           corregidaDe = f.q;
@@ -144,22 +150,49 @@ export default async function Proyectos({ searchParams }) {
         </div>
       </form>
 
+      {f.avisoTexto && (
+        <p className="ia-aviso">Una parte de la búsqueda dentro de los documentos tardó demasiado y se omitió; los resultados pueden estar incompletos.</p>
+      )}
       {corregidaDe && (
         <p className="ia-aviso">
           No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{f.q}»</strong>.
         </p>
       )}
+      {f.pregunta && (
+        <p className="pregunta">
+          Búsqueda con IA de: <strong>«{f.pregunta}»</strong>{f.terminos.length > 0 && <> · términos: {f.terminos.join(", ")}</>}
+        </p>
+      )}
+      {f.refinar.length > 0 && (
+        <p className="terminos">
+          <span>Filtrado por:</span>
+          {f.refinar.map((r) => (
+            <a key={r} className="etq" href={enlace(f, { refinar: f.refinar.filter((x) => x !== r), pagina: 1 })} title="Quitar este filtro">
+              {r} ✕
+            </a>
+          ))}
+          <a href={enlace(f, { refinar: [], pagina: 1 })}>Quitar filtros</a>
+        </p>
+      )}
+      {(f.q || f.terminos.length > 0 || f.refinar.length > 0 || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta) && (
+        <FiltrarResultados
+          ruta="/proyectos"
+          params={Object.fromEntries(new URLSearchParams(enlace(f, { refinar: [], pagina: 1 }).split("?")[1] || ""))}
+          refinar={f.refinar}
+        />
+      )}
       <p className="resumen">
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
       </p>
 
-      {(f.q || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta || f.terminos.length > 0) && (
+      {(f.q || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta || f.terminos.length > 0 || f.refinar.length > 0) && (
         <BotonResumir
           ambito="proyectos"
           cantidad={total}
           filtros={{
             q: f.q, periodo: f.periodo, estado: f.estado, rubro: f.rubro,
             proponente: f.proponente, desde: f.desde, hasta: f.hasta, t: f.terminos.join("|"),
+            y: f.refinar.join("|"), orden: f.orden,
           }}
         />
       )}

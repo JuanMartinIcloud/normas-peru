@@ -1,4 +1,5 @@
-import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, prepararBusqueda, corregirConsulta } from "../lib/db";
+import { consultar, leerFiltros, construirWhere, hoyLima, POR_PAGINA, prepararBusqueda, corregirConsulta, ordenNormas } from "../lib/db";
+import FiltrarResultados from "./buscar/FiltrarResultados";
 import { fragmentos } from "../lib/textos";
 import Fragmento from "./Fragmento";
 import { cargarResumen, fechasConResumen, ayerLima } from "../lib/resumenes";
@@ -18,6 +19,9 @@ function enlace(f, cambios = {}) {
   if (base.central) qs.set("central", "1");
   if (base.leyes) qs.set("leyes", "1");
   if (base.terminos && base.terminos.length) qs.set("t", base.terminos.join("|"));
+  if (base.refinar && base.refinar.length) qs.set("y", base.refinar.join("|"));
+  if (base.pregunta) qs.set("pregunta", base.pregunta);
+  if (base.orden) qs.set("orden", base.orden);
   if (base.pagina && base.pagina > 1) qs.set("p", String(base.pagina));
   const s = qs.toString();
   return s ? `/?${s}` : "/";
@@ -26,6 +30,8 @@ function enlace(f, cambios = {}) {
 async function cargar(f) {
   await prepararBusqueda(f, "N");
   const { where, params } = construirWhere(f);
+  const pLista = [...params];
+  const orden = ordenNormas(f, pLista);
   const offset = (f.pagina - 1) * POR_PAGINA;
 
   const [resumen, anios, sectores, rubros, tipos, filas, total] = await Promise.all([
@@ -37,15 +43,15 @@ async function cargar(f) {
     consultar(
       `SELECT id, fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria,
               hash_unico
-       FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${POR_PAGINA} OFFSET ${offset}`,
-      params
+       FROM normas ${where} ORDER BY ${orden} LIMIT ${POR_PAGINA} OFFSET ${offset}`,
+      pLista
     ),
     consultar(`SELECT count(*)::int AS n FROM normas ${where}`, params),
   ]);
 
   let frags = {};
   try {
-    frags = await fragmentos("N", filas.map((n) => n.hash_unico), [f.q, ...f.terminos]);
+    frags = await fragmentos("N", filas.map((n) => n.hash_unico), [f.q, ...f.terminos, ...f.refinar]);
   } catch (e) {
     frags = {};
   }
@@ -53,7 +59,7 @@ async function cargar(f) {
   let sinFiltros = 0;
   const otrosFiltros = f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central || f.leyes;
   if (f.q && total[0].n === 0 && otrosFiltros) {
-    const g = { q: f.q, terminos: f.terminos, clavesTexto: f.clavesTexto };
+    const g = { q: f.q, terminos: f.terminos, refinar: f.refinar, clavesTexto: f.clavesTexto, clavesRefinar: f.clavesRefinar, clavesTodas: f.clavesTodas };
     const w = construirWhere(g);
     try {
       const [c] = await consultar(`SELECT count(*)::int AS n FROM normas ${w.where}`, w.params);
@@ -91,7 +97,7 @@ export default async function Pagina({ searchParams }) {
     if (datos.total === 0 && f.q) {
       const nueva = await corregirConsulta(f.q);
       if (nueva) {
-        const g = { ...f, q: nueva, clavesTexto: undefined, avisoTexto: undefined };
+        const g = { ...f, q: nueva, clavesTexto: undefined, clavesRefinar: undefined, clavesTodas: undefined, avisoTexto: undefined };
         const otra = await cargar(g);
         if (otra.total > 0) {
           corregidaDe = f.q;
@@ -119,7 +125,7 @@ export default async function Pagina({ searchParams }) {
   const csv = enlace(f, { pagina: 1 }).replace("/?", "/api/csv?").replace(/^\/$/, "/api/csv");
   const hayFiltros =
     f.q || f.fecha || f.desde || f.hasta || f.anio || f.sector || f.rubro || f.tipo || f.central || f.leyes ||
-    f.terminos.length > 0;
+    f.terminos.length > 0 || f.refinar.length > 0;
 
   // Resumen con IA: solo en la portada (sin filtros, primera pagina).
   // Si falla, la pagina sigue funcionando sin el resumen.
@@ -230,12 +236,35 @@ export default async function Pagina({ searchParams }) {
       </form>
 
       {f.avisoTexto && (
-        <p className="ia-aviso">La búsqueda en el texto completo no respondió; se muestran solo las coincidencias en sumillas.</p>
+        <p className="ia-aviso">Una parte de la búsqueda dentro de los documentos tardó demasiado y se omitió; los resultados pueden estar incompletos.</p>
       )}
       {corregidaDe && (
         <p className="ia-aviso">
           No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{f.q}»</strong>.
         </p>
+      )}
+      {f.pregunta && (
+        <p className="pregunta">
+          Búsqueda con IA de: <strong>«{f.pregunta}»</strong>{f.terminos.length > 0 && <> · términos: {f.terminos.join(", ")}</>}
+        </p>
+      )}
+      {f.refinar.length > 0 && (
+        <p className="terminos">
+          <span>Filtrado por:</span>
+          {f.refinar.map((r) => (
+            <a key={r} className="etq" href={enlace(f, { refinar: f.refinar.filter((x) => x !== r), pagina: 1 })} title="Quitar este filtro">
+              {r} ✕
+            </a>
+          ))}
+          <a href={enlace(f, { refinar: [], pagina: 1 })}>Quitar filtros</a>
+        </p>
+      )}
+      {hayFiltros && (
+        <FiltrarResultados
+          ruta="/"
+          params={Object.fromEntries(new URLSearchParams(enlace(f, { refinar: [], pagina: 1 }).split("?")[1] || ""))}
+          refinar={f.refinar}
+        />
       )}
       <p className="resumen">
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
@@ -248,7 +277,7 @@ export default async function Pagina({ searchParams }) {
           filtros={{
             q: f.q, fecha: f.fecha, desde: f.desde, hasta: f.hasta, anio: f.anio, sector: f.sector,
             rubro: f.rubro, tipo: f.tipo, central: f.central ? "1" : "", leyes: f.leyes ? "1" : "",
-            t: f.terminos.join("|"),
+            t: f.terminos.join("|"), y: f.refinar.join("|"), orden: f.orden,
           }}
         />
       )}
@@ -259,7 +288,7 @@ export default async function Pagina({ searchParams }) {
           {sinFiltros > 0 ? (
             <>
               {" "}En todas las fechas hay {sinFiltros.toLocaleString("es-PE")}:{" "}
-              <a href={enlace({ q: f.q, terminos: f.terminos })}>ver las {sinFiltros.toLocaleString("es-PE")} →</a>
+              <a href={enlace({ q: f.q, terminos: f.terminos, refinar: f.refinar, pregunta: f.pregunta, orden: f.orden })}>ver las {sinFiltros.toLocaleString("es-PE")} →</a>
             </>
           ) : (
             f.fecha === hoy && " Las normas del día se cargan automáticamente por la noche y se revisan de nuevo de madrugada."

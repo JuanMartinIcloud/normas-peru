@@ -30,6 +30,22 @@ function enBase(url, texto, params) {
   return sql(texto, params);
 }
 
+// Igual que enBase, pero la base corta la consulta si pasa de "ms" milisegundos
+// (asi una base lenta no deja la pagina esperando)
+async function enBaseLimitada(url, texto, params, ms) {
+  sinCache();
+  const sql = neon(url, { fetchOptions: { cache: "no-store" } });
+  const consulta = typeof sql.query === "function" ? sql.query(texto, params) : sql(texto, params);
+  const [, filas] = await sql.transaction([sql(`SET LOCAL statement_timeout = ${Math.round(ms)}`), consulta], {
+    readOnly: true,
+  });
+  return filas;
+}
+
+function excedioTiempo(e) {
+  return /57014|statement timeout|canceling statement/i.test(`${e && e.code} ${e && e.message}`);
+}
+
 // Consulta de busqueda: admite "frase exacta" entre comillas, OR y -palabra (como Google).
 // Varios terminos se combinan con O: basta que el documento contenga uno.
 function consultaTs(terminos, primerParametro) {
@@ -40,17 +56,28 @@ function tablaFaltante(e) {
   return /relation .*documentos.* does not exist|42P01/i.test(`${e && e.code} ${e && e.message}`);
 }
 
-// Ejecuta la consulta en todas las bases de texto; si una no tiene la tabla aun, la omite
-async function enTodas(sql, params) {
+// Ejecuta la consulta en todas las bases de texto, con un tiempo maximo por base.
+// Si una no tiene la tabla aun, la omite; si tarda demasiado, la omite y marca el resultado
+// como "parcial" (la pagina avisa que puede estar incompleto).
+const LIMITE_MS = 6000;
+
+async function enTodas(sql, params, ms = LIMITE_MS) {
+  let parcial = false;
   const respuestas = await Promise.all(
     bases().map((b) =>
-      enBase(b.url, sql, params).catch((e) => {
+      enBaseLimitada(b.url, sql, params, ms).catch((e) => {
         if (tablaFaltante(e)) return [];
+        if (excedioTiempo(e)) {
+          parcial = true;
+          return [];
+        }
         throw e;
       })
     )
   );
-  return respuestas.flat();
+  const filas = respuestas.flat();
+  filas.parcial = parcial;
+  return filas;
 }
 
 // Claves de los documentos cuyo texto completo contiene lo buscado
@@ -63,7 +90,37 @@ export async function clavesPorTexto(tipo, terminos) {
      LIMIT ${MAX_CLAVES}`,
     [tipo, ...lista]
   );
-  return filas.map((r) => r.clave);
+  const claves = filas.map((r) => r.clave);
+  claves.parcial = filas.parcial;
+  return claves;
+}
+
+// Claves de los documentos cuyo texto completo cumple TODOS los grupos a la vez
+// (dentro de cada grupo basta uno de sus terminos). Sirve para los filtros sucesivos.
+export async function clavesPorGrupos(tipo, grupos) {
+  const validos = (grupos || []).map((g) => (g || []).filter(Boolean)).filter((g) => g.length);
+  if (!validos.length || !bases().length) return [];
+  const params = [tipo];
+  const partes = validos.map(
+    (g) =>
+      "(" +
+      g
+        .map((t) => {
+          params.push(t);
+          return `websearch_to_tsquery('spanish', $${params.length})`;
+        })
+        .join(" || ") +
+      ")"
+  );
+  const filas = await enTodas(
+    `SELECT clave FROM documentos
+     WHERE tipo = $1 AND to_tsvector('spanish', texto) @@ (${partes.join(" && ")})
+     LIMIT ${MAX_CLAVES}`,
+    params
+  );
+  const claves = filas.map((r) => r.clave);
+  claves.parcial = filas.parcial;
+  return claves;
 }
 
 // Pasajes del texto donde aparece lo buscado: { clave: "…texto con [[palabra]]…" }
@@ -77,7 +134,8 @@ export async function fragmentos(tipo, claves, terminos) {
             ts_headline('spanish', left(texto, 80000), (${consultaTs(lista, 3)}),
               'MaxFragments=2, MaxWords=35, MinWords=15, ShortWord=3, StartSel=[[, StopSel=]], FragmentDelimiter=" … "') AS frag
      FROM documentos WHERE tipo = $1 AND clave = ANY($2::text[]) AND texto <> ''`,
-    [tipo, ks, ...lista]
+    [tipo, ks, ...lista],
+    6000
   );
   for (const r of filas) if (r.frag && /\[\[/.test(r.frag)) salida[r.clave] = r.frag;
   return salida;
