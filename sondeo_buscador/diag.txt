@@ -1,41 +1,18 @@
----- 2017-09-21 Resolucion Ministerial 941-2017 MTC/01.02
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/aprueban-valores-totales-de-tasaciones-de-inmuebles-afectado-resolucion-ministerial-n-941-2017-mtc0102-1567974-2/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/aprueban-valores-totales-de-tasaciones-de-inmuebles-afectado-resolucion-ministerial-n-941-2017-mtc0102-1567974-2//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2022-09-16 Resolucion 3498-2022-JNE
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/revocan-la-resolucion-n-405-2022-jee-cntejne-resolucion-n-3498-2022-jne-2105848-1/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/revocan-la-resolucion-n-405-2022-jee-cntejne-resolucion-n-3498-2022-jne-2105848-1//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2022-12-31 Resolucion 230-2022-CD/OSIPTEL
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-de-apelacion-interpuesto-por-ente-resolucion-no-230-2022-cdosiptel-2138908-1/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-de-apelacion-interpuesto-por-ente-resolucion-no-230-2022-cdosiptel-2138908-1//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2022-01-22 Resolucion Ministerial 014-2022-PCM
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/modifican-la-rm-n-033-2021-pcm-que-conformo-el-grupo-de-resolucion-ministerial-no-014-2022-pcm-2032732-1/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/modifican-la-rm-n-033-2021-pcm-que-conformo-el-grupo-de-resolucion-ministerial-no-014-2022-pcm-2032732-1//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2022-04-07 Resolucion Ministerial 144-2022-MINEM/DM
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/conforman-el-grupo-de-trabajo-denominado-mesa-tecnica-de-tr-resolucion-ministerial-no-144-2022-minemdm-2056027-2/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/conforman-el-grupo-de-trabajo-denominado-mesa-tecnica-de-tr-resolucion-ministerial-no-144-2022-minemdm-2056027-2//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2021-12-31 Resolucion 1921-2021-MP-FN
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/nombran-fiscales-adjuntos-provinciales-provisionales-en-dive-resolucion-n-1921-2021-mp-fn-2026892-1/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/nombran-fiscales-adjuntos-provinciales-provisionales-en-dive-resolucion-n-1921-2021-mp-fn-2026892-1//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2020-09-20 Queja Odecma 283-2014-LAMBAYEQUE
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/imponen-medida-disciplinaria-de-destitucion-a-jueza-de-paz-d-queja-odecma-no-283-2014-lambayeque-1885729-11/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/imponen-medida-disciplinaria-de-destitucion-a-jueza-de-paz-d-queja-odecma-no-283-2014-lambayeque-1885729-11//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
----- 2020-03-05 Decreto De Alcaldia 001-2020-A/MDC
-  url_detalle: https://busquedas.elperuano.pe/normaslegales/prorrogan-vigencia-de-la-ordenanza-no430-mdc-que-otorga-bene-decreto-de-alcaldia-no-001-2020-amdc-1861527-1/
-  url_pdf: https://busquedas.elperuano.pe/normaslegales/prorrogan-vigencia-de-la-ordenanza-no430-mdc-que-otorga-bene-decreto-de-alcaldia-no-001-2020-amdc-1861527-1//pdf
-  codigo: None
-  url_pdf: 404 text/html 721 b' <div style="border:'
-sin_pdf en base 3: (88040,)
+---- 2019-04-25 https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-medidas-extraordinarias-referente-a-tr-ordenanza-no-2159-1763018-1/ https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-medidas-extraordinarias-referente-a-tr-ordenanza-no-2159-1763018-1//pdf
+codigo: None
+url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+---- 2019-05-24 https://busquedas.elperuano.pe/normaslegales/ordenanza-que-actualiza-y-modifica-la-ordenanza-n-318-mpsc-ordenanza-no-375-mpsc-1771608-3/ https://busquedas.elperuano.pe/normaslegales/ordenanza-que-actualiza-y-modifica-la-ordenanza-n-318-mpsc-ordenanza-no-375-mpsc-1771608-3//pdf
+codigo: None
+url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+---- 2018-10-26 https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-el-reglamento-para-la-atencion-de-denu-ordenanza-no-559-mdjm-1705536-1/ https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-el-reglamento-para-la-atencion-de-denu-ordenanza-no-559-mdjm-1705536-1//pdf
+codigo: None
+url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+---- 2020-09-19 https://busquedas.elperuano.pe/normaslegales/aprueban-el-reglamento-del-modelo-de-transaccion-electronic-resolucion-n-087-2020-susaluds-1886313-4/ https://busquedas.elperuano.pe/normaslegales/aprueban-el-reglamento-del-modelo-de-transaccion-electronic-resolucion-n-087-2020-susaluds-1886313-4//pdf
+codigo: None
+url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+---- 2021-08-06 https://busquedas.elperuano.pe/normaslegales/determinan-la-proteccion-provisional-del-paisaje-arqueologic-resolucion-directoral-n-000107-2021-dgpamc-1978958-1/ https://busquedas.elperuano.pe/normaslegales/determinan-la-proteccion-provisional-del-paisaje-arqueologic-resolucion-directoral-n-000107-2021-dgpamc-1978958-1//pdf
+codigo: None
+url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+---- 2021-10-24 https://busquedas.elperuano.pe/normaslegales/nombran-director-de-la-oficina-desconcentrada-del-ministerio-resolucion-ministerial-no-0432-2021-re-2004406-1/ https://busquedas.elperuano.pe/normaslegales/nombran-director-de-la-oficina-desconcentrada-del-ministerio-resolucion-ministerial-no-0432-2021-re-2004406-1//pdf
+codigo: None
+url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
