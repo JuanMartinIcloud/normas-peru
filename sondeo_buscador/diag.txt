@@ -1,18 +1,29 @@
----- 2019-04-25 https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-medidas-extraordinarias-referente-a-tr-ordenanza-no-2159-1763018-1/ https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-medidas-extraordinarias-referente-a-tr-ordenanza-no-2159-1763018-1//pdf
-codigo: None
-url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
----- 2019-05-24 https://busquedas.elperuano.pe/normaslegales/ordenanza-que-actualiza-y-modifica-la-ordenanza-n-318-mpsc-ordenanza-no-375-mpsc-1771608-3/ https://busquedas.elperuano.pe/normaslegales/ordenanza-que-actualiza-y-modifica-la-ordenanza-n-318-mpsc-ordenanza-no-375-mpsc-1771608-3//pdf
-codigo: None
-url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
----- 2018-10-26 https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-el-reglamento-para-la-atencion-de-denu-ordenanza-no-559-mdjm-1705536-1/ https://busquedas.elperuano.pe/normaslegales/ordenanza-que-aprueba-el-reglamento-para-la-atencion-de-denu-ordenanza-no-559-mdjm-1705536-1//pdf
-codigo: None
-url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
----- 2020-09-19 https://busquedas.elperuano.pe/normaslegales/aprueban-el-reglamento-del-modelo-de-transaccion-electronic-resolucion-n-087-2020-susaluds-1886313-4/ https://busquedas.elperuano.pe/normaslegales/aprueban-el-reglamento-del-modelo-de-transaccion-electronic-resolucion-n-087-2020-susaluds-1886313-4//pdf
-codigo: None
-url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
----- 2021-08-06 https://busquedas.elperuano.pe/normaslegales/determinan-la-proteccion-provisional-del-paisaje-arqueologic-resolucion-directoral-n-000107-2021-dgpamc-1978958-1/ https://busquedas.elperuano.pe/normaslegales/determinan-la-proteccion-provisional-del-paisaje-arqueologic-resolucion-directoral-n-000107-2021-dgpamc-1978958-1//pdf
-codigo: None
-url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
----- 2021-10-24 https://busquedas.elperuano.pe/normaslegales/nombran-director-de-la-oficina-desconcentrada-del-ministerio-resolucion-ministerial-no-0432-2021-re-2004406-1/ https://busquedas.elperuano.pe/normaslegales/nombran-director-de-la-oficina-desconcentrada-del-ministerio-resolucion-ministerial-no-0432-2021-re-2004406-1//pdf
-codigo: None
-url_pdf: 404 text/html 721 b' <div style="border: 3px solid #4991C5; font:1.5em; font-fam'
+formato (False, 2015, 19983)
+formato (False, 2016, 23003)
+formato (False, 2017, 21760)
+formato (False, 2018, 22018)
+formato (False, 2019, 21689)
+formato (False, 2020, 16888)
+formato (False, 2021, 17489)
+formato (False, 2022, 23091)
+formato (False, 2023, 13414)
+formato (True, 2023, 8131)
+formato (False, 2024, 739)
+formato (True, 2024, 18913)
+formato (False, 2025, 1283)
+formato (True, 2025, 19758)
+formato (False, 2026, 714)
+formato (True, 2026, 18167)
+---- 2020-01-29 resolucion-administrativa-no-000028-2020-p-csjvpj-1849787-2/ codigo: 1849787-2
+epdoc: 200 application/pdf; Charset=UTF-8 230470 b'%PDF-1.7'
+---- 2017-08-03 sentada-por-ciudadano-resolucion-no-0256-2017-jne-1550372-2/ codigo: 1550372-2
+epdoc: 200 application/pdf; Charset=UTF-8 621130 b'%PDF-1.6'
+---- 2020-07-12 eneficenc-resolucion-ministerial-no-107-2020-mimp-1870712-2/ codigo: 1870712-2
+epdoc: 200 application/pdf; Charset=UTF-8 173319 b'%PDF-1.7'
+---- 2022-12-01 manos-del-resolucion-ministerial-n-189-2022-midis-2131095-1/ codigo: 2131095-1
+epdoc: 200 application/pdf; Charset=UTF-8 1316753 b'%PDF-1.6'
+---- 2018-03-11 rectiv-resolucion-ministerial-n-0120-2018-minagri-1624697-1/ codigo: 1624697-1
+epdoc: 200 application/pdf; Charset=UTF-8 585677 b'%PDF-1.6'
+---- 2023-04-29 sional-del-distrito-f-resolucion-n-979-2023-mp-fn-2173646-1/ codigo: 2173646-1
+epdoc: 200 application/pdf; Charset=UTF-8 319274 b'%PDF-1.7'
+sin codigo reconocible: (19031,)
