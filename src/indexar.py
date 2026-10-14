@@ -27,7 +27,7 @@ import requests
 from psycopg2.extras import execute_values
 
 import config
-from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, texto_pdf
+from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
 LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "400"))   # cada base gratuita de Neon admite 512 MB; margen para 15 trabajadores
@@ -259,11 +259,10 @@ def pedir(url, **kw) -> requests.Response:
 
 
 def pdf_norma(url_detalle, fecha):
-    m = re.search(r"/dispositivo/[A-Z]+/(\d+-\d+)", url_detalle or "") or re.search(
-        r"-(\d+-\d+)/?$", url_detalle or "")  # enlaces antiguos: .../normaslegales/<titulo>-1849787-2/
-    if not m:
+    codigo = codigo_norma(url_detalle)
+    if not codigo:
         return None
-    ref = base64.b64encode(f"{m.group(1)}{fecha.strftime('%Y%m%d')}".encode()).decode()
+    ref = base64.b64encode(f"{codigo}{fecha.strftime('%Y%m%d')}".encode()).decode()
     r = pedir(EPDOC, params={"Referencias": ref}, headers={"User-Agent": AGENTE})
     if r.status_code == 404 or r.content[:4] != b"%PDF":
         return None

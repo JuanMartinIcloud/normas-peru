@@ -121,12 +121,35 @@ def texto_pdf(datos: bytes, maximo: int = MAX_TEXTO) -> str:
     return re.sub(r"[ \t]+", " ", texto)[:maximo]
 
 
+def codigo_norma(url_detalle: str) -> str | None:
+    """Codigo de la norma en El Peruano (ej. "2562861-1") a partir de su enlace. Formatos conocidos:
+    .../dispositivo/NL/2562861-1                      (2023 en adelante)
+    .../normaslegales/<titulo>-1849787-2/             (2016-2023)
+    .../NormasElperuano/2015/02/14/1200944-7.html     (2015 y algunas posteriores)
+    .../NormasElperuano/2021/03/17/1935627-1/1935627-1.htm
+    epdoc2.../VistaDE.asp?Referencias=<base64 de codigo+AAAAMMDD>"""
+    u = (url_detalle or "").strip()
+    m = re.search(r"/dispositivo/[A-Z]+/(\d+-\d+)", u)
+    if m:
+        return m.group(1)
+    m = re.search(r"Referencias=([A-Za-z0-9+/=_-]+)", u)
+    if m:
+        try:
+            dec = base64.b64decode(m.group(1) + "=" * (-len(m.group(1)) % 4)).decode()
+            m2 = re.fullmatch(r"(\d+-\d+)\d{8}", dec)
+            if m2:
+                return m2.group(1)
+        except Exception:  # noqa: BLE001
+            pass
+    m = re.search(r"(\d{5,}-\d+)(?:\.html?)?/?$", u)
+    return m.group(1) if m else None
+
+
 def pdf_norma(url_detalle: str, fecha) -> bytes | None:
-    m = re.search(r"/dispositivo/[A-Z]+/(\d+-\d+)", url_detalle or "") or re.search(
-        r"-(\d+-\d+)/?$", url_detalle or "")  # enlaces antiguos: .../normaslegales/<titulo>-1849787-2/
-    if not m:
+    codigo = codigo_norma(url_detalle)
+    if not codigo:
         return None
-    ref = base64.b64encode(f"{m.group(1)}{fecha.strftime('%Y%m%d')}".encode()).decode()
+    ref = base64.b64encode(f"{codigo}{fecha.strftime('%Y%m%d')}".encode()).decode()
     r = _s.get(EPDOC, params={"Referencias": ref}, headers={"User-Agent": AGENTE}, timeout=90)
     if r.status_code == 404:
         return None

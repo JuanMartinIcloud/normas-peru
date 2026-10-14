@@ -26,7 +26,17 @@ const EPDOC = "https://epdoc2.elperuano.pe/EpPo/VistaDE.asp";
 export function codigoNorma(norma) {
   const url = norma.url_detalle || "";
   // Enlaces nuevos: .../dispositivo/NL/2562861-1 · antiguos: .../normaslegales/<titulo>-1849787-2/
-  const m = /\/dispositivo\/[A-Z]+\/(\d+-\d+)/.exec(url) || /-(\d+-\d+)\/?$/.exec(url);
+  let m = /\/dispositivo\/[A-Z]+\/(\d+-\d+)/.exec(url);
+  if (m) return m[1];
+  // epdoc2 ...VistaDE.asp?Referencias=<base64 de codigo + AAAAMMDD>
+  m = /Referencias=([A-Za-z0-9+/=_-]+)/.exec(url);
+  if (m) {
+    const dec = Buffer.from(decodeURIComponent(m[1]), "base64").toString("latin1");
+    const m2 = /^(\d+-\d+)\d{8}$/.exec(dec);
+    if (m2) return m2[1];
+  }
+  // .../normaslegales/<titulo>-1849787-2/ · .../2015/02/14/1200944-7.html · .../1935627-1/1935627-1.htm
+  m = /(\d{5,}-\d+)(?:\.html?)?\/?$/.exec(url);
   return m ? m[1] : null;
 }
 

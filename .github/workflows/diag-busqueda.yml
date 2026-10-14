@@ -13,7 +13,7 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,11 +27,15 @@ jobs:
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
           Q: ${{ github.event.inputs.q }}
           SIN_SEQ: "1"
         run: |
           mkdir -p sondeo_buscador
-          if [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
+          if [ "$Q" = "VERIFICAR" ]; then python src/verificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
       - name: Guardar
         run: |
           git config user.name "JuanMartinIcloud"
