@@ -1,9 +1,90 @@
-1 [('documentos_pkey', 'CREATE UNIQUE INDEX documentos_pkey ON public.documentos USING btree (tipo, clave)'), ('idx_documentos_busqueda', "CREATE INDEX idx_documentos_busqueda ON public.documentos USING gin (to_tsvector('spanish'::regconfig, texto))")]
-1 [('documentos_pkey', True, True), ('idx_documentos_busqueda', True, True)]
-1 ('491 MB',)
-2 [('documentos_pkey', 'CREATE UNIQUE INDEX documentos_pkey ON public.documentos USING btree (tipo, clave)'), ('idx_documentos_busqueda', "CREATE INDEX idx_documentos_busqueda ON public.documentos USING gin (to_tsvector('spanish'::regconfig, texto))")]
-2 [('documentos_pkey', True, True), ('idx_documentos_busqueda', True, True)]
-2 ('406 MB',)
-3 [('documentos_pkey', 'CREATE UNIQUE INDEX documentos_pkey ON public.documentos USING btree (tipo, clave)'), ('idx_documentos_busqueda', "CREATE INDEX idx_documentos_busqueda ON public.documentos USING gin (to_tsvector('spanish'::regconfig, texto))")]
-3 [('documentos_pkey', True, True), ('idx_documentos_busqueda', True, True)]
-3 ('55 MB',)
+## normas sumilla count: conectar 0.5s, consulta 0.2s
+Aggregate  (cost=1446.35..1446.36 rows=1 width=8) (actual time=6.280..6.281 rows=1.00 loops=1)
+  Buffers: shared hit=355
+  ->  Bitmap Heap Scan on normas  (cost=1442.08..1446.35 rows=1 width=0) (actual time=6.276..6.277 rows=0.00 loops=1)
+        Recheck Cond: (to_tsvector('spanish'::regconfig, ((((COALESCE(sumilla, ''::text) || ' '::text) || COALESCE(numero, ''::text)) || ' '::text) || COALESCE(entidad, ''::text))) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+        Buffers: shared hit=355
+        ->  Bitmap Index Scan on idx_normas_busqueda  (cost=0.00..1442.08 rows=1 width=0) (actual time=6.266..6.266 rows=0.00 loops=1)
+              Index Cond: (to_tsvector('spanish'::regconfig, ((((COALESCE(sumilla, ''::text) || ' '::text) || COALESCE(numero, ''::text)) || ' '::text) || COALESCE(entidad, ''::text))) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+              Index Searches: 1
+              Buffers: shared hit=355
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.186 ms
+Execution Time: 6.318 ms
+
+## proyectos count: conectar 0.4s, consulta 0.9s
+Aggregate  (cost=5806.41..5806.42 rows=1 width=8) (actual time=677.433..678.237 rows=1.00 loops=1)
+  Buffers: shared hit=2473
+  ->  Gather  (cost=1000.00..5806.41 rows=2 width=0) (actual time=677.429..678.233 rows=0.00 loops=1)
+        Workers Planned: 1
+        Workers Launched: 1
+        Buffers: shared hit=2473
+        ->  Parallel Seq Scan on proyectos_ley  (cost=0.00..4806.21 rows=1 width=0) (actual time=671.169..671.169 rows=0.00 loops=2)
+              Disabled: true
+              Filter: ((to_tsvector('spanish'::regconfig, ((COALESCE(titulo, ''::text) || ' '::text) || COALESCE(sumilla, ''::text))) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery) OR (titulo ~~* '%normas que afecten al sector empresarial peruano, inversiones y clima%'::text))
+              Rows Removed by Filter: 7732
+              Buffers: shared hit=2473
+Planning:
+  Buffers: shared hit=127
+Planning Time: 0.616 ms
+Execution Time: 678.273 ms
+
+## texto 1 claves N: conectar 0.4s, consulta 43.2s
+Limit  (cost=3307.79..9831.01 rows=1 width=56) (actual time=37918.711..43009.724 rows=1.00 loops=1)
+  Buffers: shared hit=139653 read=13455
+  ->  Gather  (cost=3307.79..9831.01 rows=1 width=56) (actual time=37918.709..43009.720 rows=1.00 loops=1)
+        Workers Planned: 1
+        Workers Launched: 1
+        Buffers: shared hit=139653 read=13455
+        ->  Parallel Bitmap Heap Scan on documentos  (cost=2307.79..8830.91 rows=1 width=56) (actual time=40451.064..42528.240 rows=0.50 loops=2)
+              Recheck Cond: (tipo = 'N'::bpchar)
+              Filter: (to_tsvector('spanish'::regconfig, texto) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+              Rows Removed by Filter: 17538
+              Heap Blocks: exact=478
+              Buffers: shared hit=139653 read=13455
+              Worker 0:  Heap Blocks: exact=445
+              ->  Bitmap Index Scan on documentos_pkey  (cost=0.00..2307.79 rows=35117 width=0) (actual time=4.709..4.710 rows=37804.00 loops=1)
+                    Index Cond: (tipo = 'N'::bpchar)
+                    Index Searches: 1
+                    Buffers: shared hit=48 read=507
+Planning:
+  Buffers: shared read=1
+Planning Time: 0.214 ms
+Execution Time: 43009.756 ms
+
+## texto 2 claves N: conectar 0.5s, consulta 0.2s
+Limit  (cost=124.72..128.98 rows=1 width=59) (actual time=0.787..0.802 rows=4.00 loops=1)
+  Buffers: shared hit=133
+  ->  Bitmap Heap Scan on documentos  (cost=124.72..128.98 rows=1 width=59) (actual time=0.785..0.800 rows=4.00 loops=1)
+        Recheck Cond: (to_tsvector('spanish'::regconfig, texto) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+        Filter: (tipo = 'N'::bpchar)
+        Rows Removed by Filter: 97
+        Heap Blocks: exact=63
+        Buffers: shared hit=133
+        ->  Bitmap Index Scan on idx_documentos_busqueda  (cost=0.00..124.72 rows=1 width=0) (actual time=0.724..0.724 rows=101.00 loops=1)
+              Index Cond: (to_tsvector('spanish'::regconfig, texto) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+              Index Searches: 1
+              Buffers: shared hit=70
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.155 ms
+Execution Time: 0.828 ms
+
+## texto 3 claves N: conectar 0.4s, consulta 0.2s
+Limit  (cost=94.90..99.16 rows=1 width=64) (actual time=0.104..0.116 rows=1.00 loops=1)
+  Buffers: shared hit=36
+  ->  Bitmap Heap Scan on documentos  (cost=94.90..99.16 rows=1 width=64) (actual time=0.103..0.115 rows=1.00 loops=1)
+        Recheck Cond: (to_tsvector('spanish'::regconfig, texto) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+        Filter: (tipo = 'N'::bpchar)
+        Rows Removed by Filter: 20
+        Heap Blocks: exact=14
+        Buffers: shared hit=36
+        ->  Bitmap Index Scan on idx_documentos_busqueda  (cost=0.00..94.90 rows=1 width=0) (actual time=0.086..0.086 rows=21.00 loops=1)
+              Index Cond: (to_tsvector('spanish'::regconfig, texto) @@ '''norm'' & ''afect'' & ''sector'' & ''empresarial'' & ''peruan'' & ''inversion'' & ''clim'''::tsquery)
+              Index Searches: 1
+              Buffers: shared hit=22
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.160 ms
+Execution Time: 0.141 ms
