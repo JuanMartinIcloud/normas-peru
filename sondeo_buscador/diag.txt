@@ -1,8 +1,41 @@
-::warning title=texto 1 indice::could not extend file because project size limit (512 MB) has been exceeded
-HINT:  This limit is defined externally by the project size limit, and internally by neon.max_cluster_size GUC
-
-texto 1: ANALYZE ok -> (43812, datetime.datetime(2026, 10, 14, 23, 18, 34, 683228, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 10, 13, 21, 39, 3, 297851, tzinfo=datetime.timezone.utc))
-texto 2: indice al dia (0 paginas pendientes integradas)
-texto 2: ANALYZE ok -> (46284, datetime.datetime(2026, 10, 14, 23, 19, 28, 369482, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 10, 14, 21, 21, 17, 217191, tzinfo=datetime.timezone.utc))
-texto 3: indice al dia (0 paginas pendientes integradas)
-texto 3: ANALYZE ok -> (82336, datetime.datetime(2026, 10, 14, 23, 19, 30, 922034, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 10, 14, 23, 10, 24, 963487, tzinfo=datetime.timezone.utc))
+---- 2017-09-21 Resolucion Ministerial 941-2017 MTC/01.02
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/aprueban-valores-totales-de-tasaciones-de-inmuebles-afectado-resolucion-ministerial-n-941-2017-mtc0102-1567974-2/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/aprueban-valores-totales-de-tasaciones-de-inmuebles-afectado-resolucion-ministerial-n-941-2017-mtc0102-1567974-2//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2022-09-16 Resolucion 3498-2022-JNE
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/revocan-la-resolucion-n-405-2022-jee-cntejne-resolucion-n-3498-2022-jne-2105848-1/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/revocan-la-resolucion-n-405-2022-jee-cntejne-resolucion-n-3498-2022-jne-2105848-1//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2022-12-31 Resolucion 230-2022-CD/OSIPTEL
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-de-apelacion-interpuesto-por-ente-resolucion-no-230-2022-cdosiptel-2138908-1/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-de-apelacion-interpuesto-por-ente-resolucion-no-230-2022-cdosiptel-2138908-1//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2022-01-22 Resolucion Ministerial 014-2022-PCM
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/modifican-la-rm-n-033-2021-pcm-que-conformo-el-grupo-de-resolucion-ministerial-no-014-2022-pcm-2032732-1/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/modifican-la-rm-n-033-2021-pcm-que-conformo-el-grupo-de-resolucion-ministerial-no-014-2022-pcm-2032732-1//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2022-04-07 Resolucion Ministerial 144-2022-MINEM/DM
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/conforman-el-grupo-de-trabajo-denominado-mesa-tecnica-de-tr-resolucion-ministerial-no-144-2022-minemdm-2056027-2/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/conforman-el-grupo-de-trabajo-denominado-mesa-tecnica-de-tr-resolucion-ministerial-no-144-2022-minemdm-2056027-2//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2021-12-31 Resolucion 1921-2021-MP-FN
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/nombran-fiscales-adjuntos-provinciales-provisionales-en-dive-resolucion-n-1921-2021-mp-fn-2026892-1/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/nombran-fiscales-adjuntos-provinciales-provisionales-en-dive-resolucion-n-1921-2021-mp-fn-2026892-1//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2020-09-20 Queja Odecma 283-2014-LAMBAYEQUE
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/imponen-medida-disciplinaria-de-destitucion-a-jueza-de-paz-d-queja-odecma-no-283-2014-lambayeque-1885729-11/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/imponen-medida-disciplinaria-de-destitucion-a-jueza-de-paz-d-queja-odecma-no-283-2014-lambayeque-1885729-11//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+---- 2020-03-05 Decreto De Alcaldia 001-2020-A/MDC
+  url_detalle: https://busquedas.elperuano.pe/normaslegales/prorrogan-vigencia-de-la-ordenanza-no430-mdc-que-otorga-bene-decreto-de-alcaldia-no-001-2020-amdc-1861527-1/
+  url_pdf: https://busquedas.elperuano.pe/normaslegales/prorrogan-vigencia-de-la-ordenanza-no430-mdc-que-otorga-bene-decreto-de-alcaldia-no-001-2020-amdc-1861527-1//pdf
+  codigo: None
+  url_pdf: 404 text/html 721 b' <div style="border:'
+sin_pdf en base 3: (88040,)
