@@ -23,4 +23,8 @@ jobs:
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
         run: python src/vigilar.py
