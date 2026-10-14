@@ -28,7 +28,9 @@ jobs:
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
           Q: ${{ github.event.inputs.q }}
-        run: mkdir -p sondeo_buscador && python src/diag_busqueda.py "$Q"
+        run: |
+          mkdir -p sondeo_buscador
+          if [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
       - name: Guardar
         run: |
           git config user.name "JuanMartinIcloud"
