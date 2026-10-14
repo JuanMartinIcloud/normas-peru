@@ -122,7 +122,8 @@ def texto_pdf(datos: bytes, maximo: int = MAX_TEXTO) -> str:
 
 
 def pdf_norma(url_detalle: str, fecha) -> bytes | None:
-    m = re.search(r"/dispositivo/[A-Z]+/(\d+-\d+)", url_detalle or "")
+    m = re.search(r"/dispositivo/[A-Z]+/(\d+-\d+)", url_detalle or "") or re.search(
+        r"-(\d+-\d+)/?$", url_detalle or "")  # enlaces antiguos: .../normaslegales/<titulo>-1849787-2/
     if not m:
         return None
     ref = base64.b64encode(f"{m.group(1)}{fecha.strftime('%Y%m%d')}".encode()).decode()

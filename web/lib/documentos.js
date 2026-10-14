@@ -24,7 +24,9 @@ const EPDOC = "https://epdoc2.elperuano.pe/EpPo/VistaDE.asp";
 
 // Codigo de la norma (ej. "2562861-1"), tomado de su direccion en El Peruano
 export function codigoNorma(norma) {
-  const m = /\/dispositivo\/[A-Z]+\/(\d+-\d+)/.exec(norma.url_detalle || "");
+  const url = norma.url_detalle || "";
+  // Enlaces nuevos: .../dispositivo/NL/2562861-1 · antiguos: .../normaslegales/<titulo>-1849787-2/
+  const m = /\/dispositivo\/[A-Z]+\/(\d+-\d+)/.exec(url) || /-(\d+-\d+)\/?$/.exec(url);
   return m ? m[1] : null;
 }
 

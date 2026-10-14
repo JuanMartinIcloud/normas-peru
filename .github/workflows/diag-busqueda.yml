@@ -31,7 +31,7 @@ jobs:
           SIN_SEQ: "1"
         run: |
           mkdir -p sondeo_buscador
-          if [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
+          if [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
       - name: Guardar
         run: |
           git config user.name "JuanMartinIcloud"
