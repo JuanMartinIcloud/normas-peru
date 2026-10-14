@@ -1,0 +1,38 @@
+name: Diagnostico de velocidad de busqueda
+
+on:
+  workflow_dispatch:
+    inputs:
+      q:
+        description: "Texto a buscar"
+        default: "violencia psicologica"
+
+permissions:
+  contents: write
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install psycopg2-binary
+      - name: Medir
+        env:
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          Q: ${{ github.event.inputs.q }}
+        run: mkdir -p sondeo_buscador && python src/diag_busqueda.py "$Q"
+      - name: Guardar
+        run: |
+          git config user.name "JuanMartinIcloud"
+          git config user.email "282369089+JuanMartinIcloud@users.noreply.github.com"
+          git add sondeo_buscador
+          git commit -m "Diagnostico de busqueda" || echo "sin cambios"
+          git pull --rebase -q && git push
