@@ -1,24 +1,8 @@
-pgstattuple: could not extend file because project size limit (512 MB) has been exceeded
-HINT:  This limit is defined externally by the project size limit, and internally by neon.max_cluster_size GUC
-CONTEXT:  SQL statement "CREATE OR REPLACE FUNCTION pgstathashindex(IN relname regclass,
-	OUT version INTEGER,
-	OUT bucket_pages BIGINT,
-	OUT overflow_pages BIGINT,
-	OUT bitmap_pages BIGINT,
-	OUT unused_pages BIGINT,
-	OUT live_items BIGINT,
-	OUT dead_items BIGINT,
-	OUT free_percent FLOAT8)
-AS '$libdir/pgstattuple', 'pgstathashindex'
-LANGUAGE C STRICT PARALLEL SAFE"
-extension script file "pgstattuple--1.4--1.5.sql", near line 123
-
-limpieza ERROR: could not extend file because project size limit (512 MB) has been exceeded
+::warning title=texto 1 indice::could not extend file because project size limit (512 MB) has been exceeded
 HINT:  This limit is defined externally by the project size limit, and internally by neon.max_cluster_size GUC
 
-despues: function pgstatginindex(unknown) does not exist
-LINE 1: SELECT * FROM pgstatginindex('idx_documentos_busqueda')
-                      ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
-
-1 ('491 MB',)
+texto 1: ANALYZE ok -> (43812, datetime.datetime(2026, 10, 14, 23, 18, 34, 683228, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 10, 13, 21, 39, 3, 297851, tzinfo=datetime.timezone.utc))
+texto 2: indice al dia (0 paginas pendientes integradas)
+texto 2: ANALYZE ok -> (46284, datetime.datetime(2026, 10, 14, 23, 19, 28, 369482, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 10, 14, 21, 21, 17, 217191, tzinfo=datetime.timezone.utc))
+texto 3: indice al dia (0 paginas pendientes integradas)
+texto 3: ANALYZE ok -> (82336, datetime.datetime(2026, 10, 14, 23, 19, 30, 922034, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 10, 14, 23, 10, 24, 963487, tzinfo=datetime.timezone.utc))
