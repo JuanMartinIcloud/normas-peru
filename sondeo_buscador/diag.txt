@@ -1,13 +1,6 @@
-(datetime.date(2015, 2, 14), 'https://elperuano.pe/NormasElperuano/2015/02/14/1200944-7.html', 'https://elperuano.pe/NormasElperuano/2015/02/14/1200944-7.html/pdf')
-(datetime.date(2015, 9, 25), 'https://elperuano.pe/NormasElperuano/2015/09/25/1292099-1.html', 'https://elperuano.pe/NormasElperuano/2015/09/25/1292099-1.html/pdf')
-(datetime.date(2015, 2, 28), 'https://elperuano.pe/NormasElperuano/2015/02/28/1205694-1.html', 'https://elperuano.pe/NormasElperuano/2015/02/28/1205694-1.html/pdf')
-(datetime.date(2015, 1, 10), 'https://elperuano.pe/NormasElperuano/2015/01/10/1186741-10.html', 'https://elperuano.pe/NormasElperuano/2015/01/10/1186741-10.html/pdf')
-(datetime.date(2015, 3, 19), 'https://elperuano.pe/NormasElperuano/2015/03/19/1210700-1.html', 'https://elperuano.pe/NormasElperuano/2015/03/19/1210700-1.html/pdf')
-(datetime.date(2015, 2, 11), 'https://elperuano.pe/NormasElperuano/2015/02/11/1198477-1.html', 'https://elperuano.pe/NormasElperuano/2015/02/11/1198477-1.html/pdf')
-(datetime.date(2025, 10, 24), 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ0MjI0NS0xMjAyNTEwMjQ=', 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ0MjI0NS0xMjAyNTEwMjQ=/pdf')
-(datetime.date(2021, 3, 17), 'https://elperuano.pe/NormasElperuano/2021/03/17/1935627-1/1935627-1.htm', 'https://elperuano.pe/NormasElperuano/2021/03/17/1935627-1/1935627-1.htm/pdf')
-(datetime.date(2026, 2, 25), 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ4OTczMi0xMjAyNjAyMjU=', 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ4OTczMi0xMjAyNjAyMjU=/pdf')
-(datetime.date(2015, 8, 6), 'https://elperuano.pe/NormasElperuano/2015/08/06/1270254-1.html', 'https://elperuano.pe/NormasElperuano/2015/08/06/1270254-1.html/pdf')
-(datetime.date(2015, 5, 30), 'https://elperuano.pe/NormasElperuano/2015/05/30/1241009-1.html', 'https://elperuano.pe/NormasElperuano/2015/05/30/1241009-1.html/pdf')
-(datetime.date(2016, 8, 27), 'https://elperuano.pe/NormasElperuano/2016/08/27/1421934-1.html', 'https://elperuano.pe/NormasElperuano/2016/08/27/1421934-1.html/pdf')
-[(2015, 14750), (2016, 264), (2017, 252), (2018, 208), (2019, 313), (2020, 188), (2021, 171), (2023, 149), (2024, 739), (2025, 1283), (2026, 714)]
+texto 1: 1713 marcas 'sin PDF' borradas
+texto 1: 12 avances de normas reiniciados
+texto 2: 9678 marcas 'sin PDF' borradas
+texto 2: 12 avances de normas reiniciados
+texto 3: 95186 marcas 'sin PDF' borradas
+texto 3: 0 avances de normas reiniciados
