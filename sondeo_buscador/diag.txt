@@ -1,29 +1,13 @@
-formato (False, 2015, 19983)
-formato (False, 2016, 23003)
-formato (False, 2017, 21760)
-formato (False, 2018, 22018)
-formato (False, 2019, 21689)
-formato (False, 2020, 16888)
-formato (False, 2021, 17489)
-formato (False, 2022, 23091)
-formato (False, 2023, 13414)
-formato (True, 2023, 8131)
-formato (False, 2024, 739)
-formato (True, 2024, 18913)
-formato (False, 2025, 1283)
-formato (True, 2025, 19758)
-formato (False, 2026, 714)
-formato (True, 2026, 18167)
----- 2020-01-29 resolucion-administrativa-no-000028-2020-p-csjvpj-1849787-2/ codigo: 1849787-2
-epdoc: 200 application/pdf; Charset=UTF-8 230470 b'%PDF-1.7'
----- 2017-08-03 sentada-por-ciudadano-resolucion-no-0256-2017-jne-1550372-2/ codigo: 1550372-2
-epdoc: 200 application/pdf; Charset=UTF-8 621130 b'%PDF-1.6'
----- 2020-07-12 eneficenc-resolucion-ministerial-no-107-2020-mimp-1870712-2/ codigo: 1870712-2
-epdoc: 200 application/pdf; Charset=UTF-8 173319 b'%PDF-1.7'
----- 2022-12-01 manos-del-resolucion-ministerial-n-189-2022-midis-2131095-1/ codigo: 2131095-1
-epdoc: 200 application/pdf; Charset=UTF-8 1316753 b'%PDF-1.6'
----- 2018-03-11 rectiv-resolucion-ministerial-n-0120-2018-minagri-1624697-1/ codigo: 1624697-1
-epdoc: 200 application/pdf; Charset=UTF-8 585677 b'%PDF-1.6'
----- 2023-04-29 sional-del-distrito-f-resolucion-n-979-2023-mp-fn-2173646-1/ codigo: 2173646-1
-epdoc: 200 application/pdf; Charset=UTF-8 319274 b'%PDF-1.7'
-sin codigo reconocible: (19031,)
+(datetime.date(2015, 2, 14), 'https://elperuano.pe/NormasElperuano/2015/02/14/1200944-7.html', 'https://elperuano.pe/NormasElperuano/2015/02/14/1200944-7.html/pdf')
+(datetime.date(2015, 9, 25), 'https://elperuano.pe/NormasElperuano/2015/09/25/1292099-1.html', 'https://elperuano.pe/NormasElperuano/2015/09/25/1292099-1.html/pdf')
+(datetime.date(2015, 2, 28), 'https://elperuano.pe/NormasElperuano/2015/02/28/1205694-1.html', 'https://elperuano.pe/NormasElperuano/2015/02/28/1205694-1.html/pdf')
+(datetime.date(2015, 1, 10), 'https://elperuano.pe/NormasElperuano/2015/01/10/1186741-10.html', 'https://elperuano.pe/NormasElperuano/2015/01/10/1186741-10.html/pdf')
+(datetime.date(2015, 3, 19), 'https://elperuano.pe/NormasElperuano/2015/03/19/1210700-1.html', 'https://elperuano.pe/NormasElperuano/2015/03/19/1210700-1.html/pdf')
+(datetime.date(2015, 2, 11), 'https://elperuano.pe/NormasElperuano/2015/02/11/1198477-1.html', 'https://elperuano.pe/NormasElperuano/2015/02/11/1198477-1.html/pdf')
+(datetime.date(2025, 10, 24), 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ0MjI0NS0xMjAyNTEwMjQ=', 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ0MjI0NS0xMjAyNTEwMjQ=/pdf')
+(datetime.date(2021, 3, 17), 'https://elperuano.pe/NormasElperuano/2021/03/17/1935627-1/1935627-1.htm', 'https://elperuano.pe/NormasElperuano/2021/03/17/1935627-1/1935627-1.htm/pdf')
+(datetime.date(2026, 2, 25), 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ4OTczMi0xMjAyNjAyMjU=', 'https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjQ4OTczMi0xMjAyNjAyMjU=/pdf')
+(datetime.date(2015, 8, 6), 'https://elperuano.pe/NormasElperuano/2015/08/06/1270254-1.html', 'https://elperuano.pe/NormasElperuano/2015/08/06/1270254-1.html/pdf')
+(datetime.date(2015, 5, 30), 'https://elperuano.pe/NormasElperuano/2015/05/30/1241009-1.html', 'https://elperuano.pe/NormasElperuano/2015/05/30/1241009-1.html/pdf')
+(datetime.date(2016, 8, 27), 'https://elperuano.pe/NormasElperuano/2016/08/27/1421934-1.html', 'https://elperuano.pe/NormasElperuano/2016/08/27/1421934-1.html/pdf')
+[(2015, 14750), (2016, 264), (2017, 252), (2018, 208), (2019, 313), (2020, 188), (2021, 171), (2023, 149), (2024, 739), (2025, 1283), (2026, 714)]
