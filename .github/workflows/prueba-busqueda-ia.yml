@@ -1,0 +1,58 @@
+name: Prueba de la busqueda con IA
+
+on:
+  workflow_dispatch:
+    inputs:
+      pregunta:
+        description: "Pregunta en lenguaje natural"
+        default: "normas que afecten al sector empresarial peruano, inversiones y clima"
+      filtro:
+        description: "Filtro adicional dentro de los resultados"
+        default: "minería"
+
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Interpretar, buscar y filtrar
+        env:
+          PREGUNTA: ${{ github.event.inputs.pregunta }}
+          FILTRO: ${{ github.event.inputs.filtro }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, time, urllib.parse, urllib.request
+          base = "https://normas-peru.vercel.app"
+          def post(ruta, cuerpo):
+              req = urllib.request.Request(base + ruta, data=json.dumps(cuerpo).encode(), headers={"Content-Type": "application/json"})
+              try:
+                  return json.load(urllib.request.urlopen(req, timeout=120))
+              except urllib.error.HTTPError as e:
+                  return json.loads(e.read() or b"{}")
+          def pagina(params):
+              t = time.time()
+              html = urllib.request.urlopen(base + "/buscar?" + urllib.parse.urlencode(params), timeout=120).read().decode()
+              seg = time.time() - t
+              m = re.search(r"([\d,.]+)(?:<!-- -->)? normas legales · (?:<!-- -->)?([\d,.]+)(?:<!-- -->)? proyectos de ley", html)
+              aviso = "tardó demasiado" in html
+              titulos = re.findall(r'class="titulo">([^<]+)<', html)[:5]
+              return seg, (m.groups() if m else None), aviso, titulos
+          pregunta, filtro = os.environ["PREGUNTA"], os.environ["FILTRO"]
+          t = time.time(); r = post("/api/ia/interpretar", {"q": pregunta}); ti = time.time() - t
+          if "error" in r:
+              print(f"::error title=interpretar::{r['error']}"); raise SystemExit(1)
+          print(f"::notice title=interpretar ({ti:.1f}s)::{json.dumps(r, ensure_ascii=False)}")
+          params = {"pregunta": pregunta, "t": "|".join(r["terminos"]), "orden": "r"}
+          if r.get("desde"): params["desde"] = r["desde"]
+          if r.get("hasta"): params["hasta"] = r["hasta"]
+          seg, tot, aviso, tit = pagina(params)
+          print(f"::notice title=busqueda IA ({seg:.1f}s)::totales={tot} aviso_parcial={aviso} primeros={tit}")
+          params["y"] = filtro
+          seg, tot, aviso, tit = pagina(params)
+          print(f"::notice title=con filtro '{filtro}' ({seg:.1f}s)::totales={tot} aviso_parcial={aviso} primeros={tit}")
+          params["y"] = filtro + "|concesión"
+          seg, tot, aviso, tit = pagina(params)
+          print(f"::notice title=con 2 filtros ({seg:.1f}s)::totales={tot} aviso_parcial={aviso} primeros={tit}")
+          seg, tot, aviso, tit = pagina({"q": "violencia psicologica"})
+          print(f"::notice title=busqueda normal ({seg:.1f}s)::totales={tot} aviso_parcial={aviso}")
+          PY
