@@ -1,6 +1,6 @@
 """Alarma de consumo: revisa cada dia que ninguna base de Neon se acerque a sus limites gratuitos.
 
-- Espacio de cada base (limite 1 GB por proyecto gratuito): con las cadenas de conexion.
+- Espacio de cada base (limite 512 MB por proyecto gratuito): con las cadenas de conexion.
 - Horas de computo (100 CU-hora al mes por proyecto) y transferencia (5 GB al mes): con la API de
   Neon, si existe el secreto NEON_API_KEY (clave de solo lectura de la cuenta de Neon).
 
@@ -15,7 +15,7 @@ import requests
 
 LIMITE_CU_HORAS = 100
 LIMITE_TRANSFER_GB = 5
-LIMITE_ESPACIO_MB = 1024
+LIMITE_ESPACIO_MB = 512
 AVISO, ALARMA = 0.70, 0.85
 
 

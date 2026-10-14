@@ -106,7 +106,8 @@ export async function estadoBases() {
         documentos = "tabla aun no creada";
       }
       salida.bases.push({ base: b.numero, tamano: t.tamano, documentos });
-      if (b.numero === bases()[0].numero) {
+      // El avance de la indexacion esta en la base de texto 2 (la 1 se lleno)
+      if (b.numero === 2) {
         try {
           salida.avance = await enBase(
             b.url,

@@ -62,7 +62,7 @@ jobs:
           exit $codigo
 
   # Si la tanda termino bien y aun queda trabajo, lanza la siguiente sin esperar el horario.
-  # No consulta la base principal: el avance esta en la base de texto 1.
+  # No consulta la base principal: el avance esta en la base de texto 2 (la 1 se lleno).
   relanzar:
     needs: indexar
     if: needs.indexar.result == 'success' && github.event.repository.private == false
@@ -74,12 +74,12 @@ jobs:
       - name: Revisar si queda trabajo
         id: cuenta
         env:
-          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
         run: |
           pip install psycopg2-binary >/dev/null
           python3 - <<'PY'
           import os, psycopg2
-          c = psycopg2.connect(os.environ["TEXTOS_URL_1"]); cur = c.cursor()
+          c = psycopg2.connect(os.environ["TEXTOS_URL_2"]); cur = c.cursor()
           cur.execute("SELECT count(*) FROM avance WHERE NOT terminado")
           n = cur.fetchone()[0]
           print(f"Trabajadores con trabajo pendiente: {n}")

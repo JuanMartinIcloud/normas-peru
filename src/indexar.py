@@ -30,7 +30,9 @@ import config
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, texto_pdf
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
-LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "940"))   # cada base gratuita de Neon admite 1 GB
+LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "400"))   # cada base gratuita de Neon admite 512 MB; margen para 15 trabajadores
+# Base de texto que guarda la tabla "avance" (la 1 se lleno). La web y el relanzador leen la misma.
+CONTROL = int(os.getenv("TEXTOS_CONTROL", "2"))
 PAUSA = {"normas": 1.0, "proyectos": 1.0}
 MAX_ERRORES_SEGUIDOS = 12
 # Las escrituras se juntan y se envian en bloque cada 20 minutos de reloj (:00, :20, :40), a la vez en
@@ -81,10 +83,13 @@ class Bases:
 
     def __init__(self):
         self.urls = []
+        control = ""
         for i in range(1, 10):
             url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
             if url:
                 self.urls.append(url)
+                if i == CONTROL:
+                    control = url
         if not self.urls:
             raise SystemExit("Faltan los secretos TEXTOS_URL_1, TEXTOS_URL_2... (bases de texto)")
         for url in self.urls:
@@ -96,11 +101,32 @@ class Bases:
                     cur.execute(SQL_BASE_TEXTOS)
                 cur.execute("ALTER TABLE avance ADD COLUMN IF NOT EXISTS cursor_clave TEXT")
             self.ejecutar(url, preparar)
-        self.control = self.urls[0]
+        self.control = control or self.urls[0]
+        if self.control != self.urls[0]:
+            self.mudar_avance(self.urls[0])
         self.actual = None
         self.pendientes = []          # documentos aun no enviados
         self.avance_pendiente = {}    # trabajador -> (cursor, terminado, procesados, cursor_clave)
         self.bloque = int(time.time() // BLOQUE_SEGUNDOS)
+
+    def mudar_avance(self, origen):
+        """Copia una sola vez el avance desde la base de texto 1 a la base de control."""
+        def contar(cur):
+            cur.execute("SELECT count(*) FROM avance")
+            return cur.fetchone()[0]
+        if self.ejecutar(self.control, contar):
+            return
+        def leer(cur):
+            cur.execute("SELECT trabajador, cursor, cursor_clave, terminado, procesados FROM avance")
+            return cur.fetchall()
+        filas = self.ejecutar(origen, leer)
+        if not filas:
+            return
+        def copiar(cur):
+            execute_values(cur, """INSERT INTO avance (trabajador, cursor, cursor_clave, terminado, procesados)
+                                   VALUES %s ON CONFLICT (trabajador) DO NOTHING""", filas)
+        self.ejecutar(self.control, copiar)
+        print(f"Avance copiado a la base de control ({len(filas)} trabajadores)")
 
     @staticmethod
     def ejecutar(url, funcion):
