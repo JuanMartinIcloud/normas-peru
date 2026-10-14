@@ -21,7 +21,10 @@ jobs:
           FILTRO: ${{ github.event.inputs.filtro }}
         run: |
           python3 - <<'PY'
-          import json, os, re, time, urllib.parse, urllib.request
+          import json, os, re, sys, time, traceback, urllib.parse, urllib.request
+          def fallo(tipo, valor, tb):
+              print("::error title=excepcion::" + " | ".join(traceback.format_exception(tipo, valor, tb))[-900:].replace("\n", " "))
+          sys.excepthook = fallo
           base = "https://normas-peru.vercel.app"
           def post(ruta, cuerpo):
               req = urllib.request.Request(base + ruta, data=json.dumps(cuerpo).encode(), headers={"Content-Type": "application/json"})
