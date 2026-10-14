@@ -127,7 +127,7 @@ def codigo_norma(url_detalle: str) -> str | None:
     .../normaslegales/<titulo>-1849787-2/             (2016-2023)
     .../NormasElperuano/2015/02/14/1200944-7.html     (2015 y algunas posteriores)
     .../NormasElperuano/2021/03/17/1935627-1/1935627-1.htm
-    epdoc2.../VistaDE.asp?Referencias=<base64 de codigo+AAAAMMDD>"""
+    epdoc2.../VistaDE.asp o DescargaIN.asp?Referencias=<base64 de codigo+AAAAMMDD>"""
     u = (url_detalle or "").strip()
     m = re.search(r"/dispositivo/[A-Z]+/(\d+-\d+)", u)
     if m:
@@ -136,9 +136,9 @@ def codigo_norma(url_detalle: str) -> str | None:
     if m:
         try:
             dec = base64.b64decode(m.group(1) + "=" * (-len(m.group(1)) % 4)).decode()
-            m2 = re.fullmatch(r"(\d+-\d+)\d{8}", dec)
+            m2 = re.fullmatch(r"(\d+)[-_](\d{1,3}?)(\d{8})", dec)  # "2442245-1"+fecha o "1602563_1"+fecha
             if m2:
-                return m2.group(1)
+                return f"{m2.group(1)}-{m2.group(2)}"
         except Exception:  # noqa: BLE001
             pass
     m = re.search(r"(\d{5,}-\d+)(?:\.html?)?/?$", u)

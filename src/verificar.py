@@ -34,6 +34,36 @@ p(f"Normas cuyo enlace no permite obtener el PDF: {len(sin_codigo):,}")
 for h, f, u in sin_codigo[:10]:
     p(f"- {f} {u}")
 
+def formato(u):
+    u = u or ""
+    if "/dispositivo/" in u: return "dispositivo (2023+)"
+    if "Referencias=" in u: return "epdoc Referencias"
+    if "NormasElperuano" in u: return "NormasElperuano .html"
+    if "/normaslegales/" in u: return "normaslegales/<titulo>"
+    return "otro"
+
+def descarga(cod, f):
+    ref = base64.b64encode(f"{cod}{f.strftime('%Y%m%d')}".encode()).decode()
+    r = requests.get(EPDOC, params={"Referencias": ref}, headers={"User-Agent": AGENTE}, timeout=90)
+    return r.content[:4] == b"%PDF", r.status_code
+
+p("## 1b. Prueba de descarga por formato de enlace (3 por formato)")
+por_formato = defaultdict(list)
+for fila in normas:
+    por_formato[formato(fila[2])].append(fila)
+for fmt, filas in sorted(por_formato.items()):
+    ok = 0
+    muestra = random.sample(filas, min(3, len(filas)))
+    for h, f, u in muestra:
+        try:
+            bien, st = descarga(codigo_norma(u), f)
+            ok += bien
+            if not bien:
+                p(f"- {fmt}: sin PDF ({st}) {u}")
+        except Exception as e:  # noqa: BLE001
+            p(f"- {fmt}: error {str(e)[:100]} {u}")
+    p(f"- {fmt} ({len(filas):,} normas): {ok} de {len(muestra)} PDF descargados")
+
 # 2) Prueba real de descarga: 3 normas al azar por año
 p("## 2. Prueba de descarga del PDF (3 normas al azar por año)")
 por_anio = defaultdict(list)

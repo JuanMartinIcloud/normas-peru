@@ -32,8 +32,8 @@ export function codigoNorma(norma) {
   m = /Referencias=([A-Za-z0-9+/=_-]+)/.exec(url);
   if (m) {
     const dec = Buffer.from(decodeURIComponent(m[1]), "base64").toString("latin1");
-    const m2 = /^(\d+-\d+)\d{8}$/.exec(dec);
-    if (m2) return m2[1];
+    const m2 = /^(\d+)[-_](\d{1,3}?)(\d{8})$/.exec(dec); // "2442245-1"+fecha o "1602563_1"+fecha
+    if (m2) return `${m2[1]}-${m2[2]}`;
   }
   // .../normaslegales/<titulo>-1849787-2/ · .../2015/02/14/1200944-7.html · .../1935627-1/1935627-1.htm
   m = /(\d{5,}-\d+)(?:\.html?)?\/?$/.exec(url);
