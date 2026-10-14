@@ -28,6 +28,7 @@ jobs:
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
           Q: ${{ github.event.inputs.q }}
+          SIN_SEQ: "1"
         run: |
           mkdir -p sondeo_buscador
           if [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
