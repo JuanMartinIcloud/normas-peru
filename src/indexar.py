@@ -85,7 +85,7 @@ class Bases:
     def __init__(self):
         self.urls = []
         control = ""
-        for i in range(1, 10):
+        for i in range(1, 13):
             url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
             if url:
                 self.urls.append(url)

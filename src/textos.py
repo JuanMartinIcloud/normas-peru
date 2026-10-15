@@ -141,7 +141,7 @@ def codigo_norma(url_detalle: str) -> str | None:
                 return f"{m2.group(1)}-{m2.group(2)}"
         except Exception:  # noqa: BLE001
             pass
-    m = re.search(r"(\d{5,}-\d+)(?:\.html?)?/?$", u)
+    m = re.search(r"(\d{5,}-\d+)(?:-\d+)?(?:\.html?)?/?$", u)
     return m.group(1) if m else None
 
 

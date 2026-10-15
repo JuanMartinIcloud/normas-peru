@@ -25,7 +25,7 @@ def nivel(fraccion):
 
 def revisar_espacio():
     bases = [("principal (TEXTOS_URL_4)", os.getenv("TEXTOS_URL_4", ""))]
-    for i in (1, 2, 3, 5, 6, 7, 8, 9):
+    for i in (1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12):
         bases.append((f"texto {i}", os.getenv(f"TEXTOS_URL_{i}", "")))
     peor = 0.0
     for nombre, url in bases:

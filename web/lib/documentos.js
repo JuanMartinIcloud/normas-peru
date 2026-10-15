@@ -36,7 +36,7 @@ export function codigoNorma(norma) {
     if (m2) return `${m2[1]}-${m2[2]}`;
   }
   // .../normaslegales/<titulo>-1849787-2/ · .../2015/02/14/1200944-7.html · .../1935627-1/1935627-1.htm
-  m = /(\d{5,}-\d+)(?:\.html?)?\/?$/.exec(url);
+  m = /(\d{5,}-\d+)(?:-\d+)?(?:\.html?)?\/?$/.exec(url);
   return m ? m[1] : null;
 }
 

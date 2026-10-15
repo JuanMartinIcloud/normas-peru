@@ -3,7 +3,7 @@ y reinicia el avance de los trabajadores de normas, para que se vuelvan a descar
 import os
 import psycopg2
 
-for i in (1, 2, 3, 5, 6, 7, 8, 9):
+for i in (1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12):
     url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
     if not url:
         continue

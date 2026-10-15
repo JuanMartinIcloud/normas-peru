@@ -2,7 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
 
 // Busqueda en el TEXTO COMPLETO de normas y proyectos.
-// El texto esta en las bases de texto (variables TEXTOS_URL_1 a TEXTOS_URL_9), tabla "documentos".
+// El texto esta en las bases de texto (variables TEXTOS_URL_1 a TEXTOS_URL_12), tabla "documentos".
 // Cada documento se identifica con una clave estable:
 //   normas    -> hash_unico
 //   proyectos -> "periodo|camara|numero"
@@ -15,7 +15,7 @@ export function claveProyecto(p) {
 
 function bases() {
   const lista = [];
-  for (let i = 1; i <= 9; i++) {
+  for (let i = 1; i <= 12; i++) {
     if (i === 4) continue; // TEXTOS_URL_4 se usa por ahora como base principal (ver lib/db.js)
     const url = (process.env[`TEXTOS_URL_${i}`] || "").trim();
     if (url) lista.push({ numero: i, url });

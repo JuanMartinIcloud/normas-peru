@@ -54,6 +54,9 @@ jobs:
           TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
           TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
           TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: |
           set +e
           python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 52 > salida.log 2>&1

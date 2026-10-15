@@ -90,7 +90,7 @@ for anio in sorted(por_anio):
 # 3) Cobertura del texto completo
 estado = {}
 dup = 0
-for i in (1, 2, 3, 5, 6, 7, 8, 9):
+for i in (1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12):
     url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
     if not url:
         continue
