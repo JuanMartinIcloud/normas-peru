@@ -87,5 +87,6 @@ export function ordenProyectos(f, params) {
       return `websearch_to_tsquery('spanish', $${params.length})`;
     })
     .join(" || ");
-  return `ts_rank(${TSV_PROYECTOS}, (${q})) DESC, fecha_presentacion DESC NULLS LAST, id DESC`;
+  // Relevancia por el titulo (corto): ordenar por la sumilla completa es mucho mas lento
+  return `ts_rank(to_tsvector('spanish', coalesce(titulo,'')), (${q})) DESC, fecha_presentacion DESC NULLS LAST, id DESC`;
 }
