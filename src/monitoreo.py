@@ -164,6 +164,8 @@ def _limpia(datos):
             if v.lower() == o.lower():
                 return o
         return defecto
+    if not isinstance(datos, dict):
+        datos = datos[0] if isinstance(datos, list) and datos and isinstance(datos[0], dict) else {}
     comites = []
     for c in datos.get("comites") or []:
         for o in COMITES:
@@ -171,6 +173,8 @@ def _limpia(datos):
                 comites.append(o)
     acciones = []
     for a in datos.get("acciones") or []:
+        if not isinstance(a, dict):
+            continue
         com = next((o for o in COMITES if str(a.get("comite", "")).strip().lower() == o.lower()), None)
         if com and a.get("accion"):
             acciones.append({"comite": com, "accion": str(a["accion"]).strip()})
