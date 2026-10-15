@@ -26,6 +26,8 @@ def nivel(fraccion):
 def revisar_espacio():
     bases = [("principal (TEXTOS_URL_4)", os.getenv("TEXTOS_URL_4", ""))]
     for i in (1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12):
+        if i == 1 and os.getenv("TEXTOS_URL_12", "").strip():
+            continue   # la base 1 ya se copio a la 12 y el sistema no la usa (no crece mas)
         bases.append((f"texto {i}", os.getenv(f"TEXTOS_URL_{i}", "")))
     peor = 0.0
     for nombre, url in bases:
@@ -41,7 +43,12 @@ def revisar_espacio():
             print(f"::warning title=Base {nombre}::No respondio: {str(e)[:200]}")
             continue
         f = mb / LIMITE_ESPACIO_MB
-        peor = max(peor, f)
+        # Las bases de texto se llenan a proposito hasta ~85% (el indexador para ahi y pasa a la siguiente);
+        # solo preocupa si alguna sigue creciendo por encima del 93%. La principal alarma desde el 85%.
+        if nombre.startswith("texto") and f < 0.93:
+            peor = max(peor, min(f, ALARMA - 0.01))
+        else:
+            peor = max(peor, f)
         print(f"Espacio {nombre}: {mb:.0f} MB de {LIMITE_ESPACIO_MB} ({f:.0%}) [{nivel(f)}]")
         if f >= AVISO:
             print(f"::warning title=Espacio {nombre}::{mb:.0f} MB usados ({f:.0%} del limite gratuito)")
