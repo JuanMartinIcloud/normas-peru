@@ -17,6 +17,9 @@ function bases() {
   const lista = [];
   for (let i = 1; i <= 12; i++) {
     if (i === 4) continue; // TEXTOS_URL_4 se usa por ahora como base principal (ver lib/db.js)
+    // La base 1 se lleno y quedo lenta; su contenido completo se copio a la base 12.
+    // Cuando la base 12 esta configurada, la base 1 ya no se consulta.
+    if (i === 1 && (process.env.TEXTOS_URL_12 || "").trim()) continue;
     const url = (process.env[`TEXTOS_URL_${i}`] || "").trim();
     if (url) lista.push({ numero: i, url });
   }
