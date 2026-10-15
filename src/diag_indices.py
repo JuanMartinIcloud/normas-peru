@@ -1,5 +1,5 @@
-import os, psycopg2
-m = psycopg2.connect(os.environ["DATABASE_URL"]); m.autocommit = True; c = m.cursor()
-c.execute("CREATE INDEX IF NOT EXISTS idx_proy_clave ON proyectos_ley ((periodo || '|' || camara || '|' || numero))")
-c.execute("ANALYZE proyectos_ley")
-print("indice creado")
+import os, requests
+r = requests.get("https://generativelanguage.googleapis.com/v1beta/models", headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]}, params={"pageSize": 200}, timeout=60)
+for m in r.json().get("models", []):
+    if "generateContent" in m.get("supportedGenerationMethods", []) and ("flash" in m["name"] or "gemma" in m["name"]):
+        print(m["name"], "|", m.get("displayName"))
