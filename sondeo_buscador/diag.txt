@@ -1,1 +1,24 @@
-indice creado
+models/gemini-2.5-flash | Gemini 2.5 Flash
+models/gemini-2.5-flash-preview-tts | Gemini 2.5 Flash Preview TTS
+models/gemma-4-26b-a4b-it | Gemma 4 26B A4B IT
+models/gemma-4-31b-it | Gemma 4 31B IT
+models/gemini-flash-latest | Gemini Flash Latest
+models/gemini-flash-lite-latest | Gemini Flash-Lite Latest
+models/gemini-2.5-flash-lite | Gemini 2.5 Flash-Lite
+models/gemini-2.5-flash-image | Nano Banana
+models/gemini-3-flash-preview | Gemini 3 Flash Preview
+models/gemini-3.1-flash-lite-preview | Gemini 3.1 Flash Lite Preview
+models/gemini-3.1-flash-lite | Gemini 3.1 Flash Lite
+models/gemini-3.1-flash-image-preview | Nano Banana 2
+models/gemini-3.1-flash-image | Nano Banana 2
+models/gemini-3.1-flash-lite-image | Nano Banana 2 Lite
+models/gemini-3.5-flash | Gemini 3.5 Flash
+models/gemini-3.5-flash-lite | Gemini 3.5 Flash Lite
+models/gemini-omni-flash-preview | Gemini Omni Flash Preview
+models/gemini-omni-1.1-flash | Gemini Omni 1.1 Flash
+models/gemini-3.6-flash | Gemini 3.6 Flash
+models/gemini-3.7-flash | Gemini 3.7 Flash
+models/gemini-3.8-flash | Gemini 3.8 Flash
+models/gemini-3.1-flash-tts-preview | Gemini 3.1 Flash TTS Preview
+models/gemini-3.8-flash-tts | Gemini 3.8 Flash TTS
+models/gemini-3.8-flash-lite-tts | Gemini 3.8 Flash Lite TTS
