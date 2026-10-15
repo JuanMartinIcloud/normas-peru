@@ -22,8 +22,13 @@ function qs(f, extra = {}) {
   return s ? `?${s}` : "";
 }
 
-async function buscarTodo(fn, fp) {
-  await Promise.all([prepararBusqueda(fn, "N"), prepararBusqueda(fp, "P")]);
+async function buscarTodo(fn, fp, tiempos = []) {
+  const t0 = Date.now();
+  const marca = (x) => tiempos.push(`${x}: ${Date.now() - t0} ms`);
+  await Promise.all([
+    prepararBusqueda(fn, "N").then(() => marca("claves normas")),
+    prepararBusqueda(fp, "P").then(() => marca("claves proyectos")),
+  ]);
   const wn = construirWhere(fn);
   const wp = whereProyectos(fp);
   // El orden puede agregar parametros propios: se usan copias para no alterar los del conteo
@@ -50,12 +55,14 @@ async function buscarTodo(fn, fp) {
       pp
     ),
   ]);
+  marca(`listas (claves N ${(fn.clavesTexto || []).length}, P ${(fp.clavesTexto || []).length})`);
   const terminos = [fn.q, ...fn.terminos, ...fn.refinar];
   const [fragN, fragP, [b, d]] = await Promise.all([
     fragmentos("N", a.map((n) => n.hash_unico), terminos).catch(() => ({})),
     fragmentos("P", c.map(claveProyecto), terminos).catch(() => ({})),
     conteos,
   ]);
+  marca("parrafos y conteos");
   return { normas: a, totalN: b[0].n, proyectos: c, totalP: d[0].n, fragN, fragP };
 }
 
@@ -80,9 +87,10 @@ export default async function Buscar({ searchParams }) {
   let fragN = {};
   let fragP = {};
   let corregidaDe = "";
+  const tiempos = [];
   if (hayBusqueda) {
     try {
-      let r = await buscarTodo(fn, fp);
+      let r = await buscarTodo(fn, fp, tiempos);
       // Sin resultados: puede ser una palabra mal escrita ("piscologica"); se corrige y se repite
       if (r.totalN + r.totalP === 0 && fn.q) {
         const nueva = await corregirConsulta(fn.q);
@@ -108,6 +116,7 @@ export default async function Buscar({ searchParams }) {
 
   return (
     <main className="contenedor">
+      {sp.diag === "1" && <pre className="ia-pendiente" id="diag-tiempos">{tiempos.join("\n")}</pre>}
       <h1>Buscar en todo</h1>
       <p className="sub">Normas legales y proyectos de ley a la vez. Puedes resumir lo encontrado con IA o seleccionar documentos para unirlos.</p>
 
