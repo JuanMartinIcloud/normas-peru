@@ -95,4 +95,5 @@ def normalizar(p: dict, camara: str) -> dict:
         "estado": p.get("desEstado"),
         "rubro": clasificar_rubro(titulo),
         "url": url_expediente(periodo, cam, p.get("pleyNum")),
+        "camara_actual": (p.get("codTipoParlActual") or cam or "C")[:1],
     }

@@ -2,14 +2,16 @@ name: Proyectos de ley (Congreso)
 
 on:
   schedule:
-    # 09:30 UTC = 04:30 hora de Lima, una vez al dia
-    - cron: "30 9 * * *"
+    # 06:23 UTC = 1:23 a. m. Lima (respaldo 3:53 a. m.): proyectos y seguimiento listos para el
+    # reporte de las 7 a. m. aunque GitHub se retrase
+    - cron: "23 6 * * *"
+    - cron: "53 8 * * *"
   workflow_dispatch:
 
 jobs:
   proyectos:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,3 +23,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
         run: python src/run_congreso.py
+      - name: Seguimiento de expedientes (dictamenes, autografas, remisiones)
+        env:
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+        run: python src/seguimiento.py --max-minutos 40

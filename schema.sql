@@ -128,3 +128,79 @@ CREATE INDEX IF NOT EXISTS idx_normas_texto ON normas USING GIN (texto_tsv);
 ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_estado TEXT;
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
+
+-- ---------------------------------------------------------------------------
+-- Etapa 6: monitoreo empresarial (reportes para AmCham).
+-- Tambien la ejecuta src/db.py automaticamente. Se puede repetir sin riesgo.
+-- ---------------------------------------------------------------------------
+
+-- Seguimiento de cada expediente del Congreso (dictamenes, remisiones al Senado, autografas...)
+CREATE TABLE IF NOT EXISTS seguimientos (
+    id           BIGINT PRIMARY KEY,          -- seguimientoPleyId del Congreso
+    proyecto_id  INTEGER NOT NULL REFERENCES proyectos_ley(id) ON DELETE CASCADE,
+    fecha        TIMESTAMPTZ NOT NULL,
+    camara       CHAR(1),                     -- C Congreso, D Diputados, S Senado
+    estado       TEXT,
+    comisiones   TEXT,
+    detalle      TEXT,
+    creado_en    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_seg_fecha    ON seguimientos (fecha DESC);
+CREATE INDEX IF NOT EXISTS idx_seg_proyecto ON seguimientos (proyecto_id);
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS camara_actual CHAR(1);
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS seguimiento_revisado TIMESTAMPTZ;
+
+-- Analisis con IA de cada norma (tipo N) y proyecto de ley (tipo P)
+CREATE TABLE IF NOT EXISTS analisis (
+    id                BIGSERIAL PRIMARY KEY,
+    tipo              CHAR(1) NOT NULL,
+    ref_id            BIGINT NOT NULL,        -- normas.id o proyectos_ley.id
+    fecha             DATE NOT NULL,          -- publicacion o presentacion
+    relevante         BOOLEAN NOT NULL,
+    resumen           TEXT,
+    cambios           TEXT,
+    comentario        TEXT,
+    sector            TEXT,
+    calificacion      TEXT,                   -- Favorable | Desfavorable | Para seguimiento
+    impacto           TEXT,                   -- Alto | Moderado | Bajo
+    comites           TEXT[],
+    acciones          JSONB,                  -- [{comite, accion}]
+    accion_directorio TEXT,
+    lectura           TEXT,                   -- texto completo | sumilla
+    modelo            TEXT,
+    excluido          BOOLEAN NOT NULL DEFAULT FALSE,
+    excluido_por      TEXT,
+    excluido_en       TIMESTAMPTZ,
+    creado_en         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (tipo, ref_id)
+);
+CREATE INDEX IF NOT EXISTS idx_analisis_fecha ON analisis (tipo, fecha DESC);
+
+-- Usuarios del modulo de monitoreo
+CREATE TABLE IF NOT EXISTS usuarios (
+    id          SERIAL PRIMARY KEY,
+    usuario     TEXT UNIQUE NOT NULL,
+    nombre      TEXT,
+    clave_hash  TEXT NOT NULL,
+    rol         TEXT NOT NULL DEFAULT 'editor',   -- admin | editor
+    activo      BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Ajustes internos (clave de sesiones, avance del analisis historico, correo...)
+CREATE TABLE IF NOT EXISTS configuracion (
+    clave       TEXT PRIMARY KEY,
+    valor       TEXT,
+    actualizado TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Informe diario: aprobacion y envio
+CREATE TABLE IF NOT EXISTS informes (
+    fecha        DATE PRIMARY KEY,
+    estado       TEXT NOT NULL DEFAULT 'borrador',   -- borrador | aprobado | enviado
+    aprobado_por TEXT,
+    aprobado_en  TIMESTAMPTZ,
+    enviado_en   TIMESTAMPTZ,
+    ejecutivo    JSONB,                              -- resumen ejecutivo generado por la IA
+    actualizado  TIMESTAMPTZ NOT NULL DEFAULT now()
+);

@@ -21,6 +21,11 @@ _ETAPAS = [
     ("-- Etapa 5:", """SELECT EXISTS (SELECT 1 FROM information_schema.columns
                                      WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
                                        AND column_name = 'texto_base')"""),
+    ("-- Etapa 6:", """SELECT EXISTS (SELECT 1 FROM information_schema.tables
+                                     WHERE table_schema = 'public' AND table_name = 'informes')
+                         AND EXISTS (SELECT 1 FROM information_schema.columns
+                                     WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
+                                       AND column_name = 'seguimiento_revisado')"""),
 ]
 
 
@@ -112,8 +117,8 @@ def upsert_proyectos(conn, filas: list[dict]) -> int:
     if not filas:
         return 0
     cols = ["periodo", "camara", "numero", "num_pley", "fecha_presentacion",
-            "titulo", "autor", "proponente", "estado", "rubro", "url"]
-    valores = [[f[c] for c in cols] for f in filas]
+            "titulo", "autor", "proponente", "estado", "rubro", "url", "camara_actual"]
+    valores = [[f.get(c) for c in cols] for f in filas]
     with conn.cursor() as cur:
         execute_values(
             cur,
@@ -127,6 +132,7 @@ def upsert_proyectos(conn, filas: list[dict]) -> int:
                     titulo = EXCLUDED.titulo, autor = EXCLUDED.autor,
                     proponente = EXCLUDED.proponente, rubro = EXCLUDED.rubro,
                     url = COALESCE(EXCLUDED.url, proyectos_ley.url),
+                    camara_actual = COALESCE(EXCLUDED.camara_actual, proyectos_ley.camara_actual),
                     fecha_presentacion = EXCLUDED.fecha_presentacion, actualizado = now()""",
             valores,
         )
