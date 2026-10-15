@@ -134,8 +134,8 @@ export async function fragmentos(tipo, claves, terminos) {
   if (!lista.length || !ks.length || !bases().length) return salida;
   const filas = await enTodas(
     `SELECT clave,
-            ts_headline('spanish', left(texto, 80000), (${consultaTs(lista, 3)}),
-              'MaxFragments=2, MaxWords=35, MinWords=15, ShortWord=3, StartSel=[[, StopSel=]], FragmentDelimiter=" … "') AS frag
+            ts_headline('spanish', left(texto, 25000), (${consultaTs(lista, 3)}),
+              'MaxFragments=1, MaxWords=35, MinWords=15, ShortWord=3, StartSel=[[, StopSel=]]') AS frag
      FROM documentos WHERE tipo = $1 AND clave = ANY($2::text[]) AND texto <> ''`,
     [tipo, ks, ...lista],
     6000

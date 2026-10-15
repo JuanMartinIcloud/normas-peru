@@ -31,25 +31,30 @@ async function buscarTodo(fn, fp) {
   const ordN = ordenNormas(fn, pn);
   const pp = [...wp.params];
   const ordP = ordenProyectos(fp, pp);
-  const [a, b, c, d] = await Promise.all([
+  // Primero las listas; los conteos corren en paralelo con los parrafos "En el texto"
+  const conteos = Promise.all([
+    consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
+    consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
+  ]);
+  conteos.catch(() => {}); // el error, si lo hay, se recoge mas abajo
+  const [a, c] = await Promise.all([
     consultar(
       `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
        FROM normas ${wn.where} ORDER BY ${ordN} LIMIT ${MOSTRAR}`,
       pn
     ),
-    consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
     consultar(
       `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
               titulo, sumilla, proponente, estado
        FROM proyectos_ley ${wp.where} ORDER BY ${ordP} LIMIT ${MOSTRAR}`,
       pp
     ),
-    consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
   ]);
   const terminos = [fn.q, ...fn.terminos, ...fn.refinar];
-  const [fragN, fragP] = await Promise.all([
+  const [fragN, fragP, [b, d]] = await Promise.all([
     fragmentos("N", a.map((n) => n.hash_unico), terminos).catch(() => ({})),
     fragmentos("P", c.map(claveProyecto), terminos).catch(() => ({})),
+    conteos,
   ]);
   return { normas: a, totalN: b[0].n, proyectos: c, totalP: d[0].n, fragN, fragP };
 }
