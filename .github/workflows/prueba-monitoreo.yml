@@ -16,4 +16,5 @@ jobs:
       - name: Probar
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          SOLO_FINAL: "1"
         run: python src/prueba_monitoreo.py

@@ -12,7 +12,10 @@ cur.execute("INSERT INTO usuarios (usuario, nombre, clave_hash, rol) VALUES (%s,
 uid = cur.fetchone()[0]
 s = requests.Session()
 fallas = 0
-def nota(t, m): print(f"::notice title={t}::{m}"[:1000])
+SALTAR = os.getenv("SOLO_FINAL") == "1"
+def nota(t, m):
+    if SALTAR and not t.startswith(("csv", "quitar", "resumen")): return
+    print(f"::notice title={t}::{m}"[:1000])
 try:
     r = s.get(BASE + "/monitoreo", allow_redirects=False, timeout=60)
     nota("sin sesion", f"HTTP {r.status_code} -> {r.headers.get('location')}")
