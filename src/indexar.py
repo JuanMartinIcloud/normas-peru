@@ -7,8 +7,8 @@
 Diseño pensado para la capa gratuita de Neon (100 horas de computo al mes por proyecto):
 - La BASE PRINCIPAL (DATABASE_URL) casi no se toca: cada ejecucion la consulta una sola vez al
   empezar (y, para proyectos, una vez al final para guardar sumillas). Asi se apaga sola.
-- Todo lo demas (textos, avance de cada trabajador) va a las bases de texto TEXTOS_URL_1..9.
-  TEXTOS_URL_1 guarda ademas el avance (tabla "avance").
+- Todo lo demas (textos) va a las bases de texto TEXTOS_URL_2..12 (la 4 es la principal).
+  La base 1 se retiro: su contenido se copio integro a la 12. El avance esta en la base 2.
 - Cada documento se identifica con una clave estable que no depende de la base principal:
   normas = hash_unico; proyectos = "periodo|camara|numero".
 - Normas: primero las de los ultimos 7 dias que falten; luego hacia atras desde donde quedo.
@@ -76,7 +76,7 @@ class FuenteNoResponde(Exception):
 
 
 class Bases:
-    """Bases de texto TEXTOS_URL_1..9.
+    """Bases de texto TEXTOS_URL_2..12 (la 1 esta retirada).
 
     No se mantienen conexiones abiertas: Neon apaga la base tras unos minutos sin uso y corta las
     conexiones. Por eso cada operacion abre su propia conexion, la usa y la cierra.
@@ -87,6 +87,8 @@ class Bases:
         control = ""
         for i in range(1, 13):
             url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
+            if i == 1 and os.getenv("TEXTOS_URL_12", "").strip():
+                continue   # base 1 retirada (copiada a la 12)
             if url:
                 self.urls.append(url)
                 if i == CONTROL:

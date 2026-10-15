@@ -23,7 +23,6 @@ jobs:
       - name: Medir
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
-          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
@@ -38,7 +37,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           mkdir -p sondeo_buscador
-          if [ "$Q" = "MOVER1" ]; then python src/mover_base1.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "VERIFICAR" ]; then python src/verificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
+          if [ "$Q" = "VERIFICAR" ]; then python src/verificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
       - name: Guardar
         if: always()
         run: |

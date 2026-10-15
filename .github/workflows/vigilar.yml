@@ -18,7 +18,6 @@ jobs:
       - name: Revisar limites
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-          TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}

@@ -30,7 +30,6 @@ jobs:
       DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
-      TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
       TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
       TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
       TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
