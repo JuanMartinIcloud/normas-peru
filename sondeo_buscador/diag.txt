@@ -1,44 +1,21 @@
-# Verificacion de normas y proyectos
-Normas en el sistema: 247,040. Proyectos: 15,465.
-## 1. Enlaces de El Peruano reconocibles
-Normas cuyo enlace no permite obtener el PDF: 1
-- 2021-02-03 https://busquedas.elperuano.pe/normaslegales/designan-miembro-del-directorio-de-la-sociedad-de-beneficenc-resolucion-ministerial-no-032-2021-mimp-1924922-1-1/
-## 1b. Prueba de descarga por formato de enlace (3 por formato)
-- NormasElperuano .html (16,049 normas): 3 de 3 PDF descargados
-- dispositivo (2023+) (64,969 normas): 3 de 3 PDF descargados
-- epdoc Referencias (2,981 normas): 3 de 3 PDF descargados
-- normaslegales/<titulo> (162,834 normas): 3 de 3 PDF descargados
-- otro (207 normas): 3 de 3 PDF descargados
-## 2. Prueba de descarga del PDF (3 normas al azar por año)
-- 2015: 3 de 3 PDF descargados
-- 2016: 3 de 3 PDF descargados
-- 2017: 3 de 3 PDF descargados
-- 2018: 3 de 3 PDF descargados
-- 2019: 3 de 3 PDF descargados
-- 2020: 3 de 3 PDF descargados
-- 2021: 3 de 3 PDF descargados
-- 2022: 3 de 3 PDF descargados
-- 2023: 3 de 3 PDF descargados
-- 2024: 3 de 3 PDF descargados
-- 2025: 3 de 3 PDF descargados
-- 2026: 3 de 3 PDF descargados
-## 3. Normas: texto completo indexado por año
-| Año | Normas | Con texto | PDF escaneado (sin texto) | Sin PDF | Pendientes | % listo |
-| --- | --- | --- | --- | --- | --- | --- |
-| 2015 | 19,983 | 0 | 0 | 0 | 19,983 | 0 % |
-| 2016 | 23,003 | 0 | 0 | 0 | 23,003 | 0 % |
-| 2017 | 21,760 | 0 | 0 | 0 | 21,760 | 0 % |
-| 2018 | 22,018 | 0 | 0 | 0 | 22,018 | 0 % |
-| 2019 | 21,689 | 0 | 0 | 0 | 21,689 | 0 % |
-| 2020 | 16,888 | 0 | 0 | 0 | 16,888 | 0 % |
-| 2021 | 17,489 | 0 | 0 | 0 | 17,489 | 0 % |
-| 2022 | 23,091 | 0 | 0 | 0 | 23,091 | 0 % |
-| 2023 | 21,545 | 8,131 | 0 | 0 | 13,414 | 38 % |
-| 2024 | 19,652 | 18,911 | 0 | 0 | 741 | 96 % |
-| 2025 | 21,041 | 19,756 | 0 | 0 | 1,285 | 94 % |
-| 2026 | 18,881 | 18,164 | 3 | 0 | 714 | 96 % |
-| Total | 247,040 | 64,962 | 3 | 0 | 182,075 | 26 % |
-## 4. Proyectos de ley: texto completo indexado
-Proyectos: 15,465 · con texto 11,182 · escaneados 4,283 · sin PDF 0 · pendientes 0 · 100 % listo
-Documentos repetidos entre bases: 0
-::warning title=Verificacion::1 enlaces no reconocidos, 0 descargas de prueba fallidas
+columnas: ['id', 'periodo', 'camara', 'numero', 'num_pley', 'fecha_presentacion', 'titulo', 'autor', 'proponente', 'comision', 'estado', 'rubro', 'url', 'actualizado', 'creado_en', 'estado_cambiado_en', 'sumilla', 'sumilla_revisada', 'texto_estado', 'texto_base']
+periodo/camara ('2021', 'C', 14864, datetime.date(2021, 8, 3), datetime.date(2026, 7, 22))
+periodo/camara ('2026', 'C', 6, datetime.date(2026, 8, 14), datetime.date(2026, 10, 2))
+periodo/camara ('2026', 'D', 582, datetime.date(2026, 8, 4), datetime.date(2026, 10, 13))
+periodo/camara ('2026', 'S', 13, datetime.date(2026, 8, 11), datetime.date(2026, 10, 7))
+estado 2026-07+ ('EN COMISIÓN', 474)
+estado 2026-07+ ('Archivado de Plano', 91)
+estado 2026-07+ ('PRESENTADO', 29)
+estado 2026-07+ ('Retirado por su Autor', 7)
+estado 2026-07+ ('ACTUALIZADA', 6)
+estado 2026-07+ ('CON DICTAMEN', 4)
+estado 2026-07+ ('Publicada en el Diario Oficial El Peruano', 4)
+estado 2026-07+ ('Expediente de propuesta legislativa remitida al senado de la república', 1)
+ultimo ('00577-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE MODIFICA LA TERCERA DISPOSICIÓN COMPLEMENTARIA FINAL DE LA LEY', 'Cámara de Diputados')
+ultimo ('00572-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE ESTABLECE LA LEY DE CONTINUACIÓN DEL FORTALECIMIENTO DEL SISTE', 'Cámara de Diputados')
+ultimo ('00574-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE MODIFICA LA LEY 31917, LEY DE TRANSPORTE PÚBLICO DE PERSONAS E', 'Cámara de Diputados')
+ultimo ('00581-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE PRORROGA LA VIGENCIA DE LAS EXONERACIONES PREVISTAS EN LOS INC', 'Cámara de Diputados')
+ultimo ('00576-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE AUTORIZA EXCEPCIONALMENTE EL NOMBRAMIENTO DE DOCENTES DE EDUCA', 'Cámara de Diputados')
+ultimo ('00573-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE FACILITA LA ADQUISICIÓN DE PRODUCTOS AGROPECUARIOS NACIONALES ', 'Cámara de Diputados')
+ultimo ('00575-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE MODIFICA EL NUMERAL 3 DEL ARTÍCULO 112 DE LA LEY 29571, CÓDIGO', 'Cámara de Diputados')
+ultimo ('00580-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE REGULA LOS DERECHOS DE DENOMINACIÓN COMERCIAL SOBRE INFRAESTRU', 'Cámara de Diputados')
