@@ -204,3 +204,6 @@ CREATE TABLE IF NOT EXISTS informes (
     ejecutivo    JSONB,                              -- resumen ejecutivo generado por la IA
     actualizado  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Busqueda: proyectos hallados por su texto completo (clave periodo|camara|numero)
+CREATE INDEX IF NOT EXISTS idx_proy_clave ON proyectos_ley ((periodo || '|' || camara || '|' || numero));
