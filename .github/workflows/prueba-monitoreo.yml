@@ -1,0 +1,19 @@
+name: Prueba del monitoreo empresarial
+
+on:
+  workflow_dispatch:
+
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install psycopg2-binary requests
+      - name: Probar
+        env:
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+        run: python src/prueba_monitoreo.py
