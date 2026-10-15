@@ -255,3 +255,33 @@ body:has(.bandeja) .contenedor { padding-bottom: 140px; }
   padding: 9px 11px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; color: var(--texto); background: #fff;
 }
 .pregunta { margin: 0 0 8px; font-size: 0.95rem; }
+.contenedor.angosto { max-width: 520px; }
+
+/* Monitoreo empresarial */
+.barra-mon { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 10px; flex-wrap: wrap; }
+.usuario-mon { color: var(--suave); font-size: 0.9rem; }
+.enlace-btn { background: none; border: 0; color: var(--acento); cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
+.boton.chico { padding: 5px 10px; font-size: 0.85rem; }
+.tarjeta-mon.quitado { opacity: 0.55; }
+.analisis { margin: 10px 0; display: grid; gap: 4px; }
+.analisis dt { font-weight: 600; font-size: 0.85rem; color: var(--suave); margin-top: 6px; }
+.analisis dd { margin: 0; }
+.analisis ul { margin: 4px 0 0; padding-left: 18px; }
+.movimiento { font-size: 0.9rem; color: var(--suave); margin: 4px 0; }
+.etq.cal-favorable { background: #e3f4e8; color: #1d6b35; }
+.etq.cal-desfavorable { background: #fbe4e4; color: #9b1c1c; }
+.etq.cal-seguimiento { background: #fff4d6; color: #7a5a00; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 18px; }
+.kpi { border: 1px solid var(--linea); border-radius: 10px; padding: 12px; background: #fff; }
+.kpi .n { font-size: 1.6rem; font-weight: 700; }
+.kpi .t { color: var(--suave); font-size: 0.85rem; }
+.graficos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 10px 0 18px; }
+.grafico { border: 1px solid var(--linea); border-radius: 10px; padding: 12px; background: #fff; }
+.grafico h3 { margin: 0 0 8px; font-size: 1rem; }
+.tabla-mon { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 8px 0 18px; }
+.tabla-mon th, .tabla-mon td { border-bottom: 1px solid var(--linea); padding: 6px 8px; text-align: left; vertical-align: top; }
+.tabla-mon th { background: var(--fondo); }
+.tabla-mon td.num, .tabla-mon th.num { text-align: right; }
+.envoltura-tabla { overflow-x: auto; }
+.otros { margin: 6px 0 16px; }
+.otros summary { cursor: pointer; color: var(--suave); }
