@@ -47,7 +47,7 @@ export function whereProyectos(f) {
     }
     // Proyectos hallados en el texto completo de su PDF (ver prepararBusqueda)
     if (f.clavesTexto && f.clavesTexto.length) {
-      partes.push(`${CLAVE_PROYECTO} IN (SELECT unnest(${p(f.clavesTexto)}::text[]))`);
+      partes.push(`${CLAVE_PROYECTO} = ANY(${p(f.clavesTexto)}::text[])`);
     }
     principal = `(${partes.join(" OR ")})`;
   }
@@ -62,11 +62,11 @@ export function whereProyectos(f) {
         `autor ILIKE ${like}`,
       ];
       const ks = (f.clavesRefinar || [])[i];
-      if (ks && ks.length) alt.push(`${CLAVE_PROYECTO} IN (SELECT unnest(${p(ks)}::text[]))`);
+      if (ks && ks.length) alt.push(`${CLAVE_PROYECTO} = ANY(${p(ks)}::text[])`);
       return `(${alt.join(" OR ")})`;
     });
     let bloque = [principal, ...ref].filter(Boolean).join(" AND ");
-    if (f.clavesTodas && f.clavesTodas.length) bloque = `(${bloque}) OR ${CLAVE_PROYECTO} IN (SELECT unnest(${p(f.clavesTodas)}::text[]))`;
+    if (f.clavesTodas && f.clavesTodas.length) bloque = `(${bloque}) OR ${CLAVE_PROYECTO} = ANY(${p(f.clavesTodas)}::text[])`;
     cond.push(`(${bloque})`);
   } else if (principal) {
     cond.push(principal);
