@@ -43,10 +43,10 @@ SECTORES = [
 CALIFICACIONES = ["Favorable", "Desfavorable", "Para seguimiento"]
 IMPACTOS = ["Alto", "Moderado", "Bajo"]
 
-MODELOS_FILTRO = [m for m in os.getenv("MODELOS_FILTRO", "gemini-3.5-flash-lite,gemini-flash-latest,gemini-2.5-flash").split(",") if m]
+MODELOS_FILTRO = [m for m in os.getenv("MODELOS_FILTRO", "gemini-3.5-flash-lite,gemini-flash-latest,gemini-3.5-flash,gemini-flash-lite-latest").split(",") if m]
 MODELOS_ANALISIS = None   # None = modelos por defecto (los mismos del buscador web)
 # Los meses anteriores usan modelos distintos, para no gastar la cuota diaria del buscador ni del reporte diario
-HIST_FILTRO = [m for m in os.getenv("HIST_FILTRO", "gemini-3.1-flash-lite,gemini-2.5-flash-lite,gemini-3.1-flash-lite-preview").split(",") if m]
+HIST_FILTRO = [m for m in os.getenv("HIST_FILTRO", "gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3-flash-preview").split(",") if m]
 HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3-flash-preview").split(",") if m]
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000

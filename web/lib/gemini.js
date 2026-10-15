@@ -3,7 +3,9 @@
 
 const API = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const SUBIDA = "https://generativelanguage.googleapis.com/upload/v1beta/files";
-const MODELOS_POR_DEFECTO = "gemini-flash-latest,gemini-3.5-flash-lite,gemini-2.5-flash";
+const MODELOS_POR_DEFECTO = "gemini-flash-latest,gemini-3.5-flash-lite,gemini-3.5-flash";
+// Reserva: se prueban al final si los anteriores agotaron su cupo del dia (gemini-2.5 ya no existe para cuentas nuevas)
+const RESERVA = ["gemini-flash-lite-latest", "gemma-4-31b-it"];
 
 export class ErrorIA extends Error {
   constructor(mensaje, estado = 502) {
@@ -24,17 +26,38 @@ function clave() {
 }
 
 function modelos() {
-  return (process.env.GEMINI_MODELOS || MODELOS_POR_DEFECTO)
+  const lista = (process.env.GEMINI_MODELOS || MODELOS_POR_DEFECTO)
     .split(",")
     .map((m) => m.trim())
-    .filter(Boolean);
+    .filter((m) => m && !m.startsWith("gemini-2.5"));
+  return [...lista, ...RESERVA.filter((m) => !lista.includes(m))];
+}
+
+// Los modelos Gemma no aceptan instrucciones de sistema ni modo JSON: van dentro del mensaje
+function paraGemma(cuerpo) {
+  const instr = cuerpo.systemInstruction.parts[0].text;
+  const partes = cuerpo.contents[0].parts.map((p) => ({ ...p }));
+  const i = partes.findIndex((p) => typeof p.text === "string");
+  const extra = `${instr}\n\nResponde ÚNICAMENTE con un objeto JSON válido, sin texto adicional.\n\n`;
+  if (i >= 0) partes[i].text = extra + partes[i].text;
+  else partes.unshift({ text: extra });
+  return {
+    contents: [{ role: "user", parts: partes }],
+    generationConfig: { temperature: 0.2, maxOutputTokens: cuerpo.generationConfig.maxOutputTokens },
+  };
 }
 
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function aJSON(texto) {
   const limpio = texto.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  return JSON.parse(limpio);
+  try {
+    return JSON.parse(limpio);
+  } catch (e) {
+    const a = limpio.indexOf("{"), b = limpio.lastIndexOf("}");   // por si el modelo agregó texto alrededor
+    if (a < 0 || b <= a) throw e;
+    return JSON.parse(limpio.slice(a, b + 1));
+  }
 }
 
 // Sube un PDF grande a Gemini (archivos de mas de ~15 MB no caben dentro del pedido)
@@ -118,7 +141,7 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
         r = await fetch(`${API}/models/${modelo}:generateContent`, {
           method: "POST",
           headers: { "x-goog-api-key": k, "Content-Type": "application/json" },
-          body: JSON.stringify(cuerpo),
+          body: JSON.stringify(modelo.startsWith("gemma") ? paraGemma(cuerpo) : cuerpo),
           cache: "no-store",
         });
       } catch (e) {
