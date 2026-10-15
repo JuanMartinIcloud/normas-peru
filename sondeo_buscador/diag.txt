@@ -1,3 +1,29 @@
-gemma-4-31b-it OK gemma-4-31b-it Favorable Este Decreto Supremo modifica el Reglamento de la Ley del Impuesto a la Renta. Su objetivo es regula
-gemini-3.5-flash FALLA Ningun modelo respondio. gemini-3.5-flash: HTTP 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usa
-defecto: ['gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest', 'gemma-4-31b-it']
+base 1: 491 MB  normas=33363 proyectos=8736
+base 2: 406 MB  normas=30978 proyectos=5628
+base 3: 438 MB  normas=42391 proyectos=1101
+base 5: 382 MB  normas=41689 proyectos=3
+base 6: 7 MB  normas=0 proyectos=0
+base 7: 7 MB  normas=0 proyectos=0
+base 8: 7 MB  normas=0 proyectos=0
+base 9: 7 MB  normas=0 proyectos=0
+base 10: 7 MB  normas=0 proyectos=0
+base 11: 7 MB  normas=0 proyectos=0
+base 12: 430 MB  normas=33363 proyectos=8736
+principal: 269 MB
+normas por anio [(2015, 19983), (2016, 23003), (2017, 21760), (2018, 22018), (2019, 21689), (2020, 16888), (2021, 17489), (2022, 23091), (2023, 21545), (2024, 19652), (2025, 21041), (2026, 18970)]
+normas totales=247129 indexadas(aprox, sin contar base 1 duplicada)=148421 faltan~98708 espacio libre hasta 400MB=2373 MB
+('normas-0-de-12', datetime.date(2019, 2, 5), False, 7100)
+('normas-1-de-12', datetime.date(2019, 9, 30), False, 6129)
+('normas-10-de-12', datetime.date(2019, 4, 1), False, 7056)
+('normas-11-de-12', datetime.date(2020, 7, 3), False, 5049)
+('normas-2-de-12', datetime.date(2019, 12, 12), False, 5944)
+('normas-3-de-12', datetime.date(2019, 2, 7), False, 7326)
+('normas-4-de-12', datetime.date(2020, 1, 8), False, 5772)
+('normas-5-de-12', datetime.date(2020, 10, 21), False, 4720)
+('normas-6-de-12', datetime.date(2019, 6, 28), False, 6548)
+('normas-7-de-12', datetime.date(2019, 1, 7), False, 7192)
+('normas-8-de-12', datetime.date(2018, 10, 28), False, 7832)
+('normas-9-de-12', datetime.date(2020, 10, 12), False, 4518)
+('proyectos-0-de-3', None, True, 3687)
+('proyectos-1-de-3', None, True, 3623)
+('proyectos-2-de-3', None, True, 3627)
