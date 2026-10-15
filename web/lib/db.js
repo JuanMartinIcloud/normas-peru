@@ -89,7 +89,7 @@ export function construirWhere(f) {
   if (buscados.length) {
     const partes = buscados.map((termino) => `${TSV_NORMAS} @@ websearch_to_tsquery('spanish', ${p(termino)})`);
     if (f.q && /\d/.test(f.q)) partes.push(`numero ILIKE ${p(`%${f.q.replace(/"/g, "")}%`)}`);
-    if (f.clavesTexto && f.clavesTexto.length) partes.push(`hash_unico = ANY(${p(f.clavesTexto)}::text[])`);
+    if (f.clavesTexto && f.clavesTexto.length) partes.push(`hash_unico IN (SELECT unnest(${p(f.clavesTexto)}::text[]))`);
     principal = `(${partes.join(" OR ")})`;
   }
   // Filtros sucesivos ("buscar dentro de estos resultados"): cada uno debe cumplirse ademas
@@ -99,12 +99,12 @@ export function construirWhere(f) {
       const alt = [`${TSV_NORMAS} @@ websearch_to_tsquery('spanish', ${p(r)})`];
       if (/\d/.test(r)) alt.push(`numero ILIKE ${p(`%${r.replace(/"/g, "")}%`)}`);
       const ks = (f.clavesRefinar || [])[i];
-      if (ks && ks.length) alt.push(`hash_unico = ANY(${p(ks)}::text[])`);
+      if (ks && ks.length) alt.push(`hash_unico IN (SELECT unnest(${p(ks)}::text[]))`);
       return `(${alt.join(" OR ")})`;
     });
     let bloque = [principal, ...ref].filter(Boolean).join(" AND ");
     // documentos cuyo texto completo cumple todo a la vez
-    if (f.clavesTodas && f.clavesTodas.length) bloque = `(${bloque}) OR hash_unico = ANY(${p(f.clavesTodas)}::text[])`;
+    if (f.clavesTodas && f.clavesTodas.length) bloque = `(${bloque}) OR hash_unico IN (SELECT unnest(${p(f.clavesTodas)}::text[]))`;
     cond.push(`(${bloque})`);
   } else if (principal) {
     cond.push(principal);
