@@ -27,6 +27,7 @@ export default async function LayoutMonitoreo({ children }) {
         <a className="atajo" href="/monitoreo/congreso">Congreso</a>
         <a className="atajo" href="/monitoreo/impacto">Impacto</a>
         <a className="atajo" href="/monitoreo/informe">Informe y envío</a>
+        <a className="atajo" href="/monitoreo/busquedas">Búsquedas guardadas</a>
         {u.rol === "admin" && <a className="atajo" href="/monitoreo/usuarios">Usuarios</a>}
         <a className="atajo" href="/">Buscador →</a>
       </nav>

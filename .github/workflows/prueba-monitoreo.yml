@@ -2,6 +2,9 @@ name: Prueba del monitoreo empresarial
 
 on:
   workflow_dispatch:
+    inputs:
+      script:
+        default: "prueba_monitoreo"
 
 jobs:
   prueba:
@@ -17,4 +20,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           SOLO_FINAL: "1"
-        run: python src/prueba_monitoreo.py
+        run: python src/${{ github.event.inputs.script || 'prueba_monitoreo' }}.py

@@ -8,6 +8,7 @@ import Marcar from "../Marcar";
 import BotonAmpliar from "./BotonAmpliar";
 import FormBuscar from "./FormBuscar";
 import FiltrarResultados from "./FiltrarResultados";
+import GuardarBusqueda from "./GuardarBusqueda";
 
 export const metadata = { title: "Buscar en todo · Normas Legales del Perú" };
 
@@ -172,6 +173,9 @@ export default async function Buscar({ searchParams }) {
             </p>
           )}
           <FiltrarResultados ruta="/buscar" params={filtros} refinar={fn.refinar} />
+          {(fn.q || fn.terminos.length > 0) && (
+            <GuardarBusqueda pregunta={fn.pregunta} q={fn.pregunta ? "" : fn.q} terminos={fn.terminos} refinar={fn.refinar} />
+          )}
           {fn.q && !fn.pregunta && fn.terminos.length === 0 && <BotonAmpliar q={fn.q} desde={fn.desde} hasta={fn.hasta} />}
           <BotonResumir ambito="ambos" filtros={filtros} cantidad={totalN + totalP} />
 
