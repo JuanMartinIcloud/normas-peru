@@ -40,6 +40,7 @@ jobs:
           mkdir -p sondeo_buscador
           if [ "$Q" = "MOVER1" ]; then python src/mover_base1.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "VERIFICAR" ]; then python src/verificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
       - name: Guardar
+        if: always()
         run: |
           git config user.name "JuanMartinIcloud"
           git config user.email "282369089+JuanMartinIcloud@users.noreply.github.com"

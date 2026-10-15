@@ -35,6 +35,9 @@ faltan = claves_1 - claves_12
 print(f"Copiados {copiados}; faltan en la base 12: {len(faltan)}")
 if faltan:
     raise SystemExit("::error::No se vacia la base 1 porque faltan documentos en la copia.")
+if os.getenv("VACIAR") != "1":
+    print("Copia completa y verificada. La base 1 se vaciara cuando el buscador ya lea la base 12.")
+    raise SystemExit(0)
 origen.autocommit = True
 co.execute("TRUNCATE documentos")
 co.execute("ALTER INDEX idx_documentos_busqueda SET (fastupdate = off)")
