@@ -1,8 +1,10 @@
 import os, psycopg2
-m = psycopg2.connect(os.environ["DATABASE_URL"]); cm = m.cursor()
-cm.execute("""SELECT fecha, url_detalle, url_pdf FROM normas WHERE url_detalle NOT LIKE '%%/dispositivo/%%'
-              AND url_detalle !~ '-[0-9]+-[0-9]+/?$' ORDER BY random() LIMIT 12""")
-for r in cm.fetchall(): print(r)
-cm.execute("""SELECT extract(year from fecha)::int, count(*) FROM normas WHERE url_detalle NOT LIKE '%%/dispositivo/%%'
-              AND url_detalle !~ '-[0-9]+-[0-9]+/?$' GROUP BY 1 ORDER BY 1""")
-print(cm.fetchall())
+m = psycopg2.connect(os.environ["DATABASE_URL"]); c = m.cursor()
+c.execute("SELECT column_name FROM information_schema.columns WHERE table_name='proyectos_ley' ORDER BY ordinal_position")
+print("columnas:", [r[0] for r in c.fetchall()])
+c.execute("SELECT periodo, camara, count(*), min(fecha_presentacion), max(fecha_presentacion) FROM proyectos_ley GROUP BY 1,2 ORDER BY 1,2")
+for r in c.fetchall(): print("periodo/camara", r)
+c.execute("SELECT estado, count(*) FROM proyectos_ley WHERE fecha_presentacion >= '2026-07-01' GROUP BY 1 ORDER BY 2 DESC LIMIT 25")
+for r in c.fetchall(): print("estado 2026-07+", r)
+c.execute("SELECT numero, camara, periodo, fecha_presentacion, estado, left(titulo,90), proponente FROM proyectos_ley ORDER BY fecha_presentacion DESC NULLS LAST LIMIT 8")
+for r in c.fetchall(): print("ultimo", r)
