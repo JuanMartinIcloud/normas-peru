@@ -1,5 +1,3 @@
-gemma-4-31b-it FALLA 'str' object has no attribute 'get'
-gemini-3.5-flash FALLA Ningun modelo respondio. gemini-3.5-flash: HTTP 503 {   "error": {     "code": 503,     "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",     "status": "UNAVAILABLE"   } }  | gemini-3.5-flash: HTTP 503 {   "error": {     "
-gemini-flash-lite-latest FALLA Ningun modelo respondio. gemini-flash-lite-latest: HTTP 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your cur
-gemini-3-flash-preview OK gemini-3-flash-preview Favorable Este Decreto Supremo modifica el Reglamento de la Ley del Impuesto a la Renta en lo relativo a la de
+gemma-4-31b-it OK gemma-4-31b-it Favorable Este Decreto Supremo modifica el Reglamento de la Ley del Impuesto a la Renta. Su objetivo es regula
+gemini-3.5-flash FALLA Ningun modelo respondio. gemini-3.5-flash: HTTP 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usa
 defecto: ['gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest', 'gemma-4-31b-it']
