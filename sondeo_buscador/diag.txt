@@ -1,21 +1,124 @@
-columnas: ['id', 'periodo', 'camara', 'numero', 'num_pley', 'fecha_presentacion', 'titulo', 'autor', 'proponente', 'comision', 'estado', 'rubro', 'url', 'actualizado', 'creado_en', 'estado_cambiado_en', 'sumilla', 'sumilla_revisada', 'texto_estado', 'texto_base']
-periodo/camara ('2021', 'C', 14864, datetime.date(2021, 8, 3), datetime.date(2026, 7, 22))
-periodo/camara ('2026', 'C', 6, datetime.date(2026, 8, 14), datetime.date(2026, 10, 2))
-periodo/camara ('2026', 'D', 582, datetime.date(2026, 8, 4), datetime.date(2026, 10, 13))
-periodo/camara ('2026', 'S', 13, datetime.date(2026, 8, 11), datetime.date(2026, 10, 7))
-estado 2026-07+ ('EN COMISIÓN', 474)
-estado 2026-07+ ('Archivado de Plano', 91)
-estado 2026-07+ ('PRESENTADO', 29)
-estado 2026-07+ ('Retirado por su Autor', 7)
-estado 2026-07+ ('ACTUALIZADA', 6)
-estado 2026-07+ ('CON DICTAMEN', 4)
-estado 2026-07+ ('Publicada en el Diario Oficial El Peruano', 4)
-estado 2026-07+ ('Expediente de propuesta legislativa remitida al senado de la república', 1)
-ultimo ('00577-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE MODIFICA LA TERCERA DISPOSICIÓN COMPLEMENTARIA FINAL DE LA LEY', 'Cámara de Diputados')
-ultimo ('00572-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE ESTABLECE LA LEY DE CONTINUACIÓN DEL FORTALECIMIENTO DEL SISTE', 'Cámara de Diputados')
-ultimo ('00574-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE MODIFICA LA LEY 31917, LEY DE TRANSPORTE PÚBLICO DE PERSONAS E', 'Cámara de Diputados')
-ultimo ('00581-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE PRORROGA LA VIGENCIA DE LAS EXONERACIONES PREVISTAS EN LOS INC', 'Cámara de Diputados')
-ultimo ('00576-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE AUTORIZA EXCEPCIONALMENTE EL NOMBRAMIENTO DE DOCENTES DE EDUCA', 'Cámara de Diputados')
-ultimo ('00573-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE FACILITA LA ADQUISICIÓN DE PRODUCTOS AGROPECUARIOS NACIONALES ', 'Cámara de Diputados')
-ultimo ('00575-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE MODIFICA EL NUMERAL 3 DEL ARTÍCULO 112 DE LA LEY 29571, CÓDIGO', 'Cámara de Diputados')
-ultimo ('00580-2026-2031-CD', 'D', '2026', datetime.date(2026, 10, 13), 'PRESENTADO', 'PROPOSICIÓN LEGISLATIVA QUE REGULA LOS DERECHOS DE DENOMINACIÓN COMERCIAL SOBRE INFRAESTRU', 'Cámara de Diputados')
+[
+"N",
+"Resolución 000132-2026-CD/OSIPTEL",
+"Aprueban publicación del Proyecto de Norma de Interconexión",
+"Para seguimiento",
+"Moderado",
+"Telecomunicaciones",
+[
+"Telecomunicaciones",
+"Asuntos Jurídicos"
+],
+"Osiptel aprobó la publicación para comentarios del Proyecto de Norma de Interconexión, otorgando un plazo de treinta días calendario para que los interesados presenten sus aportes. El proyecto busca actualizar y modernizar la regulación vigente contenida en el Texto Único Ordenado de las Normas de Interconexión, adaptándola a la evolución tecnológica y a un entorno de redes convergentes basadas en IP. La iniciativa se alienta tras un proceso de consulta temprana donde participaron operadores del mercado de telecomunicaciones.",
+"El proyecto norma y modifica el marco del Texto Único Ordenado de las Normas de Interconexión (aprobado inicialmente por Resolución N° 043-2003-CD/OSIPTEL y consolidado por Resolución N° 134-2012-CD/OSIPTEL, con sus modificatorias). Crea y facilita instrumentos referenciales como la Oferta de Referencia de Interconexión y la Mesa de Soporte a la Interconexión, e impulsa la transición a redes IP y tecnologías de nueva generación bajo neutralidad tecnológica, simplificando además cargas administrativas y reorganizando el régimen de infracciones.",
+"La propuesta resulta positiva para el sector de telecomunicaciones al modernizar regulaciones desactualizadas y adaptarlas a las nuevas tecnologías IP, lo cual agiliza las negociaciones entre operadores. Contar con un marco más claro, previsible y enfocado en la interoperabilidad reduce fricciones operativas y mejora el clima de inversiones en infraestructura digital en el país. El plazo de treinta días otorgado permite a las empresas del sector articular comentarios técnicos constructivos ante el regulador.",
+[
+{
+"accion": "Preparar y coordinar comentarios técnicos al proyecto de norma sobre interconexión y transición a redes IP.",
+"comite": "Telecomunicaciones"
+},
+{
+"accion": "Monitorear el proceso normativo y revisar la coherencia legal de las modificaciones propuestas en los procedimientos y régimen de infracciones.",
+"comite": "Asuntos Jurídicos"
+}
+],
+"Ninguna por ahora",
+"texto completo",
+"gemini-3.5-flash-lite"
+]
+=====
+[
+"N",
+"Resolución Ministerial 428-2026-MINEM/DM",
+"Aprueban sexta modificación de la concesión definitiva para desarrollar la actividad de transmisión de energía eléctrica en la Línea de Transmisión de 220 kV S.E. Vizcarra (Huallanca) – S.E. Antamina solicitada por la empresa Compañía Minera Antamina S.A.",
+"Favorable",
+"Moderado",
+"Minería",
+[
+"Minería",
+"Asuntos Jurídicos"
+],
+"El Ministerio de Energía y Minas aprobó la sexta modificación de la concesión definitiva de transmisión de energía eléctrica de la Línea de Transmisión de 220 kV S.E. Vizcarra (Huallanca) – S.E. Antamina, solicitada por Compañía Minera Antamina S.A. Esta modificación prorroga las fechas de inicio de obras y de la Puesta en Operación Comercial bajo el amparo de la Ley de Concesiones Eléctricas. La medida se formaliza tras cumplir con los requisitos sectoriales y presentar el calendario garantizado con su respectiva garantía.",
+"Modifica el Contrato de Concesión N° 145-99, específicamente la Cláusula Sexta, la Décima Primera, la Décimo Segunda y el Anexo N° 2, otorgando una prórroga para el inicio de obras hasta el 15 de junio de 2026 y para la Puesta en Operación Comercial hasta el 9 de septiembre de 2027. Esto se realiza en aplicación del literal b) del artículo 36 del Decreto Ley N° 25844, Ley de Concesiones Eléctricas, y del artículo 73 de su reglamento.",
+"La aprobación de esta prórroga otorga predictibilidad y seguridad jurídica a las inversiones mineras y eléctricas de gran envergadura en el país, permitiendo adecuar los cronogramas a la realidad operativa de los proyectos. Refuerza un clima de inversiones favorable al demostrar que los canales legales de revisión y subsanación administrativa funcionan adecuadamente dentro del sector.",
+[
+{
+"accion": "Monitorear el desarrollo de la ejecución de obras de infraestructura eléctrica vinculada a la unidad minera.",
+"comite": "Minería"
+},
+{
+"accion": "Revisar los antecedentes procedimentales sobre la nulidad de oficio aplicada en este caso como buena práctica en la solución de controversias administrativas.",
+"comite": "Asuntos Jurídicos"
+}
+],
+"Ninguna por ahora",
+"texto completo",
+"gemini-3.5-flash-lite"
+]
+=====
+[
+"N",
+"Resolución Ministerial 562-2026-MTC/01.03",
+"Otorgan a la empresa HSC TELECOM S.A.C. Concesión Única para la prestación de servicios públicos de telecomunicaciones en el área que comprende todo el territorio de la República",
+"Favorable",
+"Bajo",
+"Telecomunicaciones",
+[
+"Telecomunicaciones"
+],
+"El Ministerio de Transportes y Comunicaciones otorgó a la empresa HSC TELECOM S.A.C. una Concesión Única por el plazo de veinte años para la prestación de servicios públicos de telecomunicaciones en todo el territorio nacional. Los primeros servicios que la empresa prestará serán el servicio portador local en la modalidad conmutado y el servicio público de distribución de radiodifusión por cable en la modalidad de cable alámbrico u óptico. La resolución aprueba el respectivo contrato de concesión de veintiocho cláusulas, el cual deberá ser suscrito en un plazo máximo de sesenta días hábiles.",
+"Se otorga un nuevo título habilitante de Concesión Única al amparo del Texto Único Ordenado de la Ley de Telecomunicaciones y su Reglamento General. No modifica ni deroga normas de carácter general, sino que constituye un acto administrativo particular a favor de un nuevo operador.",
+"El ingreso de un nuevo operador al mercado de telecomunicaciones fomenta la libre competencia y la diversificación de la oferta de servicios a nivel nacional. Esto contribuye positivamente al clima de inversiones en infraestructura digital y conectividad para los usuarios peruanos.",
+[
+{
+"accion": "Monitorear la entrada en operaciones del nuevo operador y su impacto en el mercado local.",
+"comite": "Telecomunicaciones"
+}
+],
+"Ninguna por ahora",
+"texto completo",
+"gemini-3.5-flash-lite"
+]
+=====
+[
+"N",
+"Ordenanza 848-2026-MPI",
+"Ordenanza Municipal que modifica el numeral 20 del artículo primero de la Ordenanza N° 485-2010-MPI y aprueba los derechos de uso de la vía y espacios públicos",
+"Para seguimiento",
+"Bajo",
+"Comercio y consumo",
+[
+"Asuntos Corporativos",
+"Asuntos Jurídicos"
+],
+"La Municipalidad Provincial de Ilo actualiza los costos por derechos de uso privativo y temporal de la vía y espacios públicos en su jurisdicción. La norma aprueba una escala tarifaria diaria según el área ocupada para ferias, recreación, food trucks y comercios, así como para espectáculos públicos no deportivos y reuniones sociales. Asimismo, establece la obligación de abonar un 50% adicional como garantía que se ejecutará en caso de incumplir las condiciones de la autorización.",
+"Modifica el numeral 20 del artículo primero de la Ordenanza N° 485-2010-MPI, reemplazando la escala de cobros por uso de vías y espacios públicos tras más de catorce años sin actualización. Además, deja formalmente sin efecto la Ordenanza Municipal N° 843-2026-MPI (que no llegó a publicarse ni a regir por observaciones de técnica legislativa).",
+"La disposición incrementa los costos operativos locales para empresas que organizan eventos, ferias comerciales, actividades culturales o gastronómicas (como food trucks) en espacios públicos dentro de la provincia de Ilo. El requisito de depositar una garantía del 50% inmoviliza capital de trabajo y eleva la contingencia de cobro ante discrepancias con la fiscalización municipal. Si bien brinda predictibilidad tarifaria al regularizar un régimen desfasado desde 2010, impacta directamente en el costo de activación comercial y entretenimiento.",
+[
+{
+"accion": "Alertar a las empresas asociadas que realicen ferias comerciales, activaciones de marca o eventos en la provincia de Ilo sobre la nueva escala tarifaria y la exigencia de garantía.",
+"comite": "Asuntos Corporativos"
+},
+{
+"accion": "Revisar la razonabilidad de las tasas y las condiciones para la retención y ejecución de la garantía del 50% frente a posibles barreras burocráticas o cuestionamientos legales.",
+"comite": "Asuntos Jurídicos"
+}
+],
+"Ninguna por ahora",
+"texto completo",
+"gemini-flash-latest"
+]
+=====
+NO REL ('Resolución', '604-2026-JNJ', 'Aprueban Texto Único Ordenado del Reglamento de Procedimientos Disciplinarios de la Junta Nacional de Justicia')
+NO REL ('Resolución', '3246-2026-JNE', 'Declaran nulidad de lo actuado a partir de la citación a regidora del Concejo Distrital de Andabamba en proceso referido')
+NO REL ('Resolución Administrativa', '133-2026-P/TC', 'Conceden licencia con goce de remuneraciones a magistrado del Tribunal Constitucional para participar en congreso así co')
+NO REL ('Resolución', '3648-2026-JNE', 'Confirman la Resolución N.º 01520-2026-JEE-AQPA/JNE')
+NO REL ('Ordenanza', '011-2026-CM/MPH-M', 'Ordenanza Municipal que establece la delegación de funciones y prestación de servicios públicos locales a la Municipalid')
+NO REL ('Fe De Errata R.M.', '624-2026-RE', 'FE DE ERRATA')
+NO REL ('Resolución Suprema', '041-2026-EF', 'Designan Directora Ejecutiva del Fondo Nacional de Financiamiento de la Actividad Empresarial del Estado - FONAFE')
+NO REL ('Resolución Jefatural', '000120-2026-CENFOTUR/J', 'Aprueban Transferencia Financiera a favor de la Contraloría General de la República')
+NO REL ('Resolución Directoral', '177-2026-MINEDU/VMGI-PRONABEC', 'Designan Coordinadora de la Subdirección de Seguimiento y Supervisión de la Dirección de Gestión de Becas del PRONABEC')
+NO REL ('Resolución', '3159-2026-MP-FN', 'Nombran fiscal adjunta provincial provisional del Distrito Fiscal de Lima Centro')
+NO REL ('Resolución', '3163-2026-MP-FN', 'Nombran fiscal provincial provisional del Distrito Fiscal de Cajamarca')
+NO REL ('Resolución Directoral', '681-2026 MGP/DICAPI', 'Modifican la Resolución Directoral N° 207-26 MGP/DICAPI')
+[('Favorable', 17), ('Para seguimiento', 22)]
