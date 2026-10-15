@@ -1,5 +1,2 @@
-TEXTOS_URL_1 presente: False
-bases de texto en uso: 10
-normas de la antigua base 1 encontradas: 50 de 50
-proyectos de la antigua base 1 encontrados: 50 de 50
-textos leidos por el monitoreo: 10 de 10 (algunos pueden no tener texto)
+base 1: endpoint=ep-aged-butterfly-b78330pv region=c-13.us-east-1 db=('neondb', 490) ajustes=[('neon.branch_id', 'br-lingering-river-b7m11wd2'), ('neon.endpoint_id', 'ep-aged-butterfly-b78330pv'), ('neon.project_id', 'gentle-art-62826425'), ('neon.tenant_id', 'f2633a734991dcc5e31db6b0380f3cc0'), ('neon.timeline_id', 'd2fff155dad97e2714132a616f9068af')]
+base 12: endpoint=ep-square-cherry-b7sshp91 region=c-13.us-east-1 db=('neondb', 429) ajustes=[('neon.branch_id', 'br-spring-mode-b7mk9oox'), ('neon.endpoint_id', 'ep-square-cherry-b7sshp91'), ('neon.project_id', 'tiny-firefly-10069383'), ('neon.tenant_id', '75c5377c4b256bac0ab94d10b78f0f0c'), ('neon.timeline_id', '7faad6bad4197326a254364c3f9c6f99')]
