@@ -44,13 +44,13 @@ async function buscarTodo(fn, fp, tiempos = []) {
               count(*) OVER ()::int AS total
        FROM normas ${wn.where} ORDER BY ${ordN} LIMIT ${MOSTRAR}`,
       pn
-    ),
+    ).then((x) => (marca("lista normas"), x)),
     consultar(
       `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
               titulo, sumilla, proponente, estado, count(*) OVER ()::int AS total
        FROM proyectos_ley ${wp.where} ORDER BY ${ordP} LIMIT ${MOSTRAR}`,
       pp
-    ),
+    ).then((x) => (marca("lista proyectos"), x)),
   ]);
   const b = [{ n: a.length ? a[0].total : 0 }];
   const d = [{ n: c.length ? c[0].total : 0 }];
