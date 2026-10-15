@@ -63,7 +63,8 @@ def _a_json(texto: str):
     return json.loads(texto)
 
 
-def generar_json(instrucciones: str, contenido: str, esquema: dict) -> tuple[dict, str]:
+def generar_json(instrucciones: str, contenido: str, esquema: dict, lista_modelos: list[str] | None = None,
+                max_tokens: int = 16384) -> tuple[dict, str]:
     """Pide a Gemini una respuesta JSON que siga 'esquema'. Devuelve (datos, modelo_usado)."""
     clave = _clave()
     cuerpo = {
@@ -71,7 +72,7 @@ def generar_json(instrucciones: str, contenido: str, esquema: dict) -> tuple[dic
         "contents": [{"role": "user", "parts": [{"text": contenido}]}],
         "generationConfig": {
             "temperature": 0.2,
-            "maxOutputTokens": 16384,
+            "maxOutputTokens": max_tokens,
             "responseMimeType": "application/json",
             "responseSchema": esquema,
         },
@@ -80,7 +81,8 @@ def generar_json(instrucciones: str, contenido: str, esquema: dict) -> tuple[dic
     hubo_400 = False
     # Primera vuelta con el esquema estricto; si algun modelo lo rechaza (HTTP 400),
     # segunda vuelta sin esquema (las instrucciones ya describen el formato).
-    intentos = [(m, True) for m in modelos()] + [(m, False) for m in modelos()]
+    usar = lista_modelos or modelos()
+    intentos = [(m, True) for m in usar] + [(m, False) for m in usar]
     for modelo, con_esquema in intentos:
         if not con_esquema:
             if not hubo_400:

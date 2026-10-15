@@ -1,0 +1,66 @@
+name: Monitoreo empresarial (analisis con IA)
+
+on:
+  schedule:
+    # 07:23 UTC = 2:23 a. m. Lima; respaldo 5:03 a. m. Lima. El reporte debe estar a las 7 a. m.
+    - cron: "23 7 * * *"
+    - cron: "3 10 * * *"
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "diario | historico | rango"
+        default: "diario"
+      fechas:
+        description: "Para 'rango': desde hasta (AAAA-MM-DD AAAA-MM-DD)"
+        default: ""
+      forzar:
+        description: "Historico: agregar otro mes aunque hoy ya se agrego uno"
+        type: boolean
+        default: false
+
+concurrency:
+  group: monitoreo
+  cancel-in-progress: false
+
+jobs:
+  monitoreo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
+      TEXTOS_URL_1: ${{ secrets.TEXTOS_URL_1 }}
+      TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+      TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+      TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+      TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+      TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+      TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+      TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+      TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
+      TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+      TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Analizar
+        run: |
+          set +e
+          MODO="${{ github.event.inputs.modo || 'diario' }}"
+          FORZAR="${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }}"
+          if [ "$MODO" = "diario" ]; then
+            python src/monitoreo.py diario --max-minutos 150 > salida.log 2>&1; codigo=$?
+            # Despues del dia, un mes mas hacia atras (uno por dia)
+            [ $codigo -eq 0 ] && { python src/monitoreo.py historico --max-minutos 150 >> salida.log 2>&1; codigo=$?; }
+          else
+            python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
+          fi
+          cat salida.log
+          grep -E "^(Normas|Proyectos|Rango|Mes|La IA|Hoy|  analisis|  filtro)" salida.log | tail -n 15 | while IFS= read -r l; do echo "::notice::${l:0:900}"; done
+          if [ $codigo -ne 0 ]; then tail -n 9 salida.log | while IFS= read -r l; do echo "::error::${l:0:900}"; done; fi
+          exit $codigo
