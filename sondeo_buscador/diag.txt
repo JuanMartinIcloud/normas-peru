@@ -1,14 +1,10 @@
-base 2: 5000 claves, conectar 0.2s, consulta 0.3s
-base 3: 5000 claves, conectar 0.1s, consulta 0.2s
-base 5: 3873 claves, conectar 0.2s, consulta 0.1s
-base 6: 0 claves, conectar 0.2s, consulta 0.0s
-base 7: 0 claves, conectar 0.2s, consulta 0.0s
-base 8: 0 claves, conectar 0.2s, consulta 0.0s
-base 9: 0 claves, conectar 0.2s, consulta 0.0s
-base 10: 0 claves, conectar 0.2s, consulta 0.0s
-base 11: 0 claves, conectar 0.2s, consulta 0.0s
-base 12: 5000 claves, conectar 0.2s, consulta 0.2s
-TOTAL claves 18873 en 0.5s
-principal count: 0.6s
-principal lista por fecha: 0.1s
-principal lista por relevancia: 0.9s
+claves: 19739
+['CREATE UNIQUE INDEX normas_pkey ON public.normas USING btree (id)', 'CREATE UNIQUE INDEX normas_hash_unico ON public.normas USING btree (hash_unico)', 'CREATE INDEX idx_normas_fecha ON public.normas USING btree (fecha DESC)', 'CREATE INDEX idx_normas_tipo ON public.normas USING btree (tipo)', 'CREATE INDEX idx_normas_sector ON public.normas USING btree (sector)', 'CREATE INDEX idx_normas_rubro ON public.normas USING btree (rubro)', "CREATE INDEX idx_normas_busqueda ON public.normas USING gin (to_tsvector('spanish'::regcon", 'CREATE INDEX idx_normas_texto ON public.normas USING gin (texto_tsv)']
+A ANY conteo: 0.25s
+A ANY lista rel: 1.05s
+B IN unnest conteo: 21.28s
+B IN unnest lista rel: 15.96s
+C id IN join conteo: 15.66s
+C id IN join lista rel: 16.13s
+D union conteo: 0.23s
+D union lista rel: 1.14s
