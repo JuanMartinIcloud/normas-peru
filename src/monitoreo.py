@@ -44,6 +44,10 @@ CALIFICACIONES = ["Favorable", "Desfavorable", "Para seguimiento"]
 IMPACTOS = ["Alto", "Moderado", "Bajo"]
 
 MODELOS_FILTRO = [m for m in os.getenv("MODELOS_FILTRO", "gemini-3.5-flash-lite,gemini-flash-latest,gemini-2.5-flash").split(",") if m]
+MODELOS_ANALISIS = None   # None = modelos por defecto (los mismos del buscador web)
+# Los meses anteriores usan modelos distintos, para no gastar la cuota diaria del buscador ni del reporte diario
+HIST_FILTRO = [m for m in os.getenv("HIST_FILTRO", "gemini-3.1-flash-lite,gemini-2.5-flash-lite,gemini-3.1-flash-lite-preview").split(",") if m]
+HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3-flash-preview").split(",") if m]
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
@@ -187,7 +191,7 @@ def _limpia(datos):
 
 def analizar(cabecera, texto):
     contenido = cabecera + ("\n\nTEXTO COMPLETO:\n" + texto if texto else "\n\n(Sin texto completo; analiza con la sumilla.)")
-    datos, modelo = gemini.generar_json(_analisis_instr(), contenido, ANALISIS_ESQUEMA, None, 4096)
+    datos, modelo = gemini.generar_json(_analisis_instr(), contenido, ANALISIS_ESQUEMA, MODELOS_ANALISIS, 4096)
     return _limpia(datos), modelo
 
 
@@ -383,6 +387,8 @@ def main():
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "historico":
+        global MODELOS_FILTRO, MODELOS_ANALISIS
+        MODELOS_FILTRO, MODELOS_ANALISIS = HIST_FILTRO, HIST_ANALISIS
         # Un mes por dia (salvo que se pida --forzar)
         if leer_config("historico_dia") == hoy.isoformat() and not a.forzar:
             print("Hoy ya se agrego un mes al historico.")

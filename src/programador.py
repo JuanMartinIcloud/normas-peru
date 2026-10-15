@@ -84,7 +84,19 @@ def revisar():
     n = ahora()
     if 9 <= n.hour < 20:
         recientes = corridas("monitoreo.yml", n - timedelta(hours=6)) or []
-        if not any(x["status"] != "completed" for x in recientes):
+        en_curso = any(x["status"] != "completed" for x in recientes)
+        # Si una corrida de las ultimas 2 horas termino en menos de 10 minutos, no avanzo
+        # (cupo de IA agotado o nada pendiente): no relanzar en vano.
+        corta = False
+        for x in recientes:
+            try:
+                ini = datetime.fromisoformat(x["run_started_at"].replace("Z", "+00:00"))
+                fin = datetime.fromisoformat(x["updated_at"].replace("Z", "+00:00"))
+            except (KeyError, TypeError, ValueError):
+                continue
+            if n - fin < timedelta(hours=2) and fin - ini < timedelta(minutes=10):
+                corta = True
+        if not en_curso and not corta:
             lanzar("monitoreo.yml", {"modo": "historico", "forzar": "true"})
 
 
