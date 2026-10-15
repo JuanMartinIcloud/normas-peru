@@ -1,30 +1,5 @@
-2026-10-13 dip_ingresadas 11
-2026-10-13 sen_ingresadas 0
-2026-10-13 dictamenes 0
-2026-10-13 autografas 0
-2026-10-13 seguimientos_dia 24
-2026-10-13 pendientes/relevantes/no_relevantes (0, 11, 13)
-2026-10-14 dip_ingresadas 3
-2026-10-14 sen_ingresadas 0
-2026-10-14 dictamenes 0
-2026-10-14 autografas 0
-2026-10-14 seguimientos_dia 30
-2026-10-14 pendientes/relevantes/no_relevantes (0, 14, 15)
-seguimientos max (datetime.datetime(2026, 10, 14, 22, 52, 11, tzinfo=datetime.timezone.utc), 1238)
-proyectos max (datetime.date(2026, 10, 14),)
-[('historico_hasta', '2026-10-01')]
-analisis normas [('2026-09', 2343, 284), ('2026-10', 878, 163)]
-normas [('2026-08', 2640), ('2026-09', 2355), ('2026-10', 878)]
-modelo gemini-flash-latest 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing deta
-modelo gemini-3.5-flash-lite 200 
-modelo gemini-2.5-flash 404 {   "error": {     "code": 404,     "message": "This model models/gemini-2.5-flash is no longer available to new users. 
-modelo gemini-3.5-flash 200 
-modelo gemini-flash-lite-latest 200 
-modelo gemini-3.1-flash-lite 200 
-modelo gemini-2.5-flash-lite 404 {   "error": {     "code": 404,     "message": "This model models/gemini-2.5-flash-lite is no longer available to new us
-modelo gemini-3.1-flash-lite-preview 503 {   "error": {     "code": 503,     "message": "This model is currently experiencing high demand. Spikes in demand are u
-modelo gemini-3.8-flash 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing deta
-modelo gemini-3.7-flash 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing deta
-modelo gemini-3.6-flash 200 
-modelo gemini-3-flash-preview 200 
-modelo gemma-4-31b-it 200 
+gemma-4-31b-it FALLA 'str' object has no attribute 'get'
+gemini-3.5-flash FALLA Ningun modelo respondio. gemini-3.5-flash: HTTP 503 {   "error": {     "code": 503,     "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",     "status": "UNAVAILABLE"   } }  | gemini-3.5-flash: HTTP 503 {   "error": {     "
+gemini-flash-lite-latest FALLA Ningun modelo respondio. gemini-flash-lite-latest: HTTP 429 {   "error": {     "code": 429,     "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your cur
+gemini-3-flash-preview OK gemini-3-flash-preview Favorable Este Decreto Supremo modifica el Reglamento de la Ley del Impuesto a la Renta en lo relativo a la de
+defecto: ['gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest', 'gemma-4-31b-it']
