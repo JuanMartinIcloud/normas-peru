@@ -2,6 +2,10 @@ name: Capturas para el manual
 
 on:
   workflow_dispatch:
+    inputs:
+      script:
+        description: "capturas | capturas2"
+        default: "capturas"
 
 jobs:
   capturas:
@@ -20,7 +24,7 @@ jobs:
       - name: Tomar capturas
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
-        run: python src/capturas.py
+        run: python src/${{ github.event.inputs.script || 'capturas' }}.py
       - name: Guardar cifradas
         if: always()
         run: |
