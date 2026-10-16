@@ -1,9 +1,35 @@
-"""Diagnostico temporal: cupo de cada modelo de IA y respuesta de la web a una busqueda con IA."""
-import os, requests
-k = os.environ["GEMINI_API_KEY"]
-for m in ["gemini-flash-latest","gemini-3.5-flash-lite","gemini-3.5-flash","gemini-flash-lite-latest","gemma-4-31b-it","gemma-4-26b-a4b-it","gemini-3.1-flash-lite","gemini-3.1-flash-lite-preview","gemini-3-flash-preview","gemini-3.6-flash","gemini-3.7-flash","gemini-3.8-flash"]:
-    r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent", headers={"x-goog-api-key": k},
-                      json={"contents":[{"parts":[{"text":"di ok"}]}]}, timeout=90)
-    print("modelo", m, r.status_code, r.text[:160].replace("\n"," ") if r.status_code!=200 else "")
-r = requests.post("https://normas-peru.vercel.app/api/ia/interpretar", json={"q": "normas que afecten las inversiones privadas en minería"}, timeout=120)
-print("web interpretar", r.status_code, r.text[:400])
+"""Diagnostico temporal: proyectos similares con el nuevo calculo."""
+import os, psycopg2
+c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
+SQL = """WITH b AS (
+       SELECT ARRAY(SELECT unnest(tsvector_to_array(to_tsvector('spanish', %(t)s)))
+                    EXCEPT SELECT unnest(tsvector_to_array(to_tsvector('spanish', %(g)s)))) AS lx
+     ),
+     c AS (
+       SELECT p.id, p.numero, p.periodo, p.camara, p.num_pley, p.url, p.fecha_presentacion, p.titulo, p.proponente, p.estado,
+              (SELECT count(*) FROM unnest(tsvector_to_array(to_tsvector('spanish', coalesce(p.titulo,'')))) w
+                WHERE w = ANY(b.lx)) AS comunes,
+              cardinality(b.lx) AS total
+       FROM proyectos_ley p, b
+       WHERE p.id <> %(i)s AND cardinality(b.lx) > 0
+         AND to_tsvector('spanish', coalesce(p.titulo,'')) @@ array_to_string(ARRAY(SELECT quote_literal(x) FROM unnest(b.lx) x), ' | ')::tsquery
+     )
+     SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
+            titulo, proponente, estado, comunes::float / total AS parecido
+     FROM c
+     WHERE comunes >= LEAST(total, GREATEST(2, CEIL(total * 0.35)))
+     ORDER BY comunes DESC, fecha_presentacion DESC NULLS LAST
+     LIMIT 25"""
+G = """ley leyes proyecto proposicion proposición legislativa legislativo modifica modificar modificación artículo articulo
+  artículos decreto decretos establece establecer nacional numeral incorpora incorporar regula regular pública público publica
+  fin marco general norma normas sistema perú peru república congreso declara declarar interés necesidad año años texto único
+  ordenado supremo disposición complementaria final transitoria actualización conformidad segunda reglamento garantizar
+  fortalecer promover mediante dispone aprueba deroga crea crear diversas diversos medidas objeto aplicación caso
+  actualizacion cámara diputados senado pl cr cd"""
+for num in ("00590-2026-2031-CD", "00586-2026-2031-CD"):
+    cur.execute("SELECT id, titulo FROM proyectos_ley WHERE numero = %s LIMIT 1", (num,))
+    r = cur.fetchone()
+    if not r: print("no", num); continue
+    print("BASE", num, r[1][:150])
+    cur.execute(SQL, dict(t=r[1], i=r[0], g=G))
+    for f in cur.fetchall()[:8]: print("  ", round(f[-1]*100), f[1], (f[7] or "")[:120])
