@@ -17,7 +17,7 @@ SQL = """WITH b AS (
      SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
             titulo, proponente, estado, comunes::float / total AS parecido
      FROM c
-     WHERE comunes >= LEAST(total, GREATEST(2, CEIL(total * 0.35)))
+     WHERE comunes >= LEAST(total, GREATEST(2, LEAST(4, CEIL(total * 0.35))))
      ORDER BY comunes DESC, fecha_presentacion DESC NULLS LAST
      LIMIT 25"""
 G = """ley leyes proyecto proposicion proposición legislativa legislativo modifica modificar modificación artículo articulo
