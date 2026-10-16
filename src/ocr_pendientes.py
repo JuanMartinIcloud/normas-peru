@@ -120,7 +120,9 @@ def main():
     if a.contar:
         print(len(pend))
         return
-    mias = sorted(k for k in pend if zlib.crc32(f"{k[0]}|{k[1]}".encode()) % a.de == a.parte)
+    # Reparto por posicion en la lista de pendientes: en cada tanda lo que falta se divide parejo
+    todos = sorted(pend, key=lambda k: zlib.crc32(f"{k[0]}|{k[1]}".encode()))
+    mias = [k for i, k in enumerate(todos) if i % a.de == a.parte]
     print(f"Documentos sin texto pendientes: {len(pend)}; de este trabajador: {len(mias)}")
     if not mias:
         return
