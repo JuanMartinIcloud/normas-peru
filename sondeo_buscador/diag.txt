@@ -1,48 +1,20 @@
+div visor-html ['p-8', 'w-full', 'max-w-4xl', 'mx-auto', 'overflow-auto', 'text-black', 'rounded', 'border', 'bg-white'] 3258
+html None None 3256
+body None None 3107
+div x2492749-1 None 3104
+div None ['story'] 3102
+p None ['cuerpo'] 13
+---
+'CONSIDERANDO:'
 
-== 2026-03-05 D000057-2026-MIDIS
-  https://busquedas.elperuano.pe/dispositivo/NL/2492749-1
-  HTML 200 108552 texto 3400
-   IDIS-SG de Secretaría General; el Informe N° D000071-2026-MIDIS-OGRH de la Oficina General de Recursos Humanos; y, el Informe N° D000147-2026-MIDIS-OGAJ de la Oficina General de Asesoría Jurídica; y, CONSIDERANDO: Que, con la Ley Nº 29792 se crea el Ministerio de Desarrollo e Inclusión Social (MIDIS), determinándose su ámbito, competencias, funciones y estructura básica; Que, mediante Resolución de Secretaría General N° D000037-2024-MIDIS-SG, se aprueba el Manual de Perfiles de Puestos del MIDIS, modificado por Resolución de Secretaría General N° D000011-2026-MIDIS-SG, que contiene, de manera estructurada y detallada, la información correspondiente a los perfiles de puestos de la entidad considerados como cargos de confianza, el cual ha sido actualizado mediante Resoluciones Jefaturales N°
-  enlaces pdf: []
-  qpdf 0 
-  pdftotext 52
-  ocr reparado 63 'Firmado por: Editora Peru\n\nLA\nEl Peruano peca: 00/00/2020 08:44'
+PDF 754240 b'%PDF-1.6\r%\xe2\xe3\xcf\xd3\r\n25 0 obj\r<</Linearized 1/L 754240/O 27/E 186384/N 4/T 753620/H [ 1676 482]>>\rendobj\r              \r\nxref\r\n25 69\r\n0000000016 00000 n\r\n0000002158 00000 n\r\n0000002458 00000 n\r\n0000003016 00000 n\r\n0000003127 00000 n\r\n0000003327 00000 n\r\n0000003506 00000 n\r\n0000003555 00000 n\r\n0000003882 '
+b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+gs 0 
+mutool 0 warning: trying to repair broken xref
+warning: repairing PDF document
+warning: object missing 'endobj' token
+warning: PDF stream Length incorrect
 
-== 2026-02-24 35-2026-ATU/PE
-  https://busquedas.elperuano.pe/dispositivo/NL/2489679-1
-  HTML 200 132225 texto 4833
-   , 23 de febrero de 2026 VISTOS: El Informe N° D-000051-2026-ATU/GG-OGRH, de la Oficina de Gestión de Recursos Humanos; y el Informe N° D-000114-2026-ATU/GG-OAJ, de la Oficina de Asesoría Jurídica; y, CONSIDERANDO: Que, mediante la Ley N° 30900, se crea la Autoridad de Transporte Urbano para Lima y Callao - ATU, como organismo técnico especializado adscrito al Ministerio de Transportes y Comunicaciones, con personería jurídica de derecho público interno y con autonomía administrativa, funcional, económica y financiera; Que, los literales e) y t) del artículo 17 del Texto Integrado del Reglamento de Organización y Funciones de la Autoridad de Transporte Urbano para Lima y Callao - ATU, aprobado por Resolución de Presidencia Ejecutiva N° 064-2025-ATU/PE y rectificado por Resolución de Preside
-  enlaces pdf: []
-  qpdf 0 
-  pdftotext 52
-  ocr reparado 64 'Firmado por: Editora Peru\n\nLA\nEl Peruano recna: 20/02/2026 08:45'
-
-== 2023-07-13 610/MM
-  https://busquedas.elperuano.pe/normaslegales/-fe-de-errata-ordenanza-n-610mm-2195425-1/
-  HTML 200 104224 texto 2222
-   . - FE DE ERRATA - PDF HTML Cuadernillo Fecha de publicación: 13/07/2023 Designan Subdirector Regional de Lima de la Autoridad para la Reconstrucción con Cambios FE DE ERRATAS ORDENANZA N° 610/MM Mediante Oficio Nº 493-2023-SG/MM, la Municipalidad de Miraflores solicita se publique Fe de Erratas de la Ordenanza Nº 610/MM, publicada en la edición del día 11 de julio de 2023. DICE: Artículo Primero.- PRECISAR que todo proyecto y/o anteproyecto de habilitación urbana en el distrito de Miraflores, deberá respetar los parámetros urbanísticos y edificatorios establecidos en la Ordenanza N° 920, Ordenanza que aprueba el Reajuste Integral de la Zonificación de los Usos del Suelo del distrito de Miraflores conformante del Área de Tratamiento Normativo III, emitida por la Municipalidad Metropolitana de Lima y la Ordenanza N° 342-MM, Ordenanza que aprueba los parámetros urbanísticos y edificatorios
-  enlaces pdf: []
-  qpdf 0 
-  pdftotext 52
-  ocr reparado 69 'Firmado por: Editora\n\nEl P z Peru\n¡Ll Peruano Fecha: 13/07/2023 03:44'
-
-== 2026-09-11 01102-2026-DE
-  https://busquedas.elperuano.pe/dispositivo/NL/2553491-1
-  HTML 200 136873 texto 14252
-   GPP-DIDOM y 00189-2026-MINDEF/VRD-DGPP-DIDOM de la Dirección de Desarrollo Organizacional y Modernización; y, el Informe Legal N° 01643-2026-MINDEF/SG-OGAJ de la Oficina General de Asesoría Jurídica. CONSIDERANDO: Que, mediante Ley N° 32592, Ley que declara de interés nacional la creación, implementación y desarrollo del Sistema de Vigilancia Amazónico y Nacional y del Sistema de Protección Amazónico y Nacional, estableciendo en su Única Disposición Complementaria Transitoria que el Poder Ejecutivo es el encargado de elaborar la propuesta normativa para el desarrollo e implementación de un Sistema de Vigilancia Amazónico y Nacional y de un Sistema de Protección Amazónico y Nacional; Que, conforme al último párrafo del artículo 3° de la Ley N° 32592, el Ministerio de Defensa a través de sus
-  enlaces pdf: []
-  qpdf 0 
-  pdftotext 52
-  ocr reparado 64 'Firmado por: Editora Peru\n\nLA\nEl Peruano recna: 12/00/2026 08:06'
-
-== 2017-11-01 0411-2017-JNE
-  https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-extraordinario-interpuesto-contra-resolucion-no-0411-2017-jne-1582046-1/
-  HTML 200 96537 texto 367
-   Declaran infundado recurso extraordinario interpuesto contra la Res. N° 0269-2017-JNE mediante la cual se confirmaron Acuerdos de Concejo sobre desaprobación de solicitud de vacancia contra alcalde y regidor de la Municipalidad Provincial de Huaytará, departamento de Huancavelica - RESOLUCION - PDF Cuadernillo Fecha de publicación: 01/11/2017 Cargando visor PDF... 
-  enlaces pdf: []
-  qpdf 3 WARNING: /tmp/tmp_t65rlcj/a.pdf: file is damaged
-WARNING: /tmp/tmp_t65rlcj/a.pdf: can't find startxref
-WARNING: /tmp/tmp_t65rlcj/a.pdf: Attempting to reconstruct cross-reference table
-WARNING: /tmp/tm
-  pdftotext 0
-  ocr reparado 0 ''
+g.pdf 2093 pdftotext 1 ocr 0
+m.pdf 754682 pdftotext 0 ocr 0
+[]
