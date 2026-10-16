@@ -6,6 +6,7 @@ en la carpeta capturas/. Cada paso es independiente: si uno falla, se anota y se
 import hashlib
 import os
 import secrets
+import re
 import time
 
 import psycopg2
@@ -15,10 +16,12 @@ BASE = "https://normas-peru.vercel.app"
 SALIDA = "capturas"
 os.makedirs(SALIDA, exist_ok=True)
 notas = []
+pagina_actual = [None]
 
 db = psycopg2.connect(os.environ["DATABASE_URL"])
 db.autocommit = True
 cur = db.cursor()
+cur.execute("DELETE FROM usuarios WHERE usuario LIKE 'manual-%%'")
 clave = secrets.token_hex(12)
 sal = secrets.token_bytes(16)
 h = hashlib.scrypt(clave.encode(), salt=sal, n=16384, r=8, p=1, dklen=64, maxmem=64 * 1024 * 1024)
@@ -42,6 +45,10 @@ def paso(nombre):
                 nota(f"OK   {nombre}")
             except Exception as e:  # noqa: BLE001
                 nota(f"FALLA {nombre}: {str(e)[:300]}")
+                try:
+                    pagina_actual[0].screenshot(path=f"{SALIDA}/ERROR_{nombre.replace(' ', '_')}.png", full_page=True)
+                except Exception:  # noqa: BLE001
+                    pass
         return envuelta
     return deco
 
@@ -70,6 +77,7 @@ with sync_playwright() as pw:
     ctx = nav.new_context(viewport={"width": 1366, "height": 880}, device_scale_factor=1, locale="es-PE")
     page = ctx.new_page()
     page.set_default_timeout(60000)
+    pagina_actual[0] = page
 
     @paso("ingresar")
     def ingresar():
@@ -81,7 +89,7 @@ with sync_playwright() as pw:
         page.locator("input[name=usuario]").fill(usuario)
         page.locator("input[name=clave]").fill(clave)
         page.get_by_role("button", name="Ingresar").click()
-        page.wait_for_url("**/monitoreo**", timeout=60000)
+        page.wait_for_url(re.compile("/monitoreo"), timeout=60000)
     ingresar()
 
     # ------------------------------------------------------------------ Normas legales (portada)
@@ -130,7 +138,7 @@ with sync_playwright() as pw:
         page.locator("form.filtros button[type=submit]").click()
         page.wait_for_timeout(700)
         foto(page, "22_buscar_ia_pensando")
-        page.wait_for_url("**pregunta=**", timeout=120000)
+        page.wait_for_url(re.compile("pregunta="), timeout=120000)
         page.wait_for_load_state("networkidle")
         foto(page, "23_buscar_resultado_arriba")
         a_la_vista(page, page.locator("p.terminos").first, 200)
@@ -150,7 +158,7 @@ with sync_playwright() as pw:
         caja.fill("tributario")
         foto(page, "27_filtro1_escrito")
         page.locator("form.refinar button").click()
-        page.wait_for_url("**y=**", timeout=90000)
+        page.wait_for_url(re.compile(r"[?&]y="), timeout=90000)
         page.wait_for_load_state("networkidle")
         a_la_vista(page, page.locator("form.refinar"), 330)
         foto(page, "28_filtro1_resultado")
@@ -203,7 +211,8 @@ with sync_playwright() as pw:
         page.get_by_role("button", name="✦ Unir con IA").click()
         page.wait_for_timeout(3000)
         foto(page, "36_unir_esperando")
-        page.get_by_role("heading", name="Documentos de origen").wait_for(timeout=330000)
+        page.get_by_role("heading", name="Documentos de origen").or_(page.locator("p.ia-aviso")).first.wait_for(timeout=330000)
+        foto(page, "36b_unir_fin", completa=True)
         ir_arriba = page.locator("section.documento")
         a_la_vista(page, ir_arriba, 20)
         foto(page, "37_unir_resultado")
@@ -226,7 +235,7 @@ with sync_playwright() as pw:
         page.locator("input[name=q]").fill("violencia piscologica")
         foto(page, "40_sin_ia_escrito")
         page.locator("form.filtros button[type=submit]").click()
-        page.wait_for_url("**q=**", timeout=60000)
+        page.wait_for_url(re.compile(r"[?&]q="), timeout=60000)
         page.wait_for_load_state("networkidle")
         foto(page, "41_sin_ia_corregido")
         amp = page.get_by_role("button", name="✦ Ampliar la búsqueda con IA")
@@ -234,7 +243,7 @@ with sync_playwright() as pw:
             a_la_vista(page, amp, 300)
             foto(page, "42_ampliar_boton")
             amp.click()
-            page.wait_for_url("**t=**", timeout=120000)
+            page.wait_for_url(re.compile(r"[?&]t="), timeout=120000)
             page.wait_for_load_state("networkidle")
             foto(page, "43_ampliar_resultado")
         page.evaluate("() => { try { localStorage.setItem('normas-peru-buscar-con-ia', '1') } catch (e) {} }")
@@ -349,15 +358,14 @@ with sync_playwright() as pw:
 
     nav.close()
 
-# Limpieza: usuario temporal y la busqueda de ejemplo
+# Limpieza (con una conexion nueva: la anterior pudo cerrarse por inactividad)
 try:
-    cur.execute("SELECT id FROM busquedas_guardadas WHERE nombre = %s", (NOMBRE_BUSQUEDA,))
-    for (bid,) in cur.fetchall():
-        cur.execute("DELETE FROM busqueda_ejecuciones WHERE busqueda_id = %s", (bid,))
-        cur.execute("DELETE FROM busquedas_guardadas WHERE id = %s", (bid,))
+    db2 = psycopg2.connect(os.environ["DATABASE_URL"]); db2.autocommit = True; c2 = db2.cursor()
+    c2.execute("DELETE FROM busquedas_guardadas WHERE nombre = %s", (NOMBRE_BUSQUEDA,))
+    c2.execute("DELETE FROM usuarios WHERE usuario LIKE 'manual-%%'")
+    db2.close()
 except Exception as e:  # noqa: BLE001
-    nota(f"limpieza busqueda: {e}")
-cur.execute("DELETE FROM usuarios WHERE id = %s", (uid,))
+    nota(f"limpieza: {e}")
 with open(f"{SALIDA}/notas.txt", "w") as f:
     f.write("\n".join(notas))
 for n in notas:
