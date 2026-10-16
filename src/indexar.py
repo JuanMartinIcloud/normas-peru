@@ -465,7 +465,7 @@ def paginas_edicion(fecha) -> list:
             for ruta in dict.fromkeys(re.findall(r'(/api/archivo/file/[^"\\]+/' + tipo + clave + r'[^"\\]*\.pdf)', r.text)):
                 rp = pedir(BUSQUEDAS + ruta, headers={"User-Agent": AGENTE})
                 if rp.status_code == 200 and rp.content[:4] == b"%PDF":
-                    paginas += _paginas_pdf(rp.content)
+                    paginas += list(enumerate(_paginas_pdf(rp.content)))   # (pagina en su edicion, texto)
         if len(_cuadernillos) > 3:
             _cuadernillos.clear()
         _cuadernillos[clave] = paginas
@@ -475,10 +475,13 @@ def paginas_edicion(fecha) -> list:
 def texto_cuadernillo(fecha, numero, tipo="") -> str:
     """Ultimo recurso: las paginas de la edicion completa del dia donde empieza la norma
     (su tipo seguido de su numero, por ejemplo «LEY Nº 31477»), y las dos siguientes."""
+    tipo = str(tipo or "")
+    if not str(numero or "").strip():
+        numero = tipo   # a veces el numero viene dentro del tipo («Ley 30466»)
     nums = re.findall(r"\d{2,}", str(numero or ""))
     if not nums or not fecha:
         return ""
-    palabras = re.findall(r"[A-Z]+", _sin_tildes(re.sub(r"\(.*?\)|\d.*", "", str(tipo or ""))))
+    palabras = re.findall(r"[A-Z]+", _sin_tildes(re.sub(r"\(.*?\)|\d.*", "", tipo)))
     numeros = r"\D{0,25}".join(nums)
     if palabras:
         patron = re.compile(r"\s+".join(palabras) + r".{0,40}?" + numeros, re.S)
@@ -487,13 +490,14 @@ def texto_cuadernillo(fecha, numero, tipo="") -> str:
     else:
         return ""   # un solo numero sin tipo: podria confundirse con otra norma
     paginas = paginas_edicion(fecha)
-    elegidas = [i for i, p in enumerate(paginas) if patron.search(_sin_tildes(p))]
-    if len(elegidas) > 1 and elegidas[0] < 6:
-        elegidas = elegidas[1:]   # la primera coincidencia suele ser el sumario de la edicion
-    if not elegidas:
+    # Las 2 primeras paginas de cada edicion son la portada y el sumario: se buscan despues
+    coincide = [i for i, (n, p) in enumerate(paginas) if patron.search(_sin_tildes(p))]
+    coincide = [i for i in coincide if paginas[i][0] >= 2] or coincide
+    if not coincide:
         return ""
-    i = elegidas[0]
-    return "\n\n".join(paginas[i:i + 3])[:MAX_CARACTERES]
+    i = coincide[0]
+    tramo = [paginas[i][1]] + [p for n, p in paginas[i + 1:i + 3] if n > paginas[i][0]]
+    return "\n\n".join(tramo)[:MAX_CARACTERES]
 
 
 def _paginas_pdf(datos) -> list:
