@@ -1,18 +1,7 @@
-200 723744 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30532-LEY.pdf
-200 723744 b'%PDF-' https://www.leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30532-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30440-LEY.pdf
-404 1245 b'<!DOC' https://www.leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30440-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30474-LEY.pdf
-404 1245 b'<!DOC' https://www.leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30474-LEY.pdf
-200 801257 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30673-LEY.pdf
-200 801257 b'%PDF-' https://www.leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30673-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31638-LEY.pdf
-404 1245 b'<!DOC' https://www.leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31638-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31477-LEY.pdf
-404 1245 b'<!DOC' https://www.leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31477-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30441-LEY.pdf
-404 1245 b'<!DOC' https://www.leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30441-LEY.pdf
-200 798 https://www2.congreso.gob.pe/Sicr/TraDocEstProc/CLProLey2016.nsf
-[]
-200 17608 https://leyes.congreso.gob.pe/LeyNume_1p.aspx?xEstado=2&xTipoNorma=0&xTipoBusqueda=4&xFech
-[]
+30440 ['documentos/Guia-Usuario.pdf', 'LeyNumePP.aspx?xNorma=0', 'leyes_indias.aspx', 'LeyNoNumeP.aspx', 'LeyNumePP.aspx?xNorma=0', 'LeyNumePP.aspx?xNorma=15', 'LeyNumePP.aspx?xNorma=3', 'LeyNumePP.aspx?xNorma=5']
+30441 ['documentos/Guia-Usuario.pdf', 'LeyNumePP.aspx?xNorma=0', 'leyes_indias.aspx', 'LeyNoNumeP.aspx', 'LeyNumePP.aspx?xNorma=0', 'LeyNumePP.aspx?xNorma=15', 'LeyNumePP.aspx?xNorma=3', 'LeyNumePP.aspx?xNorma=5']
+30474 ['documentos/Guia-Usuario.pdf', 'LeyNumePP.aspx?xNorma=0', 'leyes_indias.aspx', 'LeyNoNumeP.aspx', 'LeyNumePP.aspx?xNorma=0', 'LeyNumePP.aspx?xNorma=15', 'LeyNumePP.aspx?xNorma=3', 'LeyNumePP.aspx?xNorma=5']
+31638 ['documentos/Guia-Usuario.pdf', 'LeyNumePP.aspx?xNorma=0', 'leyes_indias.aspx', 'LeyNoNumeP.aspx', 'LeyNumePP.aspx?xNorma=0', 'LeyNumePP.aspx?xNorma=15', 'LeyNumePP.aspx?xNorma=3', 'LeyNumePP.aspx?xNorma=5']
+31477 ['documentos/Guia-Usuario.pdf', 'LeyNumePP.aspx?xNorma=0', 'leyes_indias.aspx', 'LeyNoNumeP.aspx', 'LeyNumePP.aspx?xNorma=0', 'LeyNumePP.aspx?xNorma=15', 'LeyNumePP.aspx?xNorma=3', 'LeyNumePP.aspx?xNorma=5']
+OK https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30532-LEY.pdf 723744
+30532 ['documentos/Guia-Usuario.pdf', 'LeyNumePP.aspx?xNorma=0', 'leyes_indias.aspx', 'LeyNoNumeP.aspx', 'LeyNumePP.aspx?xNorma=0', 'LeyNumePP.aspx?xNorma=15', 'LeyNumePP.aspx?xNorma=3', 'LeyNumePP.aspx?xNorma=5']
