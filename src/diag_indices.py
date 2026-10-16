@@ -1,10 +1,17 @@
-import requests, re
+import requests
 A = {"User-Agent": "Mozilla/5.0"}
-for n in ("30440", "30441", "30474", "31638", "31477", "30532"):
-    for per in ("2016_2021", "2011_2016", "2021_2026"):
-        u = f"https://leyes.congreso.gob.pe/Documentos/{per}/ADLP/Normas_Legales/{n}-LEY.pdf"
+B = "https://leyes.congreso.gob.pe/Documentos"
+pruebas = []
+for n in ("30440", "30474", "30479", "31638", "31477", "31365"):
+    pruebas += [f"{B}/Leyes/{n}.pdf", f"{B}/leyes/{n}.pdf", f"{B}/2021_2026/ADLP/Normas_Legales/{n}.pdf",
+                f"{B}/2021_2026/ADLP/Normas_Legales/{n}-LEY.PDF", f"{B}/2021_2026/ADLP/Normas_Legales/{n}%20LEY.pdf",
+                f"{B}/2011_2016/ADLP/Normas_Legales/{n}.pdf"]
+for n in ("30441", "30444", "30480", "30531", "30675"):
+    pruebas += [f"{B}/ResLegislativas/{n}.pdf", f"{B}/2016_2021/ADLP/Normas_Legales/{n}-RL.pdf", f"{B}/2016_2021/ADLP/Normas_Legales/{n}-RESLEG.pdf",
+                f"{B}/2016_2021/ADLP/Normas_Legales/{n}-LEY.pdf"]
+for u in pruebas:
+    try:
         r = requests.get(u, headers=A, timeout=40)
-        if r.status_code == 200: print("OK", u, len(r.content))
-    r = requests.get(f"https://leyes.congreso.gob.pe/LeyNume_1p.aspx?xEstado=2&xTipoNorma=0&xTipoBusqueda=4&xFechaI=&xFechaF=&xTexto=&ordenPor=0&xNormaI={n}&xNormaF={n}", headers=A, timeout=40)
-    links = re.findall(r'(?:href|src)=["\']([^"\']+)["\']', r.text)
-    print(n, [l for l in links if re.search(r"(?i)pdf|Documentos|Ley", l)][:8])
+        print(r.status_code, len(r.content), r.content[:5], u)
+    except Exception as e:
+        print("ERR", u, str(e)[:60])
