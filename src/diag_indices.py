@@ -1,14 +1,10 @@
-"""Diagnostico temporal: valores de las listas desplegables (para el manual)."""
-import os, psycopg2
-c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
-Q = {
- "normas.rubro": "SELECT rubro, count(*) FROM normas WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC",
- "normas.sector": "SELECT sector, count(*) FROM normas WHERE sector IS NOT NULL GROUP BY 1 ORDER BY 2 DESC",
- "normas.tipo": "SELECT tipo, count(*) FROM normas WHERE tipo IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 40",
- "proy.periodo": "SELECT periodo, count(*) FROM proyectos_ley GROUP BY 1 ORDER BY 1 DESC",
- "proy.estado": "SELECT estado, count(*) FROM proyectos_ley WHERE estado IS NOT NULL GROUP BY 1 ORDER BY 2 DESC",
- "proy.rubro": "SELECT rubro, count(*) FROM proyectos_ley WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC",
- "proy.proponente": "SELECT proponente, count(*) FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30",
-}
-for k, q in Q.items():
-    cur.execute(q); print("##", k); print(" | ".join(f"{a} ({b})" for a, b in cur.fetchall()))
+"""Diagnostico temporal: tiempo del resumen con IA en la web."""
+import time, requests
+for amb, filtros in [("normas", {"rubro": "Tributario y Aduanero", "desde": "2026-09-01", "hasta": "2026-09-30"}),
+                     ("ambos", {"q": "teletrabajo"})]:
+    t = time.time()
+    try:
+        r = requests.post("https://normas-peru.vercel.app/api/ia/resumir", json={"ambito": amb, "filtros": filtros}, timeout=320)
+        print(amb, r.status_code, round(time.time() - t), r.text[:300].replace("\n", " "))
+    except Exception as e:
+        print(amb, "EXC", round(time.time() - t), e)
