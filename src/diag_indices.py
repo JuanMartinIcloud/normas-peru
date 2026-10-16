@@ -1,35 +1,15 @@
-"""Diagnostico temporal: normas que siguen sin texto."""
-import os, sys, re, random
-sys.path.insert(0, os.path.dirname(__file__))
-from indexar import Bases, principal, BUSQUEDAS, AGENTE, _paginas_pdf
-import requests
-b = Bases()
-print("Revisados:", b.ejecutar(b.control, lambda cur: (cur.execute("SELECT tipo, resultado, count(*) FROM ocr_revisado GROUP BY 1, 2 ORDER BY 1, 2"), cur.fetchall())[1]))
-claves = []
-for url in b.urls:
-    claves += b.ejecutar(url, lambda cur: (cur.execute("SELECT clave FROM documentos WHERE tipo='N' AND estado <> 'ok'"), [r[0] for r in cur.fetchall()])[1])
-c = principal(); cur = c.cursor()
-cur.execute("""SELECT fecha, tipo, numero, entidad, extraordinaria, url_detalle, left(sumilla, 90) FROM normas
-               WHERE hash_unico = ANY(%s) ORDER BY fecha""", (claves,))
-filas = cur.fetchall()
-print(len(filas), "sin texto")
-por = {}
-for f in filas: por[f[0].year] = por.get(f[0].year, 0) + 1
-print(sorted(por.items()))
-print("extraordinarias:", sum(1 for f in filas if f[4]))
-from collections import Counter
-print(Counter(f[1] for f in filas).most_common(12))
-random.seed(5)
-for f in random.sample(filas, 6):
-    print("\n", f)
-    clave = f[0].strftime("%Y%m%d")
-    r = requests.get(f"{BUSQUEDAS}/cuadernillo/NL/{clave}", headers={"User-Agent": AGENTE}, timeout=60)
-    rutas = list(dict.fromkeys(re.findall(r'(/api/archivo/file/[^"\\]+\.pdf)', r.text)))
-    print("  cuadernillo", r.status_code, rutas[:6])
-    for ruta in [x for x in rutas if "NL" + clave in x][:2]:
-        rp = requests.get(BUSQUEDAS + ruta, headers={"User-Agent": AGENTE}, timeout=180)
-        pags = _paginas_pdf(rp.content) if rp.content[:4] == b"%PDF" else []
-        num = re.sub(r"\s+", "", str(f[2] or ""))
-        nums = re.findall(r"\d{2,}", num)
-        hits = [i for i, p in enumerate(pags) if nums and all(n in p for n in nums)]
-        print("  ", ruta[-30:], len(rp.content), "paginas", len(pags), "texto", sum(map(len, pags)), "paginas con los numeros", hits[:8])
+import re, requests
+A = {"User-Agent": "Mozilla/5.0"}
+B = "https://busquedas.elperuano.pe"
+h = requests.get(B + "/dispositivo/NL/2068624-1", headers=A, timeout=60).text
+print(len(h))
+i = h.find("tipoEdicion"); print(h[max(0, i-1500): i+1500])
+for q in ("NL20220518", "NL20220518?", "NL20220518*", "31477"):
+    r = requests.get(B + "/", params={"query": q}, headers=A, timeout=60)
+    print("\nBUSCA", q, r.status_code, list(dict.fromkeys(re.findall(r'(/api/archivo/file/[^"\\]+\.pdf)', r.text)))[:10])
+for u in ("https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31477-LEY.pdf",
+          "https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/31098-RESOLUCION%20LEGISLATIVA.pdf"):
+    try:
+        r = requests.get(u, headers=A, timeout=60); print(u[-40:], r.status_code, len(r.content), r.content[:8])
+    except Exception as e:
+        print(u, e)
