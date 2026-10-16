@@ -1,25 +1,40 @@
-Fecha del servidor: 2026-10-16
-Normas en la base: 247286 | ultima fecha: 2026-10-16
-Proyectos en la base: 15478 | ultima presentacion: 2026-10-15
-base 0 sin tabla documentos: relation "documentos" does not exist
-LINE 1: SELECT tipo, clave, estado FROM doc
-base 1 : 36606 documentos
-base 2 : 43492 documentos
-base 3 : 47074 documentos
-base 4 : 47092 documentos
-base 5 : 46401 documentos
-base 6 : 0 documentos
-base 7 : 0 documentos
-base 8 : 0 documentos
-base 9 : 0 documentos
-base 10 : 42099 documentos
+sin_texto por periodo/camara/anio: [(('2021', 'C', '2021'), 169), (('2021', 'C', '2022'), 1128), (('2021', 'C', '2023'), 81), (('2021', 'C', '2024'), 724), (('2021', 'C', '2025'), 1761), (('2021', 'C', '2026'), 245), (('2026', 'C', '2026'), 1), (('2026', 'D', '2026'), 165), (('2026', 'S', '2026'), 9)]
 
-NORMAS: {'ok': 245007, 'sin_pdf': 2273, 'sin_texto': 6}
-  2026-10-16: 108 en la base, 108 indexados
-  2026-10-15: 134 en la base, 134 indexados
-  2026-10-14: 105 en la base, 105 indexados
+2021|C|02973/2022-CR 2022-09-06: 9 archivos
+   'PL 2972 Y OTROS (COM EDUCACIÓN).pdf' 'PL 2972 Y OTROS (COM EDUCACIÓN)' bytes=261792 texto=1551
+   'PL 2972 Y OTROS ((RETIRO FIRMA DE FUERZA POPULAR).' 'PL 2972 Y OTROS ((RETIRO FIRMA DE FUERZA' bytes=236100 texto=1601
+   'PL 2972 Y OTROS (OFICIO CONG ECHAÍZ DE NÚÑEZ ÍZAGA' 'PL 2972 Y OTROS (OFICIO CONG ECHAÍZ DE N' bytes=248667 texto=2100
+   'PL 2972 Y OTROS (PARA SER VISTO POR EL C.D.).pdf' 'PL 2972 Y OTROS (PARA SER VISTO POR EL C' bytes=269296 texto=1665
+   'PL 2972 Y OTROS (PARA SER VISTO POR EL C.D.1).pdf' 'PL 2972 Y OTROS (PARA SER VISTO POR EL C' bytes=270154 texto=1681
+   'JP2972.pdf' 'PL 2972 2973 2974 3002 Y OTROS (EXO PLAZ' bytes=169345 texto=2229
+   'PL 2972 Y OTROS (INHIBICIÓN).pdf' 'PL 2972 Y OTROS (INHIBICIÓN)' bytes=7856145 texto=60000
+   'PL_2973.pdf' 'PL_2973' bytes=3549370 texto=25870
 
-PROYECTOS: {'ok': 11195, 'sin_texto': 4283}
-  2026-10-16: 0 en la base, 0 indexados
-  2026-10-15: 10 en la base, 10 indexados
-  2026-10-14: 3 en la base, 3 indexados
+2021|C|02270/2021-CR 2022-06-03: 2 archivos
+   'PL_2270.pdf' 'PL_2270' bytes=5534871 texto=14
+   'PL0227003062022.pdf' 'PL0227003062022' bytes=5164341 texto=13
+
+2021|C|09801/2024-CR 2024-12-18: 2 archivos
+   'PL-9801.pdf' 'PL-9801' bytes=15914677 texto=25
+   'PL0980120241218.pdf' 'PL0980120241218' bytes=10689580 texto=24
+
+2021|C|02837/2022-CR 2022-08-17: 3 archivos
+   'PL 80 Y OTROS (U).pdf' 'PL 80 Y OTROS (U)' bytes=8029005 texto=60000
+   'PL_2837.pdf' 'PL_2837' bytes=5400014 texto=9
+   'PL0283720220817.pdf' 'PL0283720220817' bytes=5154987 texto=8
+
+2021|C|14713/2025-CR 2026-06-02: 2 archivos
+   'PL 14713.pdf' 'PL 14713' bytes=97656 texto=416
+   'PL 14713.pdf' 'PL 14713' bytes=3710388 texto=12
+
+2021|C|12810/2025-CR 2025-10-14: 2 archivos
+   'DECRETO PL 12810.pdf' 'DECRETO PL 12810' bytes=105718 texto=473
+   'PL 12810.pdf' 'PL 12810' bytes=2979405 texto=9
+
+2021|C|13874/2025-CR 2026-02-03: 2 archivos
+   'PL 13874.pdf' 'PL 13874' bytes=103124 texto=462
+   'PL 13874.pdf' 'PL 13874' bytes=3366378 texto=7
+
+2021|C|11365/2024-CR 2025-05-29: 2 archivos
+   'PL-11365.pdf' 'PL-11365' bytes=14545126 texto=18
+   'PL1136520250529.pdf' 'PL1136520250529' bytes=9555084 texto=17
