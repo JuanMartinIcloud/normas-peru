@@ -484,7 +484,7 @@ def texto_cuadernillo(fecha, numero, tipo="") -> str:
     palabras = re.findall(r"[A-Z]+", _sin_tildes(re.sub(r"\(.*?\)|\d.*", "", tipo)))
     numeros = r"\D{0,25}".join(nums)
     if palabras:
-        patron = re.compile(r"\s+".join(palabras) + r".{0,40}?" + numeros, re.S)
+        patron = re.compile(r"\s+".join(palabras) + r".{0,120}?" + numeros, re.S)
     elif len(nums) >= 2:
         patron = re.compile(numeros)
     else:
