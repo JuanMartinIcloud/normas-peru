@@ -25,8 +25,12 @@ export async function GET(request) {
        FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${LIMITE}`,
       params
     );
-    const lineas = [COLUMNAS.join(",")];
-    for (const r of filas) lineas.push(COLUMNAS.map((c) => celda(r[c])).join(","));
+    // Encabezados en castellano para quien abre el archivo en Excel
+    const TITULOS = ["Fecha", "Tipo", "Número", "Entidad", "Sector", "Rubro", "Sumilla", "Enlace al PDF", "Enlace en El Peruano", "Edición extraordinaria"];
+    const lineas = [TITULOS.join(",")];
+    for (const r of filas) {
+      lineas.push(COLUMNAS.map((c) => celda(c === "extraordinaria" ? (r[c] ? "Sí" : "No") : r[c])).join(","));
+    }
     // BOM para que Excel abra bien las tildes
     const cuerpo = "﻿" + lineas.join("\r\n");
     return new Response(cuerpo, {
