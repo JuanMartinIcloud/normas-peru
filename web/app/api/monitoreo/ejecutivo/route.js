@@ -56,7 +56,7 @@ export async function POST(request) {
       esquema: ESQUEMA,
       maxTokens: 8192,
       limiteMs: Math.max(30000, 285000 - (Date.now() - inicio)),
-      intentoMs: 120000,
+      intentoMs: 90000,
     });
     const limpio = {
       panorama: String(datos.panorama || "").trim(),

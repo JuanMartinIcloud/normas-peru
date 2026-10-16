@@ -180,7 +180,7 @@ export async function POST(request) {
       partes: [{ text: lineas.join("\n") }],
       esquema: ESQUEMA,
       limiteMs: Math.max(30000, 285000 - (Date.now() - inicio)),
-      intentoMs: 120000,
+      intentoMs: 60000, // si un modelo se demora mas de 1 minuto, se pasa al siguiente
     });
     const validas = new Set(Object.keys(referencias));
     const resultado = {
