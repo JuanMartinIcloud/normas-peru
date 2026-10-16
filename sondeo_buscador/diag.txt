@@ -1,2 +1,28 @@
-Revisados: [('N', 'n2_ok', 1099), ('N', 'n2_sin_texto', 39), ('N', 'n3_ok', 990), ('N', 'n3_sin_texto', 138), ('N', 'ok', 1), ('P', 'ok', 4283)]
-Documentos: [(('N', 'ok'), 247117), (('N', 'sin_pdf'), 172), (('P', 'ok'), 15478)]
+Revisados: [('N', 'n2_ok', 1099), ('N', 'n3_ok', 1038), ('N', 'n3_sin_texto', 141), ('N', 'ok', 1), ('P', 'ok', 4283)]
+141 sin texto
+[(2016, 31), (2017, 18), (2018, 4), (2019, 7), (2020, 5), (2021, 13), (2022, 54), (2023, 8), (2024, 1)]
+extraordinarias: 71
+[('Ley', 73), ('Resolucion Legislativa', 26), ('Resolucion', 13), ('Resolucion Jefatural', 7), ('Resolucion Administrativa', 5), ('Resolucion 024-2016-Sunat/600000', 1), ('Ley 30466', 1), ('Ley 30463', 1), ('Ley 30464', 1), ('Ley 30465', 1), ('Ordenanza', 1), ('Acuerdo (28/6/2016)', 1)]
+
+ (datetime.date(2021, 1, 7), 'Resolucion', '000001 -2021-SUNAT/700000', 'SUPERINTENDENCIA NACIONAL DE ADUANAS Y DE ADMINISTRACION TRIBUTARIA', False, 'https://busquedas.elperuano.pe/normaslegales/disponen-aplicar-la-facultad-discrecional-en-la-administraci-resolucion-n-000001-2021-sunat700000-1917946-1/', 'Disponen aplicar la facultad discrecional en la administración de sanciones respecto de la')
+  cuadernillo 200 ['/api/archivo/file/2YR3yAOBaBO8MC0DcFcUY5/*/NL20210107.pdf']
+   BO8MC0DcFcUY5/*/NL20210107.pdf 2601758 paginas 88 texto 564427 paginas con los numeros []
+
+ (datetime.date(2022, 5, 18), 'Ley', '31477', 'CONGRESO DE LA REPUBLICA', True, 'https://busquedas.elperuano.pe/normaslegales/ley-que-promueve-acciones-para-la-recuperacion-de-alimentos-ley-n-31477-2068624-1/', 'Ley que promueve acciones para la recuperación de alimentos')
+  cuadernillo 200 ['/api/archivo/file/2aJJrv7yqUuB8d_M2ruYeq/*/NL20220518.pdf']
+   UuB8d_M2ruYeq/*/NL20220518.pdf 20539801 paginas 80 texto 507563 paginas con los numeros []
+
+ (datetime.date(2023, 2, 16), 'Ley', '31690', 'CONGRESO DE LA REPUBLICA', True, 'https://busquedas.elperuano.pe/normaslegales/ley-que-crea-el-regimen-de-reprogramacion-de-aportes-previsi-ley-n-31690-2152607-1/', 'Ley que crea el régimen de reprogramación de aportes previsionales del Sistema Privado de ')
+  cuadernillo 200 ['/api/archivo/file/DNGxZ0V6ahvAHOviz7whRu/*/NL20230216.pdf']
+   hvAHOviz7whRu/*/NL20230216.pdf 14957951 paginas 64 texto 403741 paginas con los numeros []
+
+ (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30444', 'CONGRESO DE LA REPUBLICA', False, 'https://busquedas.elperuano.pe/normaslegales/resolucion-legislativa-que-autoriza-al-senor-presidente-de-l-resolucion-legislativa-n-30444-1386053-1/', 'Resolución Legislativa que autoriza al Señor Presidente de la República para salir del ter')
+  cuadernillo 404 []
+
+ (datetime.date(2022, 12, 13), 'Ley', '31641', 'CONGRESO DE LA REPUBLICA', True, 'https://busquedas.elperuano.pe/normaslegales/ley-que-incorpora-a-los-ciudadanos-peruanos-residentes-en-el-ley-n-31641-2133983-1/', 'Ley que incorpora a los ciudadanos peruanos residentes en el exterior dentro de los alcanc')
+  cuadernillo 200 ['/api/archivo/file/BpAcH68BaLT8S4GY58tvPc/*/NL20221213.pdf']
+   LT8S4GY58tvPc/*/NL20221213.pdf 11268073 paginas 64 texto 424137 paginas con los numeros []
+
+ (datetime.date(2020, 12, 29), 'Resolucion Legislativa', '31098', 'CONGRESO DE LA REPUBLICA', True, 'https://busquedas.elperuano.pe/normaslegales/resolucion-legislativa-que-aprueba-el-convenio-entre-la-repu-resolucion-legislativa-n-31098-1916076-1/', 'Resolución Legislativa que aprueba el Convenio entre la República del Perú y Japón para ev')
+  cuadernillo 200 ['/api/archivo/file/4xBv-sBtKd1Bbv8_F8d6MT/*/NL20201229.pdf']
+   d1Bbv8_F8d6MT/*/NL20201229.pdf 7553238 paginas 144 texto 958504 paginas con los numeros []
