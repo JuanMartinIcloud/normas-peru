@@ -86,7 +86,7 @@ export async function normasAnalizadas(f, desde, hasta) {
   const { params, p } = armar();
   const c = condAnalisis(f, p, "n.sumilla");
   c.push(`n.fecha BETWEEN ${p(desde)} AND ${p(hasta)}`);
-  if (f.tipoNorma) c.push(`n.tipo = ${p(f.tipoNorma)}`);
+  if (f.tipoNorma) c.push(`translate(lower(n.tipo), 'áéíóúü', 'aeiouu') = translate(lower(${p(f.tipoNorma)}), 'áéíóúü', 'aeiouu')`);
   if (f.entidad) c.push(`n.entidad ILIKE ${p(`%${f.entidad}%`)}`);
   return consultar(
     `SELECT ${COLS_A}, n.fecha::text AS fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.url_detalle, n.url_pdf
@@ -193,8 +193,9 @@ export async function opcionesFiltros(desde, hasta) {
   const [sectores, tipos] = await Promise.all([
     consultar(`SELECT DISTINCT sector AS v FROM analisis WHERE relevante AND sector IS NOT NULL ORDER BY 1`),
     consultar(
-      `SELECT DISTINCT n.tipo AS v FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo = 'N'
-       WHERE a.relevante AND n.fecha BETWEEN $1 AND $2 ORDER BY 1`,
+      `SELECT max(n.tipo) AS v FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo = 'N'
+       WHERE a.relevante AND n.fecha BETWEEN $1 AND $2
+       GROUP BY translate(lower(n.tipo), 'áéíóúü', 'aeiouu') ORDER BY 1`,
       [desde, hasta]
     ),
   ]);

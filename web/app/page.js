@@ -39,7 +39,9 @@ async function cargar(f) {
     consultar(`SELECT extract(year FROM fecha)::int AS anio, count(*)::int AS n FROM normas GROUP BY 1 ORDER BY 1 DESC`),
     consultar(`SELECT sector AS valor, count(*)::int AS n FROM normas WHERE sector IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM normas WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
-    consultar(`SELECT tipo AS valor, count(*)::int AS n FROM normas WHERE tipo IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 40`),
+    // Un solo valor por tipo aunque El Peruano lo escriba con o sin tilde ("Resolucion" / "Resolución")
+    consultar(`SELECT max(tipo) AS valor, count(*)::int AS n FROM normas WHERE tipo IS NOT NULL
+               GROUP BY translate(lower(tipo), 'áéíóúü', 'aeiouu') ORDER BY 2 DESC LIMIT 40`),
     consultar(
       `SELECT id, fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria,
               hash_unico

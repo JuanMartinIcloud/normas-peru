@@ -76,7 +76,7 @@ export function construirWhere(f) {
   if (f.hasta) cond.push(`fecha <= ${p(f.hasta)}`);
   if (f.sector) cond.push(`sector = ${p(f.sector)}`);
   if (f.rubro) cond.push(`rubro = ${p(f.rubro)}`);
-  if (f.tipo) cond.push(`tipo = ${p(f.tipo)}`);
+  if (f.tipo) cond.push(`translate(lower(tipo), 'áéíóúü', 'aeiouu') = translate(lower(${p(f.tipo)}), 'áéíóúü', 'aeiouu')`);
   if (f.central) cond.push(`sector NOT IN ('Gobiernos Locales', 'Gobiernos Regionales')`);
   // Leyes y normas con rango de ley: Ley, Decreto Legislativo, Decreto de Urgencia, Resolución Legislativa
   if (f.leyes) {
