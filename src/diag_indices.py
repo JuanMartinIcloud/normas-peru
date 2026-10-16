@@ -1,33 +1,37 @@
-"""Diagnostico temporal: estructura HTML de la norma y reparacion del PDF dañado."""
-import os, sys, re, subprocess, tempfile
+"""Diagnostico temporal: texto HTML (div.story) en normas sin PDF y enlace del cuadernillo."""
+import os, sys, re, random
 sys.path.insert(0, os.path.dirname(__file__))
 import requests
 from bs4 import BeautifulSoup
-from indexar import pdf_norma
+from indexar import Bases, principal
 from textos import AGENTE
-from datetime import date
-import ocr
-url = "https://busquedas.elperuano.pe/dispositivo/NL/2492749-1"
-s = BeautifulSoup(requests.get(url, headers={"User-Agent": AGENTE}, timeout=60).text, "html.parser")
-for t in s(["script", "style"]): t.decompose()
-cands = [e for e in s.find_all(True) if "CONSIDERANDO" in e.get_text()]
-for e in cands[-6:]:
-    print(e.name, e.get("id"), e.get("class"), len(e.get_text()))
-print("---")
-e = cands[-1]
-print(repr(re.sub(r"\s+", " ", e.get_text(" "))[:400]))
-# pdf dañado
+b = Bases()
+sinpdf = []
+for u in b.urls:
+    sinpdf += b.ejecutar(u, lambda cur: (cur.execute("SELECT clave FROM documentos WHERE tipo='N' AND estado='sin_pdf'"), [r[0] for r in cur.fetchall()])[1])
+print("sin_pdf:", len(sinpdf))
+c = principal(); cur = c.cursor()
+cur.execute("SELECT hash_unico, fecha, url_detalle FROM normas WHERE hash_unico = ANY(%s)", (sinpdf,))
+filas = cur.fetchall()
+por = {}
+for _, f, _ in filas: por[f.year] = por.get(f.year, 0) + 1
+print("por anio:", sorted(por.items()))
+print("sin url:", sum(1 for x in filas if not x[2]))
+random.seed(3)
+ok = 0
+for k, f, url in random.sample([x for x in filas if x[2]], 25):
+    try:
+        r = requests.get(url, headers={"User-Agent": AGENTE}, timeout=60)
+        s = BeautifulSoup(r.text, "html.parser")
+        st = s.select_one("div.story")
+        t = re.sub(r"\s+", " ", st.get_text(" ")).strip() if st else ""
+        ok += len(t) >= 200
+        print(f, r.status_code, len(t), url[:90], "|", t[:120])
+    except Exception as e:
+        print(f, "error", e)
+print("con texto HTML:", ok, "de 25")
 u2 = "https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-extraordinario-interpuesto-contra-resolucion-no-0411-2017-jne-1582046-1/"
-d = pdf_norma(u2, date(2017, 11, 1))
-print("\nPDF", len(d), d[:300])
-print(d[-400:])
-with tempfile.TemporaryDirectory() as t:
-    open(f"{t}/a.pdf", "wb").write(d)
-    for cmd in (["gs", "-q", "-o", f"{t}/g.pdf", "-sDEVICE=pdfwrite", f"{t}/a.pdf"], ["mutool", "clean", f"{t}/a.pdf", f"{t}/m.pdf"]):
-        r = subprocess.run(cmd, capture_output=True, text=True); print(cmd[0], r.returncode, r.stderr[:300])
-    for f in ("g.pdf", "m.pdf"):
-        if os.path.exists(f"{t}/{f}"):
-            dd = open(f"{t}/{f}", "rb").read()
-            print(f, len(dd), "pdftotext", len(subprocess.run(["pdftotext", f"{t}/{f}", "-"], capture_output=True).stdout), "ocr", len(ocr.texto_ocr(dd)))
 s2 = BeautifulSoup(requests.get(u2, headers={"User-Agent": AGENTE}, timeout=60).text, "html.parser")
-print([ (x.name, x.get("src") or x.get("data-src") or x.get("href")) for x in s2.find_all(["iframe", "embed", "object", "a"]) if "pdf" in str(x).lower()][:10])
+for a in s2.find_all(["a", "button"]):
+    if "uadernillo" in a.get_text() or "PDF" in a.get_text():
+        print("ENLACE", a.get_text(strip=True), a.attrs)
