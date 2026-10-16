@@ -5,7 +5,8 @@ const API = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapi
 const SUBIDA = "https://generativelanguage.googleapis.com/upload/v1beta/files";
 const MODELOS_POR_DEFECTO = "gemini-flash-latest,gemini-3.5-flash-lite,gemini-3.5-flash";
 // Reserva: se prueban al final si los anteriores agotaron su cupo del dia (gemini-2.5 ya no existe para cuentas nuevas)
-const RESERVA = ["gemini-flash-lite-latest", "gemma-4-31b-it"];
+// (al final, por si ya no queda cupo en ninguno, dos de los que usa de dia el analisis de meses anteriores)
+const RESERVA = ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-3.6-flash", "gemma-4-31b-it"];
 
 export class ErrorIA extends Error {
   constructor(mensaje, estado = 502) {
@@ -26,11 +27,11 @@ function clave() {
 }
 
 function modelos() {
-  const lista = (process.env.GEMINI_MODELOS || MODELOS_POR_DEFECTO)
-    .split(",")
+  // Los de la variable GEMINI_MODELOS (si existe) van primero; despues, siempre, los de por defecto y la reserva
+  const todos = [...(process.env.GEMINI_MODELOS || "").split(","), ...MODELOS_POR_DEFECTO.split(","), ...RESERVA]
     .map((m) => m.trim())
     .filter((m) => m && !m.startsWith("gemini-2.5"));
-  return [...lista, ...RESERVA.filter((m) => !lista.includes(m))];
+  return [...new Set(todos)];
 }
 
 // Los modelos Gemma no aceptan instrucciones de sistema ni modo JSON: van dentro del mensaje

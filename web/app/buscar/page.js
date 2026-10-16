@@ -90,14 +90,15 @@ export default async function Buscar({ searchParams }) {
     try {
       let r = await buscarTodo(fn, fp, tiempos);
       // Sin resultados: puede ser una palabra mal escrita ("piscologica"); se corrige y se repite
-      if (r.totalN + r.totalP === 0 && fn.q) {
+      // (tambien si una de las dos secciones quedo vacia: la palabra puede estar mal escrita en pocos documentos)
+      if ((r.totalN === 0 || r.totalP === 0) && fn.q) {
         const nueva = await corregirConsulta(fn.q);
         if (nueva) {
           const limpio = { clavesTexto: undefined, clavesRefinar: undefined, clavesTodas: undefined, avisoTexto: undefined };
           const gn = { ...fn, q: nueva, ...limpio };
           const gp = { ...fp, q: nueva, ...limpio };
           const otra = await buscarTodo(gn, gp);
-          if (otra.totalN + otra.totalP > 0) {
+          if (otra.totalN + otra.totalP > r.totalN + r.totalP) {
             corregidaDe = fn.q;
             Object.assign(fn, gn);
             Object.assign(fp, gp);
@@ -147,7 +148,7 @@ export default async function Buscar({ searchParams }) {
           )}
           {corregidaDe && (
             <p className="ia-aviso">
-              No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{fn.q}»</strong>.
+              Se buscó <strong>«{fn.q}»</strong> en lugar de «{corregidaDe}» (posible error de escritura).
             </p>
           )}
           <p className="resumen">

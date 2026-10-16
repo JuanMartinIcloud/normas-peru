@@ -195,11 +195,13 @@ export async function corregirConsulta(q) {
   try {
     filas = await consultar(
       `SELECT t.w,
-              EXISTS (SELECT 1 FROM vocabulario v WHERE v.sin_tilde = t.w) AS existe,
-              (SELECT v.palabra FROM vocabulario v
-                WHERE v.sin_tilde % t.w AND similarity(v.sin_tilde, t.w) >= 0.4
-                ORDER BY similarity(v.sin_tilde, t.w) DESC, v.n DESC LIMIT 1) AS cercana
-       FROM unnest($1::text[]) AS t(w)`,
+              coalesce((SELECT v.n FROM vocabulario v WHERE v.sin_tilde = t.w), 0) AS n,
+              c.palabra AS cercana, c.n AS n_cercana
+       FROM unnest($1::text[]) AS t(w)
+       LEFT JOIN LATERAL (
+         SELECT v.palabra, v.n FROM vocabulario v
+         WHERE v.sin_tilde % t.w AND similarity(v.sin_tilde, t.w) >= 0.4 AND v.sin_tilde <> t.w
+         ORDER BY similarity(v.sin_tilde, t.w) DESC, v.n DESC LIMIT 1) c ON true`,
       [palabras.map((p) => quitarTildes(p.limpia))]
     );
   } catch (e) {
@@ -210,7 +212,11 @@ export async function corregirConsulta(q) {
   const porPalabra = new Map(filas.map((f) => [f.w, f]));
   palabras.forEach((p) => {
     const f = porPalabra.get(quitarTildes(p.limpia));
-    if (f && !f.existe && f.cercana && quitarTildes(f.cercana) !== quitarTildes(p.limpia)) {
+    // Se corrige si la palabra no existe, o si es rarisima frente a una muy parecida y comun
+    // (p. ej. "piscologica" aparece mal escrita en unos pocos documentos; "psicologica", en miles)
+    const n = Number(f && f.n) || 0;
+    const nc = Number(f && f.n_cercana) || 0;
+    if (f && f.cercana && quitarTildes(f.cercana) !== quitarTildes(p.limpia) && (n === 0 || nc >= 50 * n)) {
       salida[p.i] = partes[p.i].replace(p.limpia, f.cercana);
       cambio = true;
     }
