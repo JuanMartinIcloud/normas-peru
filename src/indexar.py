@@ -472,13 +472,34 @@ def paginas_edicion(fecha) -> list:
     return _cuadernillos[clave]
 
 
+def texto_ley_congreso(tipo, numero) -> str:
+    """Leyes: el PDF del Archivo Digital de la Legislacion del Congreso (leyes.congreso.gob.pe)."""
+    tipo = _sin_tildes(str(tipo or ""))
+    if not tipo.startswith("LEY"):
+        return ""
+    m = re.search(r"\b(\d{5})\b", f"{numero or ''} {tipo}")
+    if not m:
+        return ""
+    n = m.group(1)
+    for url in (f"https://leyes.congreso.gob.pe/Documentos/Leyes/{n}.pdf",
+                f"https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/{n}-LEY.pdf",
+                f"https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/{n}-LEY.pdf"):
+        r = pedir(url, headers={"User-Agent": AGENTE})
+        if r.status_code == 200 and r.content[:4] == b"%PDF":
+            texto = extraer(r.content)
+            if len(texto) >= 100:
+                return texto
+    return ""
+
+
 def texto_cuadernillo(fecha, numero, tipo="") -> str:
     """Ultimo recurso: las paginas de la edicion completa del dia donde empieza la norma
     (su tipo seguido de su numero, por ejemplo «LEY Nº 31477»), y las dos siguientes."""
     tipo = str(tipo or "")
     if not str(numero or "").strip():
         numero = tipo   # a veces el numero viene dentro del tipo («Ley 30466»)
-    nums = re.findall(r"\d{2,}", str(numero or ""))
+    numero = re.split(r",|\sY\s", str(numero or ""), flags=re.I)[0]   # «31638, 31639 y 31640»: la primera
+    nums = re.findall(r"\d{2,}", numero)
     if not nums or not fecha:
         return ""
     palabras = re.findall(r"[A-Z]+", _sin_tildes(re.sub(r"\(.*?\)|\d.*", "", tipo)))

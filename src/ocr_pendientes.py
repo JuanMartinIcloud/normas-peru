@@ -18,7 +18,7 @@ import requests
 from psycopg2.extras import execute_values
 
 import indexar
-from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_cuadernillo, texto_html_norma
+from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_cuadernillo, texto_html_norma, texto_ley_congreso
 
 SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
     tipo  CHAR(1) NOT NULL,
@@ -29,10 +29,10 @@ SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
 
 
 def revisados(bases) -> set:
-    # Normas: revision con la pagina y la edicion completa de El Peruano, marcada "n4_..."
+    # Normas: revision con la pagina y la edicion completa de El Peruano, marcada "n5_..."
     def f(cur):
         cur.execute(SQL_CONTROL)
-        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n4%'")
+        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n5%'")
         return {(t, k) for t, k in cur.fetchall()}
     return bases.ejecutar(bases.control, f)
 
@@ -164,14 +164,15 @@ def main():
                     completo = f"{cabecera}\n\n{texto}".strip()
                 else:
                     if clave not in normas:
-                        envio.agregar(tipo, clave, None, origen, "n4_no_esta")
+                        envio.agregar(tipo, clave, None, origen, "n5_no_esta")
                         continue
                     fecha, url, numero, tipo_norma = normas[clave]
                     datos = pdf_norma(url, fecha)
                     texto = extraer(datos) if datos else ""
                     # Sin PDF o PDF vacio/dañado: pagina de la norma, su otro PDF y, al final,
                     # las paginas de la edicion completa del dia donde aparece su numero
-                    for otra in (lambda: texto_html_norma(url), lambda: texto_cuadernillo(fecha, numero, tipo_norma)):
+                    for otra in (lambda: texto_html_norma(url), lambda: texto_ley_congreso(tipo_norma, numero),
+                                 lambda: texto_cuadernillo(fecha, numero, tipo_norma)):
                         if len(texto) >= 100:
                             break
                         alterno = otra()
@@ -188,7 +189,7 @@ def main():
                 time.sleep(espera)
                 espera = min(espera * 2, 600)
                 continue
-            pre = "n4_" if tipo == "N" else ""
+            pre = "n5_" if tipo == "N" else ""
             if len(texto) >= 100:
                 envio.agregar(tipo, clave, completo, origen, pre + "ok")
                 con_texto += 1
