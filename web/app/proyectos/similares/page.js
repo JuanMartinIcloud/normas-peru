@@ -4,6 +4,14 @@ import Marcar from "../../Marcar";
 
 export const metadata = { title: "Proyectos similares · Normas Legales del Perú" };
 
+// Palabras que aparecen en casi todos los titulos de proyectos: no sirven para decidir si dos se parecen
+const GENERICAS = `ley leyes proyecto proposicion proposición legislativa legislativo modifica modificar modificación artículo articulo
+  artículos decreto decretos establece establecer nacional numeral incorpora incorporar regula regular pública público publica
+  fin marco general norma normas sistema perú peru república congreso declara declarar interés necesidad año años texto único
+  ordenado supremo disposición complementaria final transitoria actualización conformidad segunda reglamento garantizar
+  fortalecer promover mediante dispone aprueba deroga crea crear diversas diversos medidas objeto aplicación caso
+  actualizacion cámara diputados senado pl cr cd`;
+
 // Proyectos cuyo titulo comparte mas palabras importantes con el elegido
 async function buscarSimilares(id) {
   const [base] = await consultar(
@@ -13,19 +21,30 @@ async function buscarSimilares(id) {
     [id]
   );
   if (!base) return { base: null, similares: [] };
+  // Parecido = que parte de las palabras distintivas del titulo elegido aparece en el otro titulo.
+  // Se descartan las palabras que traen casi todos los proyectos ("ley", "modifica", "articulo", etc.),
+  // para que no salgan como parecidos proyectos que solo comparten esas palabras.
   const similares = await consultar(
-    `WITH q AS (
-       SELECT replace(plainto_tsquery('spanish', $1)::text, ' & ', ' | ')::tsquery AS consulta
+    `WITH b AS (
+       SELECT ARRAY(SELECT unnest(tsvector_to_array(to_tsvector('spanish', $1)))
+                    EXCEPT SELECT unnest(tsvector_to_array(to_tsvector('spanish', $3)))) AS lx
+     ),
+     c AS (
+       SELECT p.id, p.numero, p.periodo, p.camara, p.num_pley, p.url, p.fecha_presentacion, p.titulo, p.proponente, p.estado,
+              (SELECT count(*) FROM unnest(tsvector_to_array(to_tsvector('spanish', coalesce(p.titulo,'')))) w
+                WHERE w = ANY(b.lx)) AS comunes,
+              cardinality(b.lx) AS total
+       FROM proyectos_ley p, b
+       WHERE p.id <> $2 AND cardinality(b.lx) > 0
+         AND to_tsvector('spanish', coalesce(p.titulo,'')) @@ array_to_string(ARRAY(SELECT quote_literal(x) FROM unnest(b.lx) x), ' | ')::tsquery
      )
-     SELECT p.id::text AS id, p.numero, p.periodo, p.camara, p.num_pley, p.url,
-            p.fecha_presentacion::text AS fecha, p.titulo, p.proponente, p.estado,
-            ts_rank_cd(to_tsvector('spanish', coalesce(p.titulo,'')), q.consulta, 1) AS parecido
-     FROM proyectos_ley p, q
-     WHERE p.id <> $2 AND numnode(q.consulta) > 0
-       AND to_tsvector('spanish', coalesce(p.titulo,'')) @@ q.consulta
-     ORDER BY parecido DESC, p.fecha_presentacion DESC NULLS LAST
+     SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
+            titulo, proponente, estado, comunes::float / total AS parecido
+     FROM c
+     WHERE comunes >= LEAST(total, GREATEST(2, CEIL(total * 0.35)))
+     ORDER BY comunes DESC, fecha_presentacion DESC NULLS LAST
      LIMIT 25`,
-    [base.titulo || "", id]
+    [base.titulo || "", id, GENERICAS]
   );
   return { base, similares };
 }
@@ -68,7 +87,6 @@ export default async function Similares({ searchParams }) {
       error = String(e.message || e);
     }
   }
-  const maximo = Math.max(...datos.similares.map((s) => Number(s.parecido) || 0), 0);
 
   return (
     <main className="contenedor">
@@ -105,7 +123,7 @@ export default async function Similares({ searchParams }) {
                   p={p}
                   extra={
                     <span className="etq gris">
-                      Parecido {maximo ? Math.round((Number(p.parecido) / maximo) * 100) : 0}%
+                      Parecido {Math.round(Number(p.parecido) * 100)}%
                     </span>
                   }
                 />
