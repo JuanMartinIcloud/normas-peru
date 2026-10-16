@@ -16,6 +16,8 @@ jobs:
   indexar:
     if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 59
     strategy:
       fail-fast: false
@@ -84,6 +86,8 @@ jobs:
     # Tambien relanza si fallo solo algun trabajador (los demas avanzan); pero no si la tanda fallo en minutos
     if: (needs.indexar.result == 'success' || needs.indexar.result == 'failure') && github.event.repository.private == false
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 5
     permissions:
       actions: write

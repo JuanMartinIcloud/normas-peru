@@ -9,6 +9,8 @@ on:
 jobs:
   tablas:
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +35,8 @@ jobs:
   normas:
     needs: tablas
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 300
     strategy:
       fail-fast: false
@@ -60,6 +64,8 @@ jobs:
   proyectos:
     needs: tablas
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +83,8 @@ jobs:
     needs: [normas, proyectos]
     if: always() && needs.proyectos.result == 'success'
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4

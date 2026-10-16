@@ -66,14 +66,47 @@ def hora_de_hoy(h, m):
     return t if t <= n else t - timedelta(days=1)
 
 
+def fallo(corrida):
+    """True si algun trabajo de la ejecucion fallo (las tareas no se marcan como error: aqui se detecta)."""
+    r = requests.get(f"{API}/runs/{corrida['id']}/jobs", headers=H, timeout=60, params={"per_page": 50})
+    r.raise_for_status()
+    return any(j.get("conclusion") not in ("success", "skipped") for j in r.json().get("jobs", []))
+
+
+def de_la_tarea(archivo, inputs, lista):
+    """Para el monitoreo, solo cuentan las ejecuciones del mismo modo (diario o historico)."""
+    if archivo != "monitoreo.yml" or lista is None:
+        return lista
+    modo = inputs.get("modo", "diario")
+    return [x for x in lista if modo in (x.get("display_title") or "").lower()
+            or (modo == "diario" and x.get("event") == "schedule")]
+
+
+MAX_INTENTOS = 6            # por dia y por tarea
+ESPERA_REINTENTO = timedelta(minutes=30)
+
+
 def revisar():
     for archivo, h, m, inputs, depende in TAREAS:
         desde = hora_de_hoy(h, m)
-        if ahora() - desde > timedelta(hours=10):
+        if ahora() - desde > timedelta(hours=20):
             continue   # ya paso demasiado: le tocara en su proxima hora
-        ya = corridas(archivo, desde)
-        if ya is None or ya:
-            continue   # el flujo no existe, o ya corrio (o esta corriendo) desde su hora
+        ya = de_la_tarea(archivo, inputs, corridas(archivo, desde))
+        if ya is None:
+            continue   # el flujo no existe
+        if ya:
+            # Ya corrio desde su hora. Si fallo, se repite sola (cada 30 min, hasta 6 veces en el dia).
+            if any(x["status"] != "completed" for x in ya) or len(ya) >= MAX_INTENTOS:
+                continue
+            ultima = max(ya, key=lambda x: x["created_at"])
+            fin = datetime.fromisoformat(ultima["updated_at"].replace("Z", "+00:00"))
+            if ahora() - fin < ESPERA_REINTENTO or not fallo(ultima):
+                continue
+            print(f"{ahora():%H:%M} {archivo} tuvo una falla; se repite", flush=True)
+            lanzar(archivo, inputs)
+            continue
+        if ahora() - desde > timedelta(hours=10):
+            continue   # nunca corrio y ya paso demasiado: le tocara en su proxima hora
         if depende:
             previas = corridas(depende, desde - timedelta(hours=3)) or []
             en_curso = [x for x in previas if x["status"] != "completed"]
@@ -84,11 +117,12 @@ def revisar():
     n = ahora()
     if 9 <= n.hour < 20:
         recientes = corridas("monitoreo.yml", n - timedelta(hours=6)) or []
+        historicos = [x for x in recientes if "historico" in (x.get("display_title") or "").lower()]
         en_curso = any(x["status"] != "completed" for x in recientes)
         # Si una corrida de las ultimas 2 horas termino en menos de 10 minutos, no avanzo
         # (cupo de IA agotado o nada pendiente): no relanzar en vano.
         corta = False
-        for x in recientes:
+        for x in historicos:
             try:
                 ini = datetime.fromisoformat(x["run_started_at"].replace("Z", "+00:00"))
                 fin = datetime.fromisoformat(x["updated_at"].replace("Z", "+00:00"))

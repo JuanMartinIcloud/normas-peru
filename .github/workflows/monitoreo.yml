@@ -1,4 +1,5 @@
 name: Monitoreo empresarial (analisis con IA)
+run-name: Monitoreo ${{ inputs.modo || 'diario' }}
 
 on:
   schedule:
@@ -25,6 +26,8 @@ concurrency:
 jobs:
   monitoreo:
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 330
     env:
       DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}

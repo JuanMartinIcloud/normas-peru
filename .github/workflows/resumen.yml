@@ -25,6 +25,8 @@ concurrency:
 jobs:
   resumen:
     runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    continue-on-error: true
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
