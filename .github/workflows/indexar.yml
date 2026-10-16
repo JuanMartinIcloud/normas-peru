@@ -71,7 +71,8 @@ jobs:
   # No consulta la base principal: el avance esta en la base de texto 2 (la 1 se lleno).
   relanzar:
     needs: indexar
-    if: needs.indexar.result == 'success' && github.event.repository.private == false
+    # Tambien relanza si fallo solo algun trabajador (los demas avanzan); pero no si la tanda fallo en minutos
+    if: (needs.indexar.result == 'success' || needs.indexar.result == 'failure') && github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -96,4 +97,13 @@ jobs:
         if: steps.cuenta.outputs.pendientes != '0'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run indexar.yml --repo "${{ github.repository }}" --ref main
+          RESULTADO: ${{ needs.indexar.result }}
+        run: |
+          inicio=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" --jq .run_started_at)
+          minutos=$(( ( $(date -u +%s) - $(date -u -d "$inicio" +%s) ) / 60 ))
+          echo "La tanda duro $minutos minutos (resultado: $RESULTADO)"
+          if [ "$RESULTADO" = "failure" ] && [ "$minutos" -lt 15 ]; then
+            echo "::warning::La tanda fallo en pocos minutos; no se relanza (la reintentara el horario automatico)."
+            exit 0
+          fi
+          gh workflow run indexar.yml --repo "${{ github.repository }}" --ref main

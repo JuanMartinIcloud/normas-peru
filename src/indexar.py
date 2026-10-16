@@ -186,6 +186,8 @@ class Bases:
         return hechas
 
     def guardar(self, tipo, clave, estado, texto):
+        # Algunos PDF traen caracteres invalidos (p. ej. "surrogates") que la base no acepta: se descartan
+        texto = (texto or "").replace("\x00", "").encode("utf-8", "ignore").decode("utf-8")
         self.pendientes.append((tipo, clave, estado, texto))
         self.quizas_enviar()
 
