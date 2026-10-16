@@ -20,6 +20,7 @@ import io
 import os
 import re
 import time
+import unicodedata
 import zlib
 from datetime import date, timedelta
 
@@ -447,30 +448,52 @@ def texto_html_norma(url_detalle) -> str:
 _cuadernillos = {}
 
 
-def texto_cuadernillo(fecha, numero) -> str:
-    """Ultimo recurso: las paginas de la edicion completa del dia (cuadernillo de Normas Legales)
-    donde aparece el numero de la norma. Se guarda en memoria por fecha (varias normas por dia)."""
-    num = re.sub(r"\s+", "", str(numero or ""))
-    if len(num) < 5 or not re.search(r"\d", num) or not fecha:
-        return ""   # numero demasiado corto: podria confundirse con otras normas
+def _sin_tildes(t: str) -> str:
+    return unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().upper()
+
+
+def paginas_edicion(fecha) -> list:
+    """Paginas (texto) de las ediciones completas del dia: la ordinaria (NL) y la extraordinaria (EX).
+    Se guardan en memoria: varias normas comparten el mismo dia."""
     clave = fecha.strftime("%Y%m%d")
     if clave not in _cuadernillos:
         paginas = []
-        r = pedir(f"{BUSQUEDAS}/cuadernillo/NL/{clave}", headers={"User-Agent": AGENTE})
-        if r.status_code == 200:
-            for ruta in dict.fromkeys(re.findall(r'(/api/archivo/file/[^"\\]+/NL' + clave + r'[^"\\]*\.pdf)', r.text)):
-                rp = pedir(BUSQUEDAS + ruta.replace("*", "%2A"), headers={"User-Agent": AGENTE})
+        for tipo in ("NL", "EX"):
+            r = pedir(f"{BUSQUEDAS}/cuadernillo/{tipo}/{clave}", headers={"User-Agent": AGENTE})
+            if r.status_code != 200:
+                continue
+            for ruta in dict.fromkeys(re.findall(r'(/api/archivo/file/[^"\\]+/' + tipo + clave + r'[^"\\]*\.pdf)', r.text)):
+                rp = pedir(BUSQUEDAS + ruta, headers={"User-Agent": AGENTE})
                 if rp.status_code == 200 and rp.content[:4] == b"%PDF":
                     paginas += _paginas_pdf(rp.content)
         if len(_cuadernillos) > 3:
             _cuadernillos.clear()
         _cuadernillos[clave] = paginas
-    paginas = _cuadernillos[clave]
-    patron = re.compile(r"\s*".join(re.escape(x) for x in num), re.I)
-    elegidas = [i for i, p in enumerate(paginas) if patron.search(p)]
+    return _cuadernillos[clave]
+
+
+def texto_cuadernillo(fecha, numero, tipo="") -> str:
+    """Ultimo recurso: las paginas de la edicion completa del dia donde empieza la norma
+    (su tipo seguido de su numero, por ejemplo «LEY Nº 31477»), y las dos siguientes."""
+    nums = re.findall(r"\d{2,}", str(numero or ""))
+    if not nums or not fecha:
+        return ""
+    palabras = re.findall(r"[A-Z]+", _sin_tildes(re.sub(r"\(.*?\)|\d.*", "", str(tipo or ""))))
+    numeros = r"\D{0,25}".join(nums)
+    if palabras:
+        patron = re.compile(r"\s+".join(palabras) + r".{0,40}?" + numeros, re.S)
+    elif len(nums) >= 2:
+        patron = re.compile(numeros)
+    else:
+        return ""   # un solo numero sin tipo: podria confundirse con otra norma
+    paginas = paginas_edicion(fecha)
+    elegidas = [i for i, p in enumerate(paginas) if patron.search(_sin_tildes(p))]
     if len(elegidas) > 1 and elegidas[0] < 6:
         elegidas = elegidas[1:]   # la primera coincidencia suele ser el sumario de la edicion
-    return "\n\n".join(paginas[i] for i in elegidas[:3])[:MAX_CARACTERES]
+    if not elegidas:
+        return ""
+    i = elegidas[0]
+    return "\n\n".join(paginas[i:i + 3])[:MAX_CARACTERES]
 
 
 def _paginas_pdf(datos) -> list:

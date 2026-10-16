@@ -29,10 +29,10 @@ SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
 
 
 def revisados(bases) -> set:
-    # Normas: revision con la pagina y la edicion completa de El Peruano, marcada "n3_..."
+    # Normas: revision con la pagina y la edicion completa de El Peruano, marcada "n4_..."
     def f(cur):
         cur.execute(SQL_CONTROL)
-        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n3%'")
+        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n4%'")
         return {(t, k) for t, k in cur.fetchall()}
     return bases.ejecutar(bases.control, f)
 
@@ -128,7 +128,7 @@ def main():
     cur.execute("SELECT periodo || '|' || camara || '|' || numero, periodo, camara, num_pley, coalesce(titulo, '') FROM proyectos_ley")
     proyectos = {r[0]: r[1:] for r in cur.fetchall()}
     claves_n = [k for t, k in pend if t == "N"]
-    cur.execute("SELECT hash_unico, fecha, url_detalle, numero FROM normas WHERE hash_unico = ANY(%s)", (claves_n,))
+    cur.execute("SELECT hash_unico, fecha, url_detalle, numero, tipo FROM normas WHERE hash_unico = ANY(%s)", (claves_n,))
     normas = {r[0]: r[1:] for r in cur.fetchall()}
     c.close()
 
@@ -164,14 +164,14 @@ def main():
                     completo = f"{cabecera}\n\n{texto}".strip()
                 else:
                     if clave not in normas:
-                        envio.agregar(tipo, clave, None, origen, "n3_no_esta")
+                        envio.agregar(tipo, clave, None, origen, "n4_no_esta")
                         continue
-                    fecha, url, numero = normas[clave]
+                    fecha, url, numero, tipo_norma = normas[clave]
                     datos = pdf_norma(url, fecha)
                     texto = extraer(datos) if datos else ""
                     # Sin PDF o PDF vacio/dañado: pagina de la norma, su otro PDF y, al final,
                     # las paginas de la edicion completa del dia donde aparece su numero
-                    for otra in (lambda: texto_html_norma(url), lambda: texto_cuadernillo(fecha, numero)):
+                    for otra in (lambda: texto_html_norma(url), lambda: texto_cuadernillo(fecha, numero, tipo_norma)):
                         if len(texto) >= 100:
                             break
                         alterno = otra()
@@ -188,7 +188,7 @@ def main():
                 time.sleep(espera)
                 espera = min(espera * 2, 600)
                 continue
-            pre = "n3_" if tipo == "N" else ""
+            pre = "n4_" if tipo == "N" else ""
             if len(texto) >= 100:
                 envio.agregar(tipo, clave, completo, origen, pre + "ok")
                 con_texto += 1
