@@ -1,25 +1,18 @@
-"""Diagnostico temporal: estado final del indexado."""
-import os, sys
-sys.path.insert(0, os.path.dirname(__file__))
-from indexar import Bases, principal
-b = Bases()
-print("Revisados:", b.ejecutar(b.control, lambda cur: (cur.execute("SELECT tipo, resultado, count(*) FROM ocr_revisado GROUP BY 1, 2 ORDER BY 1, 2"), cur.fetchall())[1]))
-docs = {}
-for url in b.urls:
-    for t, k, e in b.ejecutar(url, lambda cur: (cur.execute("SELECT tipo, clave, estado FROM documentos"), cur.fetchall())[1]):
-        docs.setdefault(t, {})
-        if docs[t].get(k) != "ok":
-            docs[t][k] = e
-c = principal(); cur = c.cursor()
-cur.execute("SELECT hash_unico, fecha FROM normas"); normas = cur.fetchall()
-cur.execute("SELECT periodo||'|'||camara||'|'||numero, fecha_presentacion FROM proyectos_ley"); proy = cur.fetchall()
-cur.execute("SELECT fecha, tipo, numero, left(sumilla, 80) FROM normas WHERE hash_unico = ANY(%s) ORDER BY fecha",
-            ([k for k, _ in normas if docs["N"].get(k) != "ok"],))
-falta = cur.fetchall()
-for nombre, filas, t in (("NORMAS", normas, "N"), ("PROYECTOS", proy, "P")):
-    est = {}
-    for k, f in filas:
-        e = docs[t].get(k, "FALTA"); est[e] = est.get(e, 0) + 1
-    print(nombre, len(filas), est, "| ultima fecha", max(f for _, f in filas if f))
-print("\nNormas sin texto:")
-for f in falta: print(" ", f)
+import requests
+A = {"User-Agent": "Mozilla/5.0"}
+for n, per in (("30532", "2016_2021"), ("30440", "2011_2016"), ("30474", "2011_2016"), ("30673", "2016_2021"), ("31638", "2021_2026"), ("31477", "2021_2026"), ("30441", "2011_2016")):
+    for nombre in (f"{n}-LEY.pdf", f"{n}.pdf", f"{n}-RESOLUCION LEGISLATIVA.pdf", f"{n}-LEY-RL.pdf"):
+        for base in ("https://leyes.congreso.gob.pe/Documentos", "https://www.leyes.congreso.gob.pe/Documentos"):
+            u = f"{base}/{per}/ADLP/Normas_Legales/{nombre}"
+            try:
+                r = requests.get(u, headers=A, timeout=40)
+                if r.status_code == 200 or nombre.endswith("-LEY.pdf"):
+                    print(r.status_code, len(r.content), r.content[:5], u)
+            except Exception as e:
+                print("ERR", u, str(e)[:80])
+for u in ("https://www2.congreso.gob.pe/Sicr/TraDocEstProc/CLProLey2016.nsf", "https://leyes.congreso.gob.pe/LeyNume_1p.aspx?xEstado=2&xTipoNorma=0&xTipoBusqueda=4&xFechaI=&xFechaF=&xTexto=&ordenPor=0&xNormaI=30532&xNormaF=30532"):
+    try:
+        r = requests.get(u, headers=A, timeout=40); print(r.status_code, len(r.text), u[:90]); 
+        import re; print(re.findall(r'href="([^"]+\.pdf)"', r.text, re.I)[:5])
+    except Exception as e:
+        print("ERR", u[:60], str(e)[:80])
