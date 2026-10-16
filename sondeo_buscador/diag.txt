@@ -1,37 +1,61 @@
-Revisados: [('N', 'ok', 1), ('N', 'sin_texto', 5), ('P', 'ok', 4283)]
-[('P', 'ok', 4377), ('N', 'ok', 30978)]
-[('N', 'sin_texto', 1), ('P', 'ok', 944), ('N', 'ok', 41836)]
-[('P', 'ok', 3), ('N', 'ok', 46497)]
-[('N', 'ok', 46420), ('N', 'sin_texto', 1)]
-[('P', 'ok', 611), ('N', 'ok', 45917)]
-[('P', 'ok', 3682)]
 
- P 2021|C|14541/2025-CR ok 23130 
- PROYECTO DE LEY QUE CREA EL PROGRAMA "MI PRIMERA CHAMBA" Y ESTABLECE UN SUBSIDIO PARA PROMOVER LA CONTRATACIÓN FORMAL DE JÓVENES DE 18 A 29 AÑOS EN EL ÁMBITO DEL SECTOR PRIVADO
-PROPONE CREAR EL PROGRAMA NACIONAL PARA LA PROMOCIÓN DE OPORTUNIDADES LABORALES PARA JÓVENES, "MI PRIMERA CHAMBA", EN EL MINISTERIO DE TRABAJO Y PROMOCIÓN DEL EMPLEO, QUE OTORGA UN SUBSIDIO PARA PROMOVER LA CONTRATACIÓN FORMAL DE JÓVENES DE 18 A 29 AÑOS EN EL ÁMBITO DEL SECTOR PRIVADO
+2026-03-05 Resolución Ministerial D000057-2026-MIDIS | DESARROLLO E INCLUSIÓN SOCIAL | Designan Jefe de la Oficina General de Cooperación y Asuntos Internacionales
+  https://busquedas.elperuano.pe/dispositivo/NL/2492749-1
+   Producer:        GPL Ghostscript 9.23 | CreationDate:    Thu Mar  5 13:45:01 2026 UTC | ModDate:         Thu Mar  5 13:45:01 2026 UTC | Custom Metadata: no | Metadata Stream: yes | Tagged:          no | UserProperties:  no | Suspects:        no | Form:            AcroForm | JavaScript:      no | Pages:           1 | Encrypted:       no | Page size:       612 x 792 pts (letter) | Page rot:        0
+   imagenes: page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+   1     0 image     100    21  rgb     3   8  image  no        15  0   101   101 2238B  36%
 
-CONGRESO DE LA REPÚBLICA
-ÁREA DE TRÁMITE DOCUMENTARIO
-RECIBIDO
+  bytes 49085 pypdf 0 ocr 63 'Firmado por: Editora Peru\n\nLA\nEl Peruano peca: 00/00/2020 08:44'
 
-PROYECTO DE LEY N*
-14541/2025-CR RU 2297538
+2026-02-24 Resolución 35-2026-ATU/PE | AUTORIDAD DE TRANSPORTE URBANO PARA LIMA Y CALLAO | Designan Asesor I de la Gerencia General de la ATU
+  https://busquedas.elperuano.pe/dispositivo/NL/2489679-1
+   Producer:        GPL Ghostscript 9.23 | CreationDate:    Tue Feb 24 13:45:01 2026 UTC | ModDate:         Tue Feb 24 13:45:01 2026 UTC | Custom Metadata: no | Metadata Stream: yes | Tagged:          no | UserProperties:  no | Suspects:        no | Form:            AcroForm | JavaScript:      no | Pages:           1 | Encrypted:       no | Page size:       612 x 792 pts (letter) | Page rot:        0
+   imagenes: page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+   1     0 image     100    21  rgb     3   8  image  no        15  0   101   101 2238B  36%
 
-“Decenio de la Igualdad de 
+  bytes 49085 pypdf 0 ocr 64 'Firmado por: Editora Peru\n\nLA\nEl Peruano recna: 20/02/2026 08:45'
 
- P 2021|C|11488/2024-CR ok 8298 
- LEY QUE DECLARA DE INTERÉS NACIONAL Y NECESIDAD PÚBLICA LA PROMOCIÓN Y DESARROLLO TURÍSTICO DEL CIRCUITO CAÑÓN DEL COLCA EN LA PROVINCIA DE CAYLLOMA, AREQUIPA
-PROPONE DECLARAR DE NECESIDAD PÚBLICA E INTERÉS NACIONAL Y REGIONAL LA PROMOCIÓN DEL CIRCUITO TURÍSTICO DEL CAÑÓN DEL COLCA, UBICADO EN LA PROVINCIA DE CAYLLOMA, DEPARTAMENTO DE AREQUIPA
+2023-07-13 Fe De Errata Ordenanza 610/MM | MUNICIPALIDAD DE MIRAFLORES | FE DE ERRATA
+  https://busquedas.elperuano.pe/normaslegales/-fe-de-errata-ordenanza-n-610mm-2195425-1/
+   Producer:        GPL Ghostscript 9.23; modified using iText® 5.5.13 ©2000-2018 iText Group NV (AGPL-version) | CreationDate:    Thu Jul 13 08:44:12 2023 UTC | ModDate:         Thu Jul 13 08:44:20 2023 UTC | Custom Metadata: no | Metadata Stream: yes | Tagged:          no | UserProperties:  no | Suspects:        no | Form:            AcroForm | JavaScript:      no | Pages:           1 | Encrypted: 
+   imagenes: page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+   1     0 image     100    21  index   1   8  image  no        13  0   101   101 1268B  60%
 
-Proyecto de Lay w//188/ 202 CR
+  bytes 28720 pypdf 0 ocr 69 'Firmado por: Editora\n\nEl P z Peru\n¡Ll Peruano Fecha: 13/07/2023 03:44'
 
-“Decenio de la Igualdad de oportunidades para mujeres y hombres
-“Año de la recuperación y consolidación de la economía peruana”
+2026-09-11 Resolución Ministerial 01102-2026-DE | DEFENSA | Crean Grupo de Trabajo Multisectorial con el objeto de formular la propuesta normativa para el desarrollo e implementación del Sistema de Vigilancia Amazónica y
+  https://busquedas.elperuano.pe/dispositivo/NL/2553491-1
+   Producer:        GPL Ghostscript 9.23 | CreationDate:    Fri Sep 11 13:45:02 2026 UTC | ModDate:         Fri Sep 11 13:45:02 2026 UTC | Custom Metadata: no | Metadata Stream: yes | Tagged:          no | UserProperties:  no | Suspects:        no | Form:            AcroForm | JavaScript:      no | Pages:           1 | Encrypted:       no | Page size:       612 x 792 pts (letter) | Page rot:        0
+   imagenes: page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+   1     0 image     100    21  rgb     3   8  image  no        15  0   101   101 2238B  36%
 
-Ley que Declara de Interés Nacional y
-Necesidad Pública la Promoción y Desarrollo
-Turístico 
-[]
-[]
-[]
-[('N', 'sin_texto', 3), ('P', 'ok', 5861), ('N', 'ok', 33360)]
+  bytes 49513 pypdf 0 ocr 64 'Firmado por: Editora Peru\n\nLA\nEl Peruano recna: 12/00/2026 08:06'
+
+2017-11-01 Resolucion 0411-2017-JNE | JURADO NACIONAL DE ELECCIONES | Declaran infundado recurso extraordinario interpuesto contra la Res. N° 0269-2017-JNE mediante la cual se confirmaron Acuerdos de Concejo sobre desaprobación de
+  https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-extraordinario-interpuesto-contra-resolucion-no-0411-2017-jne-1582046-1/
+   Custom Metadata: no | Metadata Stream: no | Tagged:          no | UserProperties:  no | Suspects:        no | Form:            none | JavaScript:      no | Pages:           4 | Encrypted:       no | Page size:       0 x 0 pts | Page rot:        0 | File size:       754240 bytes | Optimized:       yes | PDF version:     1.6 | 
+   imagenes: page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio
+--------------------------------------------------------------------------------------------
+
+Traceback (most recent call last):
+  File "/home/runner/work/normas-peru/normas-peru/src/diag_indices.py", line 22, in <module>
+    print("  bytes", len(d), "pypdf", len(texto_pdf(d)), "ocr", len(ocr.texto_ocr(d)), repr(ocr.texto_ocr(d)[:200]))
+                                          ^^^^^^^^^^^^
+  File "/home/runner/work/normas-peru/normas-peru/src/textos.py", line 110, in texto_pdf
+    for pagina in lector.pages:
+                  ^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/pypdf/_page.py", line 2578, in __iter__
+    for i in range(len(self)):
+                   ^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/pypdf/_page.py", line 2503, in __len__
+    return self.length_function()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/pypdf/_doc_common.py", line 386, in get_num_pages
+    self._flatten(self._readonly)
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/pypdf/_doc_common.py", line 1386, in _flatten
+    raise PdfReadError("Invalid object in /Pages")
+pypdf.errors.PdfReadError: Invalid object in /Pages
