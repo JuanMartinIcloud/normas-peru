@@ -129,6 +129,8 @@ entre el ${desde} y el ${hasta}. Español claro. Usa solo los datos recibidos y 
         partes: [{ text: lista.join("\n") }],
         esquema: RESUMEN,
         maxTokens: 4096,
+        limiteMs: 90000,
+        intentoMs: 45000,
       });
       resumen = { panorama: String(datos.panorama || ""), puntos: (datos.puntos || []).map(String) };
     } catch (e) {

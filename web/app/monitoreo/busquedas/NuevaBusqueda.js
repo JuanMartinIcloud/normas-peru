@@ -13,15 +13,20 @@ export default function NuevaBusqueda() {
     setError("");
     try {
       setEstado("La IA está interpretando la pregunta…");
-      const r1 = await fetch("/api/ia/interpretar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: d.pregunta }) });
-      const i = await r1.json().catch(() => ({}));
-      if (!r1.ok || i.error) throw new Error(i.error || "La IA no pudo interpretar la pregunta.");
+      // Si la IA no responde, la busqueda se guarda igual con las palabras escritas
+      let i = { terminos: [] };
+      try {
+        const r1 = await fetch("/api/ia/interpretar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: d.pregunta }) });
+        const res = await r1.json().catch(() => ({}));
+        if (r1.ok && !res.error && Array.isArray(res.terminos) && res.terminos.length) i = res;
+      } catch {}
+      const sinIA = !i.terminos.length;
       setEstado("Guardando…");
       const r2 = await fetch("/api/busquedas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          accion: "crear", nombre: d.nombre || d.pregunta, pregunta: d.pregunta, terminos: i.terminos,
+          accion: "crear", nombre: d.nombre || d.pregunta, pregunta: sinIA ? "" : d.pregunta, q: sinIA ? d.pregunta : "", terminos: i.terminos,
           refinar: d.filtros ? d.filtros.split(",").map((x) => x.trim()).filter(Boolean) : [],
           frecuencia: d.frecuencia, destinatarios: d.destinatarios,
         }),

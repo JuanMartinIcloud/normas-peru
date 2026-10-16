@@ -68,6 +68,7 @@ function limpiarGrupo(g, validas) {
 }
 
 export async function POST(request) {
+  const inicio = Date.now();
   let cuerpo;
   try {
     cuerpo = await request.json();
@@ -178,6 +179,8 @@ export async function POST(request) {
       instrucciones: INSTRUCCIONES,
       partes: [{ text: lineas.join("\n") }],
       esquema: ESQUEMA,
+      limiteMs: Math.max(30000, 285000 - (Date.now() - inicio)),
+      intentoMs: 120000,
     });
     const validas = new Set(Object.keys(referencias));
     const resultado = {

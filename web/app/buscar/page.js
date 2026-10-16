@@ -139,6 +139,12 @@ export default async function Buscar({ searchParams }) {
           {(fn.avisoTexto || fp.avisoTexto) && (
             <p className="ia-aviso">Una parte de la búsqueda dentro de los documentos tardó demasiado y se omitió; los resultados pueden estar incompletos.</p>
           )}
+          {sp.sinia === "1" && (
+            <p className="ia-pendiente">
+              La inteligencia artificial está muy solicitada en este momento, así que se buscó por las palabras escritas.
+              Puedes volver a pulsar «Buscar» en unos minutos para la búsqueda con IA.
+            </p>
+          )}
           {corregidaDe && (
             <p className="ia-aviso">
               No hubo resultados para «{corregidaDe}». Se muestran los resultados para <strong>«{fn.q}»</strong>.

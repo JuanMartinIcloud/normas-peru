@@ -26,6 +26,7 @@ número cuando sea útil. Usa solo la información recibida. Responde solo con e
 clima de inversión), "oportunidades" (lo favorable) y "recomendaciones" (3 a 6 acciones para el Directorio).`;
 
 export async function POST(request) {
+  const inicio = Date.now();
   const u = await usuarioActual();
   if (!u) return Response.json({ error: "Ingresa con tu usuario." }, { status: 401 });
   const c = await request.json().catch(() => ({}));
@@ -52,6 +53,8 @@ export async function POST(request) {
       partes: [{ text: `Periodo: ${c.desde} a ${c.hasta}\n\n${usados.join("\n")}` }],
       esquema: ESQUEMA,
       maxTokens: 8192,
+      limiteMs: Math.max(30000, 285000 - (Date.now() - inicio)),
+      intentoMs: 120000,
     });
     const limpio = {
       panorama: String(datos.panorama || "").trim(),

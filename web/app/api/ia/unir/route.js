@@ -67,6 +67,7 @@ Las normas legales que también se reciban sirven solo como contexto.`,
 const limpiaTexto = (v) => String(v || "").trim();
 
 export async function POST(request) {
+  const inicio = Date.now();
   let cuerpo;
   try {
     cuerpo = await request.json();
@@ -179,6 +180,8 @@ export async function POST(request) {
       partes,
       esquema: ESQUEMA,
       maxTokens: 32768,
+      limiteMs: Math.max(30000, 290000 - (Date.now() - inicio)),
+      intentoMs: 200000,
     });
     const secciones = (datos.secciones || [])
       .map((s) => ({

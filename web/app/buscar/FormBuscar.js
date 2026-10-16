@@ -57,8 +57,13 @@ export default function FormBuscar({ texto = "", desde = "", hasta = "" }) {
       if (h || res.hasta) p.set("hasta", h || res.hasta);
       window.location.href = `/buscar?${p.toString()}`;
     } catch (err) {
-      setError(`${err.message} Puedes desactivar «Buscar con IA» y buscar por palabras exactas.`);
-      setEstado("error");
+      // Si la IA no responde, se busca igual por las palabras escritas (sin mostrar un error)
+      const s = new URLSearchParams();
+      s.set("q", q);
+      if (d) s.set("desde", d);
+      if (h) s.set("hasta", h);
+      s.set("sinia", "1");
+      window.location.href = `/buscar?${s.toString()}`;
     }
   }
 

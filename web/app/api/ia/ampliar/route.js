@@ -40,6 +40,8 @@ export async function POST(request) {
       partes: [{ text: `Búsqueda del usuario: ${q}` }],
       esquema: ESQUEMA,
       maxTokens: 1024,
+      limiteMs: 50000,
+      intentoMs: 20000,
     });
     const terminos = [];
     for (const t of datos.terminos || []) {
