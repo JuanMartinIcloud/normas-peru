@@ -25,7 +25,7 @@ function Seccion({ titulo, datos, vacio, mostrarMovimiento }) {
               key={`${p.analisis_id}-${p.mov_fecha}`}
               a={p}
               titulo={`Proposición ${p.numero}`}
-              subtitulo={`${CAMARA[p.camara] || ""} · ${p.proponente || ""}`}
+              subtitulo={[CAMARA[p.camara], p.proponente].filter((x, i, l) => x && l.indexOf(x) === i).join(" · ")}
               fecha={p.mov_fecha || p.fecha_presentacion}
               descripcion={p.titulo}
               movimiento={
