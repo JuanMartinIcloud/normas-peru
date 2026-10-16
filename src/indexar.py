@@ -24,6 +24,7 @@ from datetime import date, timedelta
 
 import psycopg2
 import requests
+from bs4 import BeautifulSoup
 from psycopg2.extras import execute_values
 
 import config
@@ -395,6 +396,25 @@ class Reloj:
         return time.time() < self.hasta
 
 
+def texto_html_norma(url_detalle) -> str:
+    """Texto de la norma desde su pagina de El Peruano (recuadro "story"). Sirve cuando el PDF no
+    existe, esta vacio o dañado: muchas normas tienen ahi su texto completo."""
+    if not url_detalle:
+        return ""
+    r = pedir(url_detalle, headers={"User-Agent": AGENTE})
+    if r.status_code != 200:
+        return ""
+    sopa = BeautifulSoup(r.text, "html.parser")
+    for t in sopa(["script", "style"]):
+        t.decompose()
+    caja = sopa.select_one("div.story")
+    if not caja:
+        return ""
+    texto = re.sub(r"[ \t]+", " ", caja.get_text("\n"))
+    texto = re.sub(r"\n\s*\n+", "\n\n", texto).strip()
+    return texto[:MAX_CARACTERES] if len(texto) >= 200 else ""
+
+
 def procesar_normas(bases, filas, reloj, estado_errores):
     """Procesa en orden. Devuelve (hechos, ultima_fila_hecha, se_corto): todas las filas hasta
     ultima_fila_hecha (inclusive) quedaron guardadas."""
@@ -417,12 +437,19 @@ def procesar_normas(bases, filas, reloj, estado_errores):
                 if estado_errores["n"] >= MAX_ERRORES_SEGUIDOS:
                     print("  El Peruano no responde; se continuara en la proxima ejecucion.")
                 return hechos, ultima, True
-            if datos is None:
-                bases.guardar("N", clave, "sin_pdf", "")
+            texto = extraer(datos) if datos is not None else ""
+            if len(texto) < 100:
+                # Sin PDF, PDF vacio o dañado: se toma el texto de la pagina de la norma
+                try:
+                    html = texto_html_norma(url)
+                except (requests.RequestException, FuenteNoResponde):
+                    html = ""
+                if len(html) > len(texto):
+                    texto = html
+            if len(texto) >= 100:
+                bases.guardar("N", clave, "ok", texto)
             else:
-                texto = extraer(datos)
-                ok = len(texto) >= 100
-                bases.guardar("N", clave, "ok" if ok else "sin_texto", texto if ok else "")
+                bases.guardar("N", clave, "sin_pdf" if datos is None else "sin_texto", "")
             hechos += 1
             if hechos % 100 == 0:
                 print(f"  {hechos} normas procesadas")

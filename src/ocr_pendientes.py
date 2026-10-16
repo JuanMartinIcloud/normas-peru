@@ -18,7 +18,7 @@ import requests
 from psycopg2.extras import execute_values
 
 import indexar
-from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma
+from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_html_norma
 
 SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
     tipo  CHAR(1) NOT NULL,
@@ -29,9 +29,10 @@ SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
 
 
 def revisados(bases) -> set:
+    # Normas: segunda revision (con la pagina de El Peruano) marcada "n2_..."; la primera no cuenta
     def f(cur):
         cur.execute(SQL_CONTROL)
-        cur.execute("SELECT tipo, clave FROM ocr_revisado")
+        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n2%'")
         return {(t, k) for t, k in cur.fetchall()}
     return bases.ejecutar(bases.control, f)
 
@@ -41,7 +42,8 @@ def sin_texto(bases):
     salida = {}
     for url in bases.urls:
         def f(cur):
-            cur.execute("SELECT tipo, clave FROM documentos WHERE estado = 'sin_texto' AND tipo IN ('N', 'P')")
+            cur.execute("""SELECT tipo, clave FROM documentos
+                           WHERE (tipo = 'P' AND estado = 'sin_texto') OR (tipo = 'N' AND estado IN ('sin_texto', 'sin_pdf'))""")
             return cur.fetchall()
         for t, k in bases.ejecutar(url, f):
             salida[(t, k)] = url
@@ -90,7 +92,7 @@ class Envio:
             for origen, claves in por_base.items():
                 def borrar(cur, claves=claves):
                     for t, k in claves:
-                        cur.execute("DELETE FROM documentos WHERE tipo = %s AND clave = %s AND estado = 'sin_texto'", (t, k))
+                        cur.execute("DELETE FROM documentos WHERE tipo = %s AND clave = %s AND estado IN ('sin_texto', 'sin_pdf')", (t, k))
                 b.ejecutar(origen, borrar)
             print(f"  guardados {len(self.nuevos)} textos nuevos")
             self.nuevos = []
@@ -157,11 +159,15 @@ def main():
                     completo = f"{cabecera}\n\n{texto}".strip()
                 else:
                     if clave not in normas:
-                        envio.agregar(tipo, clave, None, origen, "no_esta")
+                        envio.agregar(tipo, clave, None, origen, "n2_no_esta")
                         continue
                     fecha, url = normas[clave]
                     datos = pdf_norma(url, fecha)
                     texto = extraer(datos) if datos else ""
+                    if len(texto) < 100:
+                        html = texto_html_norma(url)
+                        if len(html) > len(texto):
+                            texto = html
                     completo = texto
                 errores, espera = 0, 30
             except (requests.RequestException, FuenteNoResponde, ValueError) as e:
@@ -173,11 +179,12 @@ def main():
                 time.sleep(espera)
                 espera = min(espera * 2, 600)
                 continue
+            pre = "n2_" if tipo == "N" else ""
             if len(texto) >= 100:
-                envio.agregar(tipo, clave, completo, origen, "ok")
+                envio.agregar(tipo, clave, completo, origen, pre + "ok")
                 con_texto += 1
             else:
-                envio.agregar(tipo, clave, None, origen, "sin_texto")
+                envio.agregar(tipo, clave, None, origen, pre + "sin_texto")
             hechos += 1
             print(f"  {tipo} {clave}: {len(texto)} caracteres ({time.time() - inicio:.0f} s)")
             time.sleep(1)
