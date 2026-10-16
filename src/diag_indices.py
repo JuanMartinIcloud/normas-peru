@@ -1,36 +1,33 @@
-"""Diagnostico temporal: fuentes alternativas para las 5 normas sin texto."""
+"""Diagnostico temporal: estructura HTML de la norma y reparacion del PDF dañado."""
 import os, sys, re, subprocess, tempfile
 sys.path.insert(0, os.path.dirname(__file__))
 import requests
 from bs4 import BeautifulSoup
-from indexar import Bases, principal, pdf_norma
+from indexar import pdf_norma
 from textos import AGENTE
+from datetime import date
 import ocr
-b = Bases()
-claves = b.ejecutar(b.control, lambda cur: (cur.execute("SELECT clave FROM ocr_revisado WHERE tipo='N' AND resultado='sin_texto'"), [r[0] for r in cur.fetchall()])[1])
-c = principal(); cur = c.cursor()
-cur.execute("SELECT hash_unico, fecha, numero, url_detalle FROM normas WHERE hash_unico = ANY(%s)", (claves,))
-for k, fecha, num, url in cur.fetchall():
-    print(f"\n== {fecha} {num}\n  {url}")
-    try:
-        r = requests.get(url, headers={"User-Agent": AGENTE}, timeout=60)
-        s = BeautifulSoup(r.text, "html.parser")
-        for t in s(["script", "style", "nav", "header", "footer"]): t.decompose()
-        txt = re.sub(r"\s+", " ", s.get_text(" "))
-        print("  HTML", r.status_code, len(r.text), "texto", len(txt))
-        i = txt.find("CONSIDERANDO"); i = i if i >= 0 else txt.find("Considerando")
-        print("  ", txt[max(0, i - 200): i + 600] if i >= 0 else txt[:900])
-        enl = [a.get("href") for a in s.find_all("a") if a.get("href") and ("pdf" in a.get("href").lower() or "Descarga" in a.get("href"))]
-        print("  enlaces pdf:", enl[:6])
-    except Exception as e:
-        print("  HTML error", e)
-    d = pdf_norma(url, fecha)
-    if d:
-        with tempfile.TemporaryDirectory() as t:
-            open(f"{t}/a.pdf", "wb").write(d)
-            r = subprocess.run(["qpdf", f"{t}/a.pdf", f"{t}/b.pdf"], capture_output=True, text=True)
-            print("  qpdf", r.returncode, r.stderr[:200])
-            if os.path.exists(f"{t}/b.pdf"):
-                d2 = open(f"{t}/b.pdf", "rb").read()
-                print("  pdftotext", len(subprocess.run(["pdftotext", f"{t}/b.pdf", "-"], capture_output=True).stdout))
-                x = ocr.texto_ocr(d2); print("  ocr reparado", len(x), repr(x[:300]))
+url = "https://busquedas.elperuano.pe/dispositivo/NL/2492749-1"
+s = BeautifulSoup(requests.get(url, headers={"User-Agent": AGENTE}, timeout=60).text, "html.parser")
+for t in s(["script", "style"]): t.decompose()
+cands = [e for e in s.find_all(True) if "CONSIDERANDO" in e.get_text()]
+for e in cands[-6:]:
+    print(e.name, e.get("id"), e.get("class"), len(e.get_text()))
+print("---")
+e = cands[-1]
+print(repr(re.sub(r"\s+", " ", e.get_text(" "))[:400]))
+# pdf dañado
+u2 = "https://busquedas.elperuano.pe/normaslegales/declaran-infundado-recurso-extraordinario-interpuesto-contra-resolucion-no-0411-2017-jne-1582046-1/"
+d = pdf_norma(u2, date(2017, 11, 1))
+print("\nPDF", len(d), d[:300])
+print(d[-400:])
+with tempfile.TemporaryDirectory() as t:
+    open(f"{t}/a.pdf", "wb").write(d)
+    for cmd in (["gs", "-q", "-o", f"{t}/g.pdf", "-sDEVICE=pdfwrite", f"{t}/a.pdf"], ["mutool", "clean", f"{t}/a.pdf", f"{t}/m.pdf"]):
+        r = subprocess.run(cmd, capture_output=True, text=True); print(cmd[0], r.returncode, r.stderr[:300])
+    for f in ("g.pdf", "m.pdf"):
+        if os.path.exists(f"{t}/{f}"):
+            dd = open(f"{t}/{f}", "rb").read()
+            print(f, len(dd), "pdftotext", len(subprocess.run(["pdftotext", f"{t}/{f}", "-"], capture_output=True).stdout), "ocr", len(ocr.texto_ocr(dd)))
+s2 = BeautifulSoup(requests.get(u2, headers={"User-Agent": AGENTE}, timeout=60).text, "html.parser")
+print([ (x.name, x.get("src") or x.get("data-src") or x.get("href")) for x in s2.find_all(["iframe", "embed", "object", "a"]) if "pdf" in str(x).lower()][:10])
