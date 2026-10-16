@@ -1,39 +1,55 @@
-Revisados: [('N', 'ok', 1), ('N', 'sin_texto', 5), ('P', 'ok', 1069)]
-[('P', 'ok', 4377), ('N', 'ok', 30978), ('P', 'sin_texto', 340)]
+Revisados: [('N', 'ok', 1), ('N', 'sin_texto', 5), ('P', 'ok', 4043)]
+[('P', 'ok', 4377), ('N', 'ok', 30978), ('P', 'sin_texto', 2)]
 [('N', 'sin_texto', 1), ('P', 'ok', 944), ('N', 'ok', 41836)]
 [('P', 'ok', 3), ('N', 'ok', 46497)]
 [('N', 'ok', 46420), ('N', 'sin_texto', 1)]
 [('P', 'ok', 611), ('N', 'ok', 45917)]
-[('P', 'ok', 468)]
+[('P', 'ok', 3442)]
 
- P 2021|C|00064/2021-CR ok 3954 
- Ley que declara de necesidad pública e interés nacional la ejecución de los proyectos "Rehabilitación del sistema de agua y desagüe del distrito de Contamana, provincia de Ucayali - Loreto" y " Mejoramiento y ampliación del sistema de agua potable y alcantarillado de Caballococha, provincia de Mariscal Ramón Castilla - Loreto
-Propone declarar de necesidad pública e interés nacional la ejecución de los proyectos "Rehabilitación del sistema de agua y desagüe del distrito de Contamana, provincia de Ucayali - Loreto" y " Mejoramiento y ampliación del sistema de agua potable y alcantarillado de Cab
+ P 2021|C|13545/2025-CR ok 21078 
+ PROYECTO DE LEY QUE DECLARA DE NECESIDAD PÚBLICA E INTERÉS NACIONAL LA CREACIÓN DEL DISTRITO DE TANGOR, EN LA PROVINCIA DE DANIEL ALCIDES CARRIÓN, DEPARTAMENTO DE PASCO
+PROPONE DECLARAR DE NECESIDAD PÚBLICA E INTERÉS NACIONAL LA CREACIÓN DEL DISTRITO DE TANGOR, EN LA PROVINCIA DE DANIEL ALCIDES CARRIÓN, DEPARTAMENTO DE PASCO
 
- P 2021|C|00138/2021-CR ok 3457 
- Ley que establece medidas para la expansión del control concurrente
-Propone establecer medidas para la expansión del control concurrente.
+ana ds PASIÓN /¡NEOMIAS DÁVILA ATANAGIO
+SEA Es Congresista de la República
+ES” CONGRESO
 
-CON GRESO
 REPÚBLICA
+
+“Año de la recuperación y consolidación de la economía peruana”
+
 CONGRESO DE LA REPÚBLICA
-Lima, 03 de setiembre del 2021
-De conformidad con lo acordado por el Consejo
-Directivo en su sesión realizada el 1 de setiembre de
-2021, actualícese en el estado en que se
-encuentra, el proyecto de ley N° 6999/2020-CR
-asignándole el N° 138/2021-CR y pase para su
-estudio y dictamen, a la (s) Comisión (es) de:
-1.- FISCALIZACIÓN Y CONTRALORÍA.
-SSO S SSS
- ROVI R^..
-.
-AGALHU 
-Oficial Mayor
+ÁREA DE TRÁMITE DOCUMENTARIO
+
+PROYECTO DE LEY QUE DECLARA DE
+
+RECIBIDO - -
+PROYECT
+
+ P 2021|C|13631/2025-GR ok 47442 
+ PROYECTO DE LEY DE EMERGENCIA NACIONAL DE INFRAESTRUCTURA EDUCATIVA
+PROPONE DECLARAR DE EMERGENCIA NACIONAL LA INFRAESTRUCTURA EDUCATIVA EN EL PERÚ
+
+as
+
+CONSEJO REGIONAL DE AREQUIPA ones
+
+"AÑO DE LA RECUPERACIÓN Y CONSOLIDACIÓN DE LA ECONOMÍA PERUANA?
+
+Arequipa, 19 de diciembre del 2025
+
 CONGRESO DE LA REPÚBLICA
 
-CO
+OFICIO N*492-2025-GRA/CR-MBFC ÁREA DE TRÁMITE DOCUMENTARIO
+RECIBIDO
+Señor: ProYecro a LEY No
+
+Fernando Rospigliosi Capurro RU 2174038
+23 DICIEMBRE 2025 05:22 p. m.
+
+PRESIDENTE DEL CONGRESO DE LA REPÚBLICA DEL PERÚ * enuoooomauere cuor
+Plaza Bolívar, Av. Abancay s/n, Centro Histórico d
 []
 []
 []
-[('P', 'sin_texto', 2874), ('N', 'sin_texto', 3), ('P', 'ok', 5861), ('N', 'ok', 33360)]
+[('P', 'sin_texto', 238), ('N', 'sin_texto', 3), ('P', 'ok', 5861), ('N', 'ok', 33360)]
