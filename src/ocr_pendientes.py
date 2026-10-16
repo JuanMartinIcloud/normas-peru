@@ -18,7 +18,7 @@ import requests
 from psycopg2.extras import execute_values
 
 import indexar
-from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_html_norma
+from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_cuadernillo, texto_html_norma
 
 SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
     tipo  CHAR(1) NOT NULL,
@@ -29,10 +29,10 @@ SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
 
 
 def revisados(bases) -> set:
-    # Normas: segunda revision (con la pagina de El Peruano) marcada "n2_..."; la primera no cuenta
+    # Normas: revision con la pagina y la edicion completa de El Peruano, marcada "n3_..."
     def f(cur):
         cur.execute(SQL_CONTROL)
-        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n2%'")
+        cur.execute("SELECT tipo, clave FROM ocr_revisado WHERE tipo = 'P' OR resultado LIKE 'n3%'")
         return {(t, k) for t, k in cur.fetchall()}
     return bases.ejecutar(bases.control, f)
 
@@ -122,22 +122,27 @@ def main():
     if a.contar:
         print(len(pend))
         return
-    # Reparto por posicion en la lista de pendientes: en cada tanda lo que falta se divide parejo
-    todos = sorted(pend, key=lambda k: zlib.crc32(f"{k[0]}|{k[1]}".encode()))
-    mias = [k for i, k in enumerate(todos) if i % a.de == a.parte]
-    print(f"Documentos sin texto pendientes: {len(pend)}; de este trabajador: {len(mias)}")
-    if not mias:
-        return
-
     # Datos de la base principal (una sola consulta)
     c = indexar.principal()
     cur = c.cursor()
     cur.execute("SELECT periodo || '|' || camara || '|' || numero, periodo, camara, num_pley, coalesce(titulo, '') FROM proyectos_ley")
     proyectos = {r[0]: r[1:] for r in cur.fetchall()}
-    claves_n = [k for t, k in mias if t == "N"]
-    cur.execute("SELECT hash_unico, fecha, url_detalle FROM normas WHERE hash_unico = ANY(%s)", (claves_n,))
+    claves_n = [k for t, k in pend if t == "N"]
+    cur.execute("SELECT hash_unico, fecha, url_detalle, numero FROM normas WHERE hash_unico = ANY(%s)", (claves_n,))
     normas = {r[0]: r[1:] for r in cur.fetchall()}
     c.close()
+
+    # Reparto en tramos seguidos, ordenados por fecha (las normas de un mismo dia comparten la
+    # edicion completa, que asi se descarga una sola vez); en cada tanda lo que falta se divide parejo
+    def orden(k):
+        f = normas.get(k[1], (None,))[0] if k[0] == "N" else None
+        return (k[0], str(f or ""), zlib.crc32(k[1].encode()))
+    todos = sorted(pend, key=orden)
+    tramo = -(-len(todos) // a.de)
+    mias = todos[a.parte * tramo:(a.parte + 1) * tramo]
+    print(f"Documentos sin texto pendientes: {len(pend)}; de este trabajador: {len(mias)}")
+    if not mias:
+        return
 
     envio = Envio(bases)
     hechos = con_texto = errores = 0
@@ -159,15 +164,19 @@ def main():
                     completo = f"{cabecera}\n\n{texto}".strip()
                 else:
                     if clave not in normas:
-                        envio.agregar(tipo, clave, None, origen, "n2_no_esta")
+                        envio.agregar(tipo, clave, None, origen, "n3_no_esta")
                         continue
-                    fecha, url = normas[clave]
+                    fecha, url, numero = normas[clave]
                     datos = pdf_norma(url, fecha)
                     texto = extraer(datos) if datos else ""
-                    if len(texto) < 100:
-                        html = texto_html_norma(url)
-                        if len(html) > len(texto):
-                            texto = html
+                    # Sin PDF o PDF vacio/dañado: pagina de la norma, su otro PDF y, al final,
+                    # las paginas de la edicion completa del dia donde aparece su numero
+                    for otra in (lambda: texto_html_norma(url), lambda: texto_cuadernillo(fecha, numero)):
+                        if len(texto) >= 100:
+                            break
+                        alterno = otra()
+                        if len(alterno) > len(texto):
+                            texto = alterno
                     completo = texto
                 errores, espera = 0, 30
             except (requests.RequestException, FuenteNoResponde, ValueError) as e:
@@ -179,7 +188,7 @@ def main():
                 time.sleep(espera)
                 espera = min(espera * 2, 600)
                 continue
-            pre = "n2_" if tipo == "N" else ""
+            pre = "n3_" if tipo == "N" else ""
             if len(texto) >= 100:
                 envio.agregar(tipo, clave, completo, origen, pre + "ok")
                 con_texto += 1

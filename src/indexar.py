@@ -16,6 +16,7 @@ Diseño pensado para la capa gratuita de Neon (100 horas de computo al mes por p
 """
 import argparse
 import base64
+import io
 import os
 import re
 import time
@@ -26,6 +27,7 @@ import psycopg2
 import requests
 from bs4 import BeautifulSoup
 from psycopg2.extras import execute_values
+from pypdf import PdfReader
 
 import config
 import ocr as ocr_mod
@@ -396,23 +398,95 @@ class Reloj:
         return time.time() < self.hasta
 
 
-def texto_html_norma(url_detalle) -> str:
-    """Texto de la norma desde su pagina de El Peruano (recuadro "story"). Sirve cuando el PDF no
-    existe, esta vacio o dañado: muchas normas tienen ahi su texto completo."""
-    if not url_detalle:
-        return ""
-    r = pedir(url_detalle, headers={"User-Agent": AGENTE})
-    if r.status_code != 200:
-        return ""
-    sopa = BeautifulSoup(r.text, "html.parser")
+BUSQUEDAS = "https://busquedas.elperuano.pe"
+
+
+def _story(html) -> str:
+    sopa = BeautifulSoup(html, "html.parser")
     for t in sopa(["script", "style"]):
         t.decompose()
     caja = sopa.select_one("div.story")
     if not caja:
         return ""
     texto = re.sub(r"[ \t]+", " ", caja.get_text("\n"))
-    texto = re.sub(r"\n\s*\n+", "\n\n", texto).strip()
-    return texto[:MAX_CARACTERES] if len(texto) >= 200 else ""
+    return re.sub(r"\n\s*\n+", "\n\n", texto).strip()
+
+
+def texto_html_norma(url_detalle) -> str:
+    """Texto de la norma desde su pagina en El Peruano, cuando el PDF no existe, esta vacio o dañado:
+    1) el texto HTML de la pagina (recuadro "story"); 2) el PDF que enlaza esa pagina (otro servidor
+    distinto del habitual), leido con OCR si es escaneado."""
+    if not url_detalle:
+        return ""
+    op = codigo_norma(url_detalle)
+    paginas = ([f"{BUSQUEDAS}/dispositivo/NL/{op}"] if op else []) + [url_detalle]
+    mejor = ""
+    for url in paginas:
+        r = pedir(url, headers={"User-Agent": AGENTE})
+        if r.status_code != 200:
+            continue
+        texto = _story(r.text)
+        if len(texto) > len(mejor):
+            mejor = texto
+        if len(mejor) >= 200:
+            break
+        # PDF propio de la pagina (solo si es el de esta norma)
+        if op:
+            m = re.search(r'(/api/archivo/file/[^"\\]+/' + re.escape(op) + r'\.pdf)', r.text)
+            if m:
+                rp = pedir(BUSQUEDAS + m.group(1).replace("*", "%2A"), headers={"User-Agent": AGENTE})
+                if rp.status_code == 200 and rp.content[:4] == b"%PDF":
+                    texto = extraer(rp.content)
+                    if len(texto) > len(mejor):
+                        mejor = texto
+                    if len(mejor) >= 200:
+                        break
+    return mejor[:MAX_CARACTERES] if len(mejor) >= 100 else ""
+
+
+_cuadernillos = {}
+
+
+def texto_cuadernillo(fecha, numero) -> str:
+    """Ultimo recurso: las paginas de la edicion completa del dia (cuadernillo de Normas Legales)
+    donde aparece el numero de la norma. Se guarda en memoria por fecha (varias normas por dia)."""
+    num = re.sub(r"\s+", "", str(numero or ""))
+    if len(num) < 5 or not re.search(r"\d", num) or not fecha:
+        return ""   # numero demasiado corto: podria confundirse con otras normas
+    clave = fecha.strftime("%Y%m%d")
+    if clave not in _cuadernillos:
+        paginas = []
+        r = pedir(f"{BUSQUEDAS}/cuadernillo/NL/{clave}", headers={"User-Agent": AGENTE})
+        if r.status_code == 200:
+            for ruta in dict.fromkeys(re.findall(r'(/api/archivo/file/[^"\\]+/NL' + clave + r'[^"\\]*\.pdf)', r.text)):
+                rp = pedir(BUSQUEDAS + ruta.replace("*", "%2A"), headers={"User-Agent": AGENTE})
+                if rp.status_code == 200 and rp.content[:4] == b"%PDF":
+                    paginas += _paginas_pdf(rp.content)
+        if len(_cuadernillos) > 3:
+            _cuadernillos.clear()
+        _cuadernillos[clave] = paginas
+    paginas = _cuadernillos[clave]
+    patron = re.compile(r"\s*".join(re.escape(x) for x in num), re.I)
+    elegidas = [p for p in paginas if patron.search(p)][:3]
+    return "\n\n".join(elegidas)[:MAX_CARACTERES]
+
+
+def _paginas_pdf(datos) -> list:
+    """Texto de cada pagina (OCR si el PDF es escaneado)."""
+    try:
+        lector = PdfReader(io.BytesIO(datos))
+        salida = []
+        for pag in lector.pages:
+            try:
+                salida.append(pag.extract_text() or "")
+            except Exception:  # noqa: BLE001
+                salida.append("")
+        if sum(len(x) for x in salida) >= 100 * max(1, len(salida)) / 4:
+            return salida
+    except Exception:  # noqa: BLE001
+        pass
+    # Escaneado o dañado: OCR pagina por pagina
+    return ocr_mod.paginas_ocr(datos, 400, 2400)
 
 
 def procesar_normas(bases, filas, reloj, estado_errores):
