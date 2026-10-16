@@ -1,56 +1,33 @@
-200 2314793 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/Leyes/30440.pdf
-200 2314793 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/leyes/30440.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30440.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30440-LEY.PDF
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30440%20LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30440.pdf
-200 85486 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/Leyes/30474.pdf
-200 85486 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/leyes/30474.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30474.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30474-LEY.PDF
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30474%20LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30474.pdf
-200 81992 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/Leyes/30479.pdf
-200 81992 b'%PDF-' https://leyes.congreso.gob.pe/Documentos/leyes/30479.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30479.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30479-LEY.PDF
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/30479%20LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/30479.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/Leyes/31638.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/leyes/31638.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31638.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31638-LEY.PDF
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31638%20LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/31638.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/Leyes/31477.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/leyes/31477.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31477.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31477-LEY.PDF
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31477%20LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/31477.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/Leyes/31365.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/leyes/31365.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31365.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31365-LEY.PDF
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2021_2026/ADLP/Normas_Legales/31365%20LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2011_2016/ADLP/Normas_Legales/31365.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/ResLegislativas/30441.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30441-RL.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30441-RESLEG.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30441-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/ResLegislativas/30444.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30444-RL.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30444-RESLEG.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30444-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/ResLegislativas/30480.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30480-RL.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30480-RESLEG.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30480-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/ResLegislativas/30531.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30531-RL.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30531-RESLEG.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30531-LEY.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/ResLegislativas/30675.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30675-RL.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30675-RESLEG.pdf
-404 1245 b'<!DOC' https://leyes.congreso.gob.pe/Documentos/2016_2021/ADLP/Normas_Legales/30675-LEY.pdf
+Revisados: [('N', 'n2_ok', 1099), ('N', 'n3_ok', 1038), ('N', 'n4_ok', 101), ('N', 'n5_ok', 12), ('N', 'n5_sin_texto', 28), ('N', 'ok', 1), ('P', 'ok', 4283)]
+NORMAS 247286 {'ok': 247258, 'sin_pdf': 28} | ultima fecha 2026-10-16
+PROYECTOS 15478 {'ok': 15478} | ultima fecha 2026-10-15
+
+Normas sin texto:
+  (datetime.date(2016, 5, 27), 'Resolucion Jefatural', '001-004-00003725', 'Designan Analista Auxiliar Coactivo I del SAT')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30441', 'Resolución Legislativa que aprueba el Acuerdo de Cooperación en el Ámbito de Def')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30442', 'Resolución Legislativa que aprueba el Acuerdo entre la República Federal de Alem')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30443', 'Resolución Legislativa que aprueba el Acuerdo entre la República Federal de Alem')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30444', 'Resolución Legislativa que autoriza al Señor Presidente de la República para sal')
+  (datetime.date(2016, 5, 31), 'Resolucion Jefatural', '001-004-00003727', 'Designan Especialista Ejecutor Coactivo II del SAT')
+  (datetime.date(2016, 6, 1), 'Resolucion', '027-2016-SUNAT/600000', 'Designan Ejecutor Coactivo encargado de la gestión de cobranza coactiva de la In')
+  (datetime.date(2016, 6, 29), 'Resolucion Legislativa', '30480', 'Resolución Legislativa que autoriza al Señor Presidente de la República para sal')
+  (datetime.date(2016, 9, 2), 'Acuerdo (28/6/2016)', '', 'Reconocen a representante del Ilustre Colegio de Abogados de Lima por su destaca')
+  (datetime.date(2016, 12, 31), 'Resolucion Legislativa', '30531', 'Resolución Legislativa que autoriza el ingreso de personal militar al territorio')
+  (datetime.date(2017, 10, 19), 'Resolucion', '144-2017-SUNAT/800000', 'Aprueban reordenamiento de cargos del Cuadro para Asignación de Personal Provisi')
+  (datetime.date(2017, 10, 22), 'Resolucion Legislativa', '30675', 'Resolución Legislativa que autoriza al señor Presidente de la República para sal')
+  (datetime.date(2017, 10, 22), 'Resolucion Administrativa', '05225-2017/CAH-Ley N° 29625', 'Resolución Administrativa que aprueba el Padrón Nacional de Fonavistas Beneficia')
+  (datetime.date(2017, 10, 22), 'Resolucion', '12-2017/SUNAT/310000', 'Modifican Procedimiento General Restitución Simplificado de Derechos Arancelario')
+  (datetime.date(2017, 10, 22), 'Resolucion Legislativa', '30676', 'Resolución Legislativa que autoriza al señor Presidente de la República para sal')
+  (datetime.date(2017, 10, 23), 'Resolucion', '13-2017/SUNAT/310000', 'Modifican procedimiento general Exportación Temporal para Reimportación en el Mi')
+  (datetime.date(2018, 6, 22), 'Resolucion Jefatural', '001-004-00004082', 'Aprueban Directiva que establece lineamientos para el registro y uso de la Agenc')
+  (datetime.date(2018, 7, 5), 'Resolucion', '172-3G0000/2018-000010', 'Dan por concluida designación de Auxiliar Coactivo de la Intendencia Aduana de T')
+  (datetime.date(2018, 7, 25), 'Acuerdo', '025-2018-SO-GRL-CR:11/07/2018', 'Autorizan viaje de Gobernador Regional a EE.UU. en comisión de servicios')
+  (datetime.date(2018, 9, 15), 'Resolucion Jefatural', '001-004-00004121', 'Encargan a funcionario la Gerencia de Informática y como responsable del Portal ')
+  (datetime.date(2019, 5, 15), 'Resolucion', '1772-32019', 'Autorizan inscripción de personas naturales en el Registro de Intermediarios y A')
+  (datetime.date(2019, 8, 29), 'Resolucion Correlativo 19-383311', '', 'Autorizan la redistribución de diversos expedientes tramitados en el Distrito Ju')
+  (datetime.date(2021, 5, 3), 'Resolucion', '000065-2021-SUNAT/8000000000', 'Dejan sin efecto designaciones y designan\nFedataria Institucional Titular de la ')
+  (datetime.date(2021, 12, 14), 'Fe De Errata Ley', '31365', 'FE DE ERRATA')
+  (datetime.date(2021, 12, 24), 'Resolucion Jefatural', '001-004-00004719', 'Autorizan utilización de los formatos de actas de control homologadas como actas')
+  (datetime.date(2022, 6, 1), 'Fe De Errata R.J.', '001-004-0004806', 'FE DE ERRATA')
+  (datetime.date(2022, 6, 15), 'Separata Especial Resolución', '0912-2022-JNE y Acuerdo del Pleno (14/6/2022)', 'Convocan a ciudadano para que asuma el cargo de tercer miembro del Jurado Electo')
+  (datetime.date(2024, 2, 9), 'Aviso', 'TIFICACION POR EDICTO', '.')
