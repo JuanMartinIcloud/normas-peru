@@ -1,25 +1,10 @@
-('normas-0-de-12', datetime.date(2016, 12, 16), False, 10985, datetime.datetime(2026, 10, 16, 1, 28, 6, 235405, tzinfo=datetime.timezone.utc))
-('normas-1-de-12', datetime.date(2016, 12, 31), False, 11019, datetime.datetime(2026, 10, 16, 1, 28, 24, 191928, tzinfo=datetime.timezone.utc))
-('normas-10-de-12', datetime.date(2017, 1, 12), False, 11247, datetime.datetime(2026, 10, 16, 1, 28, 22, 522876, tzinfo=datetime.timezone.utc))
-('normas-11-de-12', datetime.date(2017, 12, 29), False, 9390, datetime.datetime(2026, 10, 16, 1, 28, 26, 863327, tzinfo=datetime.timezone.utc))
-('normas-2-de-12', datetime.date(2017, 3, 15), False, 11052, datetime.datetime(2026, 10, 16, 1, 28, 22, 205633, tzinfo=datetime.timezone.utc))
-('normas-3-de-12', datetime.date(2017, 3, 11), False, 10859, datetime.datetime(2026, 10, 16, 1, 28, 24, 919327, tzinfo=datetime.timezone.utc))
-('normas-4-de-12', datetime.date(2017, 2, 18), False, 10965, datetime.datetime(2026, 10, 16, 1, 28, 12, 96853, tzinfo=datetime.timezone.utc))
-('normas-5-de-12', datetime.date(2017, 9, 30), False, 9952, datetime.datetime(2026, 10, 16, 1, 28, 31, 345430, tzinfo=datetime.timezone.utc))
-('normas-6-de-12', datetime.date(2016, 8, 7), False, 11864, datetime.datetime(2026, 10, 16, 1, 28, 14, 674717, tzinfo=datetime.timezone.utc))
-('normas-7-de-12', datetime.date(2016, 11, 26), False, 11137, datetime.datetime(2026, 10, 16, 1, 28, 4, 117194, tzinfo=datetime.timezone.utc))
-('normas-8-de-12', datetime.date(2017, 11, 1), False, 9548, datetime.datetime(2026, 10, 16, 1, 28, 1, 880836, tzinfo=datetime.timezone.utc))
-('normas-9-de-12', datetime.date(2018, 1, 6), False, 9138, datetime.datetime(2026, 10, 16, 1, 28, 8, 403831, tzinfo=datetime.timezone.utc))
-('proyectos-0-de-3', None, True, 3687, datetime.datetime(2026, 10, 16, 1, 29, 7, 991320, tzinfo=datetime.timezone.utc))
-('proyectos-1-de-3', None, True, 3623, datetime.datetime(2026, 10, 16, 1, 29, 18, 194628, tzinfo=datetime.timezone.utc))
-('proyectos-2-de-3', None, True, 3627, datetime.datetime(2026, 10, 16, 1, 29, 3, 860608, tzinfo=datetime.timezone.utc))
-base 2 (406, 36606, 0)
-base 3 (437, 43492, 0)
-base 5 (427, 47074, 0)
-base 6 (379, 44114, 6604)
-base 7 (7, 0, 0)
-base 8 (7, 0, 0)
-base 9 (7, 0, 0)
-base 10 (7, 0, 0)
-base 11 (7, 0, 0)
-base 12 (429, 42099, 0)
+claves: 0
+['CREATE UNIQUE INDEX normas_pkey ON public.normas USING btree (id)', 'CREATE UNIQUE INDEX normas_hash_unico ON public.normas USING btree (hash_unico)', 'CREATE INDEX idx_normas_fecha ON public.normas USING btree (fecha DESC)', 'CREATE INDEX idx_normas_tipo ON public.normas USING btree (tipo)', 'CREATE INDEX idx_normas_sector ON public.normas USING btree (sector)', 'CREATE INDEX idx_normas_rubro ON public.normas USING btree (rubro)', "CREATE INDEX idx_normas_busqueda ON public.normas USING gin (to_tsvector('spanish'::regcon", 'CREATE INDEX idx_normas_texto ON public.normas USING gin (texto_tsv)']
+A ANY conteo: 0.33s
+A ANY lista rel: 0.07s
+B IN unnest conteo: 7.82s
+B IN unnest lista rel: 5.40s
+C id IN join conteo: 5.40s
+C id IN join lista rel: 2.71s
+D union conteo: 0.06s
+D union lista rel: 0.06s
