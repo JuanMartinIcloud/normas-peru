@@ -46,18 +46,18 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash src/reintentar.sh pip install -r requirements.txt
       - name: Analizar
         run: |
           set +e
           MODO="${{ github.event.inputs.modo || 'diario' }}"
           FORZAR="${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }}"
           if [ "$MODO" = "diario" ]; then
-            python src/monitoreo.py diario --max-minutos 150 > salida.log 2>&1; codigo=$?
+            bash src/reintentar.sh python src/monitoreo.py diario --max-minutos 150 > salida.log 2>&1; codigo=$?
             # Despues del dia, un mes mas hacia atras (uno por dia)
-            [ $codigo -eq 0 ] && { python src/monitoreo.py historico --max-minutos 150 >> salida.log 2>&1; codigo=$?; }
+            [ $codigo -eq 0 ] && { bash src/reintentar.sh python src/monitoreo.py historico --max-minutos 150 >> salida.log 2>&1; codigo=$?; }
           else
-            python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
+            bash src/reintentar.sh python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
           fi
           cat salida.log
           grep -E "^(Normas|Proyectos|Rango|Mes|La IA|Hoy|  analisis|  filtro)" salida.log | tail -n 15 | while IFS= read -r l; do echo "::notice::${l:0:900}"; done

@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash src/reintentar.sh pip install -r requirements.txt
       - name: Texto completo (${{ matrix.tipo }} ${{ matrix.parte }})
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
@@ -58,8 +58,18 @@ jobs:
           TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: |
           set +e
-          python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos 52 > salida.log 2>&1
-          codigo=$?
+          # Hasta 3 intentos dentro del tiempo de la tanda (una falla pasajera no detiene al trabajador;
+          # el avance queda guardado y cada intento sigue donde quedo el anterior)
+          : > salida.log
+          for intento in 1 2 3; do
+            quedan=$(( 52 - SECONDS / 60 ))
+            [ $quedan -lt 5 ] && break
+            python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos $quedan >> salida.log 2>&1
+            codigo=$?
+            [ $codigo -eq 0 ] && break
+            echo "Intento $intento fallo (codigo $codigo)" >> salida.log
+            sleep 60
+          done
           cat salida.log
           if [ $codigo -ne 0 ]; then
             # Las ultimas lineas quedan como avisos visibles en GitHub (los registros completos no siempre se pueden leer)

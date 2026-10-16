@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
+      - run: bash src/reintentar.sh pip install -r requirements.txt
       - name: Generar resumen
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
@@ -40,7 +40,7 @@ jobs:
           GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
         run: |
           set +e
-          python src/resumen.py ${{ github.event.inputs.fecha }} ${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }} > salida.log 2>&1
+          bash src/reintentar.sh python src/resumen.py ${{ github.event.inputs.fecha }} ${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }} > salida.log 2>&1
           codigo=$?
           cat salida.log
           if [ $codigo -ne 0 ]; then
