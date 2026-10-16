@@ -39,7 +39,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           mkdir -p sondeo_buscador
-          if [ "$Q" = "FALLAR" ]; then echo "falla de prueba"; exit 1; elif [ "$Q" = "VERIFICAR" ]; then python src/verificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
+          if [ "$Q" = "RECLASIFICAR" ]; then python src/reclasificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "FALLAR" ]; then echo "falla de prueba"; exit 1; elif [ "$Q" = "VERIFICAR" ]; then python src/verificar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "REPROCESAR" ]; then python src/reprocesar.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "INDICES" ]; then python src/diag_indices.py > sondeo_buscador/diag.txt 2>&1; elif [ "$Q" = "ANALIZAR" ]; then python src/analizar.py > sondeo_buscador/diag.txt 2>&1; cat sondeo_buscador/diag.txt; else python src/diag_busqueda.py "$Q"; fi
       - name: Guardar
         if: always()
         run: |

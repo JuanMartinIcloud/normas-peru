@@ -38,10 +38,12 @@ SECTORES = [
 
 # (rubro, palabras clave en sumilla o tipo)
 RUBROS = [
+    ("Personal y Designaciones", ["designa", "designacion", "encargan", "acepta renuncia", "aceptan renuncia",
+                                  "da por concluida", "dan por concluida", "nombra", "cesa", "autorizan viaje",
+                                  "autoriza viaje"]),
     ("Tributario y Aduanero", ["tribut", "impuesto", "arancel", "aduan", "igv", "renta", "sunat", "uit"]),
     ("Presupuesto y Finanzas Publicas", ["presupuesto", "credito suplementario", "transferencia de partidas", "endeudamiento", "tesoro publico"]),
     ("Contrataciones del Estado", ["contrataciones del estado", "osce", "licitacion", "adquisiciones"]),
-    ("Personal y Designaciones", ["designa", "designacion", "encargan", "acepta renuncia", "da por concluida", "nombra", "cesa", "autorizan viaje"]),
     ("Salud", ["salud", "sanitari", "hospital", "medicament", "vacuna", "epidemi"]),
     ("Educacion", ["educacion", "escuela", "universidad", "docente", "colegio", "curricul"]),
     ("Laboral y Seguridad Social", ["laboral", "trabajador", "pension", "remuneracion", "seguridad social", "empleo"]),
@@ -69,10 +71,20 @@ def clasificar_sector(entidad: str) -> str:
     return "Otros"
 
 
+def _patron(clave: str) -> re.Pattern:
+    """La clave debe empezar una palabra ("tribut" no coincide con "contributiva"); las claves cortas
+    (siglas como "uit", "igv", "rof") deben ser la palabra completa ("uit" no coincide con "circuito")."""
+    c = re.escape(clave.strip())
+    return re.compile(rf"\b{c}\b" if len(clave.strip()) <= 4 else rf"\b{c}")
+
+
+_RUBROS = [(r, [_patron(c) for c in claves]) for r, claves in RUBROS]
+
+
 def clasificar_rubro(sumilla: str, tipo: str = "") -> str:
     t = _norm(f"{tipo} {sumilla}")
-    for rubro, claves in RUBROS:
-        if any(c in t for c in claves):
+    for rubro, patrones in _RUBROS:
+        if any(p.search(t) for p in patrones):
             return rubro
     return "Sin clasificar"
 
