@@ -1,2 +1,2 @@
-Revisados: [('N', 'n2_ok', 1099), ('N', 'n2_sin_texto', 347), ('N', 'n3_ok', 629), ('N', 'n3_sin_texto', 70), ('N', 'ok', 1), ('P', 'ok', 4283)]
-Documentos: [(('N', 'ok'), 246736), (('N', 'sin_pdf'), 549), (('N', 'sin_texto'), 1), (('P', 'ok'), 15478)]
+Revisados: [('N', 'n2_ok', 1099), ('N', 'n2_sin_texto', 39), ('N', 'n3_ok', 990), ('N', 'n3_sin_texto', 138), ('N', 'ok', 1), ('P', 'ok', 4283)]
+Documentos: [(('N', 'ok'), 247117), (('N', 'sin_pdf'), 172), (('P', 'ok'), 15478)]
