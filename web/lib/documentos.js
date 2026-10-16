@@ -69,15 +69,30 @@ const CABECERAS_CONGRESO = {
   Accept: "application/json, text/plain, */*",
 };
 
-// Elige el archivo con el texto del proyecto: el que se adjunto al presentarlo, sin oficios de remision
-function elegirArchivo(expediente) {
+// El archivo es el texto del proyecto si su nombre es "PL" + su numero (PL_2973, PL 2973, PL-2973 o
+// PL0297320220906 = numero con 5 cifras + fecha), sin "y otros" (esos son dictamenes de varios proyectos)
+function esDelProyecto(archivo, numero) {
+  const nombre = String(archivo.nombreArchivo || "").toUpperCase().trim();
+  if (!numero || nombre.includes("OTROS")) return false;
+  const m = nombre.match(/^PL[\s_\-.]*(\d+)/);
+  if (!m) return false;
+  const cifras = m[1];
+  return cifras.replace(/^0+/, "") === String(numero) || (cifras.length === 13 && Number(cifras.slice(0, 5)) === numero);
+}
+
+// Elige el archivo con el texto del proyecto: el que lleva su numero; si no hay, el que se adjunto
+// al presentarlo, sin oficios de remision
+function elegirArchivo(expediente, numPley) {
+  const m = String(numPley || "").match(/^\s*0*(\d+)/);
+  const numero = m ? Number(m[1]) : null;
   const seguimientos = [...(expediente.seguimientos || [])].sort((a, b) =>
     String(a.fecha || "").localeCompare(String(b.fecha || ""))
   );
   const todos = seguimientos.flatMap((s) => (s.archivos || []).map((a) => ({ ...a, estado: s.desEstado })));
   const utiles = todos.filter((a) => a.proyectoArchivoId && a.activo !== false && a.publico !== false);
   const sinOficio = utiles.filter((a) => !/oficio|cargo|decreto de remisi/i.test(`${a.nombreArchivo} ${a.descripcion}`));
-  return sinOficio[0] || utiles[0] || null;
+  const propios = utiles.filter((a) => esDelProyecto(a, numero));
+  return propios[0] || sinOficio[0] || utiles[0] || null;
 }
 
 // Devuelve { pdf: Buffer, nombre, sumilla } del proyecto; pdf puede ser null si el Congreso no tiene archivo
@@ -87,7 +102,7 @@ export async function documentoProyecto(p) {
   if (!r.ok) throw new Error(`El Congreso respondió HTTP ${r.status}`);
   const exp = ((await r.json()) || {}).data || {};
   const sumilla = (exp.general && exp.general.sumilla) || "";
-  const archivo = elegirArchivo(exp);
+  const archivo = elegirArchivo(exp, p.num_pley);
   if (!archivo) return { pdf: null, nombre: "", sumilla };
   const codigo = Buffer.from(String(archivo.proyectoArchivoId)).toString("base64");
   const rp = await pedir(`${API_CONGRESO}/archivo/${codigo}/pdf`, { headers: CABECERAS_CONGRESO }, 90);

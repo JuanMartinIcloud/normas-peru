@@ -1,0 +1,115 @@
+name: Leer documentos escaneados (OCR)
+
+# Vuelve a leer los documentos guardados sin texto (PDF escaneados): busca otro PDF con texto en el
+# expediente y, si no hay, los lee con OCR (Tesseract, gratuito). Se relanza sola hasta terminar.
+on:
+  schedule:
+    - cron: "41 */3 * * *"    # respaldo: si la cadena se corta, sigue sola
+  workflow_dispatch:
+
+concurrency:
+  group: ocr
+  cancel-in-progress: false
+
+jobs:
+  ocr:
+    if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
+    runs-on: ubuntu-latest
+    # Una falla no marca la tarea como error: se relanza o la retoma el horario
+    continue-on-error: true
+    timeout-minutes: 59
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { parte: 0, de: 16 }
+          - { parte: 1, de: 16 }
+          - { parte: 2, de: 16 }
+          - { parte: 3, de: 16 }
+          - { parte: 4, de: 16 }
+          - { parte: 5, de: 16 }
+          - { parte: 6, de: 16 }
+          - { parte: 7, de: 16 }
+          - { parte: 8, de: 16 }
+          - { parte: 9, de: 16 }
+          - { parte: 10, de: 16 }
+          - { parte: 11, de: 16 }
+          - { parte: 12, de: 16 }
+          - { parte: 13, de: 16 }
+          - { parte: 14, de: 16 }
+          - { parte: 15, de: 16 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: bash src/reintentar.sh pip install -r requirements.txt
+      - name: Instalar OCR
+        run: bash src/reintentar.sh bash -c "sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-spa poppler-utils"
+      - name: Leer escaneados (parte ${{ matrix.parte }})
+        env:
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
+        run: |
+          set +e
+          : > salida.log
+          for intento in 1 2 3; do
+            quedan=$(( 52 - SECONDS / 60 ))
+            [ $quedan -lt 8 ] && break
+            python src/ocr_pendientes.py --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos $quedan >> salida.log 2>&1
+            codigo=$?
+            [ $codigo -eq 0 ] && break
+            echo "Intento $intento fallo (codigo $codigo)" >> salida.log
+            sleep 60
+          done
+          cat salida.log
+          exit $codigo
+
+  relanzar:
+    needs: ocr
+    if: always() && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: bash src/reintentar.sh pip install -r requirements.txt
+      - name: Contar pendientes
+        id: cuenta
+        env:
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
+        run: |
+          n=$(python src/ocr_pendientes.py --contar | tail -n 1)
+          echo "Pendientes: $n"
+          echo "pendientes=$n" >> "$GITHUB_OUTPUT"
+      - name: Lanzar la siguiente tanda
+        if: steps.cuenta.outputs.pendientes != '0' && steps.cuenta.outputs.pendientes != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ocr.yml --repo "${{ github.repository }}" --ref main

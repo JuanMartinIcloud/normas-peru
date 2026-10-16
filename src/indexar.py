@@ -27,6 +27,7 @@ import requests
 from psycopg2.extras import execute_values
 
 import config
+import ocr as ocr_mod
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
@@ -273,37 +274,83 @@ def pdf_norma(url_detalle, fecha):
     return r.content
 
 
-def expediente_proyecto(periodo, camara, num_pley):
-    """Devuelve (sumilla, pdf o None) del proyecto."""
-    url = f"{API_CONGRESO}/expediente/{cifrar(periodo)}/{cifrar(num_pley)}"
-    r = pedir(url, params={"codTipoParl": camara or "C"}, headers=CABECERAS_CONGRESO)
-    if r.status_code == 404:
-        return "", None
-    exp = (r.json() or {}).get("data") or {}
-    sumilla = ((exp.get("general") or {}).get("sumilla") or "").strip()
+def _es_del_proyecto(archivo, numero) -> bool:
+    """El archivo es el texto del proyecto si su nombre es "PL" + su numero (PL_2973, PL 2973,
+    PL-2973 o PL0297320220906 = numero con 5 cifras + fecha), sin "y otros" (dictamenes)."""
+    nombre = f"{archivo.get('nombreArchivo') or ''}".upper().strip()
+    if "OTROS" in nombre or not numero:
+        return False
+    m = re.match(r"^PL[\s_\-.]*(\d+)", nombre)
+    if not m:
+        return False
+    cifras = m.group(1)
+    return cifras.lstrip("0") == str(numero) or (len(cifras) == 13 and int(cifras[:5]) == numero)
+
+
+def candidatos_proyecto(exp, num_pley):
+    """Archivos que pueden tener el texto del proyecto, del mas probable al menos probable."""
     segs = sorted(exp.get("seguimientos") or [], key=lambda s: str(s.get("fecha") or ""))
     todos = [a for s in segs for a in (s.get("archivos") or [])]
     utiles = [a for a in todos if a.get("proyectoArchivoId") and a.get("activo") is not False
               and a.get("publico") is not False]
     sin_oficio = [a for a in utiles if not any(
         x in f"{a.get('nombreArchivo')} {a.get('descripcion')}".lower() for x in ("oficio", "cargo", "decreto de remisi"))]
-    archivo = (sin_oficio or utiles or [None])[0]
-    if not archivo:
-        return sumilla, None
+    m = re.match(r"\s*0*(\d+)", str(num_pley or ""))
+    numero = int(m.group(1)) if m else None
+    propios = [a for a in utiles if _es_del_proyecto(a, numero)]
+    return propios or sin_oficio or utiles
+
+
+def bajar_archivo(archivo):
     codigo = base64.b64encode(str(archivo["proyectoArchivoId"]).encode()).decode()
     rp = pedir(f"{API_CONGRESO}/archivo/{codigo}/pdf", headers=CABECERAS_CONGRESO)
     if rp.status_code == 404 or rp.content[:4] != b"%PDF":
-        return sumilla, None
-    return sumilla, rp.content
+        return None
+    return rp.content
 
 
-def extraer(datos) -> str:
+def expediente_proyecto(periodo, camara, num_pley):
+    """Devuelve (sumilla, texto, hubo_pdf) del proyecto.
+    Revisa hasta 4 archivos posibles y se queda con el de mas texto; si todos son escaneados,
+    lee con OCR el mas grande (el proyecto completo)."""
+    url = f"{API_CONGRESO}/expediente/{cifrar(periodo)}/{cifrar(num_pley)}"
+    r = pedir(url, params={"codTipoParl": camara or "C"}, headers=CABECERAS_CONGRESO)
+    if r.status_code == 404:
+        return "", "", False
+    exp = (r.json() or {}).get("data") or {}
+    sumilla = ((exp.get("general") or {}).get("sumilla") or "").strip()
+    bajados = []
+    for archivo in candidatos_proyecto(exp, num_pley)[:4]:
+        datos = bajar_archivo(archivo)
+        if datos:
+            bajados.append((datos, extraer(datos, ocr=False)))
+            if len(bajados[-1][1]) >= 3000:
+                break   # ya es el texto del proyecto
+    if not bajados:
+        return sumilla, "", False
+    mejor = max((t for _, t in bajados), key=len)
+    if len(mejor) < 3000:
+        grande, texto_grande = max(bajados, key=lambda x: len(x[0]))
+        if len(texto_grande) < 100:
+            leido = ocr_mod.texto_ocr(grande, MAX_CARACTERES)
+            if len(leido) > len(mejor):
+                mejor = leido
+    return sumilla, mejor, True
+
+
+def extraer(datos, ocr=True) -> str:
+    """Texto del PDF. Si es escaneado (casi sin texto) y ocr=True, se lee con OCR."""
     try:
         texto = texto_pdf(datos, MAX_CARACTERES)
     except Exception as e:  # noqa: BLE001  (PDF dañado)
         print(f"    PDF ilegible ({e})")
         texto = ""
-    return texto.replace("\x00", "").strip()
+    texto = texto.replace("\x00", "").strip()
+    if ocr and len(texto) < 100:
+        leido = ocr_mod.texto_ocr(datos, MAX_CARACTERES)
+        if len(leido) > len(texto):
+            texto = leido
+    return texto
 
 
 # --------------------------------------------------------------------------- principal (solo lectura)
@@ -453,7 +500,7 @@ def trabajar_proyectos(minutos, parte=0, de=1):
             if not reloj.queda():
                 break
             try:
-                sumilla, datos = expediente_proyecto(periodo, camara, num_pley)
+                sumilla, texto, hubo_pdf = expediente_proyecto(periodo, camara, num_pley)
                 errores, espera = 0, 30
             except (requests.RequestException, FuenteNoResponde, ValueError) as e:
                 errores += 1
@@ -465,10 +512,9 @@ def trabajar_proyectos(minutos, parte=0, de=1):
                 espera = min(espera * 2, 600)
                 continue
             cabecera = "\n".join(x for x in (titulo, sumilla) if x)
-            if datos is None:
+            if not hubo_pdf:
                 bases.guardar("P", clave, "sin_pdf", cabecera)
             else:
-                texto = extraer(datos)
                 estado = "ok" if len(texto) >= 100 else "sin_texto"
                 bases.guardar("P", clave, estado, f"{cabecera}\n\n{texto}".strip())
             sumillas.append((sumilla, periodo, camara, numero))
