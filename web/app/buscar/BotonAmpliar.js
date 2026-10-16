@@ -23,6 +23,7 @@ export default function BotonAmpliar({ q, desde, hasta }) {
       if (desde) p.set("desde", desde);
       if (hasta) p.set("hasta", hasta);
       p.set("t", d.terminos.join("|"));
+      p.set("orden", "r"); // lo mas relacionado primero
       window.location.href = `/buscar?${p.toString()}`;
     } catch (e) {
       setError(e.message);
