@@ -1,13 +1,10 @@
-"""Diagnostico temporal: identificar en Neon el proyecto de la base 1 (retirada)."""
-import os, re, psycopg2
-from urllib.parse import urlparse
-for i in (1, 12):
+"""Diagnostico temporal: avance del indexador y espacio."""
+import os, psycopg2
+c = psycopg2.connect(os.environ["TEXTOS_URL_2"]); cur = c.cursor()
+cur.execute("SELECT trabajador, cursor, terminado, procesados, actualizado FROM avance ORDER BY 1"); [print(r) for r in cur.fetchall()]
+for i in (2, 3, 5, 6, 7, 8, 9, 10, 11, 12):
     u = os.getenv(f"TEXTOS_URL_{i}", "")
-    if not u: print(i, "sin url"); continue
-    host = urlparse(u).hostname or ""
-    ep = host.split(".")[0].replace("-pooler", "")
-    c = psycopg2.connect(u); cur = c.cursor()
-    cur.execute("SELECT name, setting FROM pg_settings WHERE name ILIKE 'neon.%' AND (name ILIKE '%project%' OR name ILIKE '%endpoint%' OR name ILIKE '%branch%' OR name ILIKE '%timeline%' OR name ILIKE '%tenant%')")
-    ajustes = cur.fetchall()
-    cur.execute("SELECT current_database(), pg_database_size(current_database())/1048576")
-    print(f"base {i}: endpoint={ep} region={'.'.join(host.split('.')[1:3])} db={cur.fetchone()} ajustes={ajustes}")
+    if not u: continue
+    k = psycopg2.connect(u); q = k.cursor()
+    q.execute("SELECT pg_database_size(current_database())/1048576, count(*), count(*) FILTER (WHERE creado_en > now() - interval '3 hours') FROM documentos")
+    print("base", i, q.fetchone())
