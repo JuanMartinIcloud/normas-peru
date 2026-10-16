@@ -467,8 +467,10 @@ def texto_cuadernillo(fecha, numero) -> str:
         _cuadernillos[clave] = paginas
     paginas = _cuadernillos[clave]
     patron = re.compile(r"\s*".join(re.escape(x) for x in num), re.I)
-    elegidas = [p for p in paginas if patron.search(p)][:3]
-    return "\n\n".join(elegidas)[:MAX_CARACTERES]
+    elegidas = [i for i, p in enumerate(paginas) if patron.search(p)]
+    if len(elegidas) > 1 and elegidas[0] < 6:
+        elegidas = elegidas[1:]   # la primera coincidencia suele ser el sumario de la edicion
+    return "\n\n".join(paginas[i] for i in elegidas[:3])[:MAX_CARACTERES]
 
 
 def _paginas_pdf(datos) -> list:
