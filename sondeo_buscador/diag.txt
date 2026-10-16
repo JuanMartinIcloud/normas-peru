@@ -1,2 +1,1 @@
-HTML: sparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm flex-1" placeholder="Buscar por palabra, OP (formato NNNNNNN-N) o código de cuadernillo (ej. NL20230923)" value=""/><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]
-1 scripts
+0 chunks
