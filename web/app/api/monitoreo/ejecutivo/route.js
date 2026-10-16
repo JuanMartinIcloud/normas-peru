@@ -42,7 +42,9 @@ export async function POST(request) {
     if (!items.length) return Response.json({ error: "No hay documentos analizados en este periodo." }, { status: 404 });
     // Si hay demasiados, prioriza los de impacto alto y moderado
     const orden = (s) => (s.includes("impacto Alto") ? 0 : s.includes("impacto Moderado") ? 1 : 2);
-    const usados = items.sort((a, b) => orden(a) - orden(b)).slice(0, 400);
+    // (pedido mas liviano: hasta 150 documentos y cada uno resumido a 420 caracteres, para que la IA
+    // gratuita lo acepte aun cuando esta muy solicitada)
+    const usados = items.sort((a, b) => orden(a) - orden(b)).slice(0, 150).map((s) => (s.length > 420 ? `${s.slice(0, 417)}...` : s));
     const clave = claveDe("ejecutivo", { desde: c.desde, hasta: c.hasta, usados });
     if (!c.rehacer) {
       const g = await buscarGuardada(clave);
