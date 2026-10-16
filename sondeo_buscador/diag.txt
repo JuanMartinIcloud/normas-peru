@@ -1,11 +1,45 @@
-(datetime.date(2021, 1, 7), 'Resolucion', '000001 -2021-SUNAT/700000', False) 0 13 ''
-(datetime.date(2022, 5, 18), 'Ley', '31477', True) 12332 30 'MIÉRCOLES 18 DE MA YO DE 2022  1\nNORMAS  LEGALES\n“AÑO DEL FORTALECIMIENTO DE LA SOBERANÍA NACIONAL”\nFUNDADO EL 22 DE OCTUBRE DE 1825 POR EL LIBERTADOR SIMÓN BOLÍVAR\nSUMARIO\nAño XXXIX - Nº 16621\nGerente de Publicaciones Oficiales :  Ricardo Montero Re'
-(datetime.date(2023, 2, 16), 'Ley', '31690', True) 10530 27 'JUEVES 16 DE FEBRERO DE 2023  1\nGerente de Publicaciones Oficiales :  Ricardo Montero Reyes\nNORMAS  LEGALES\n“AÑO DE LA UNIDAD, LA PAZ Y EL DESARROLLO”\nFUNDADO EL 22 DE OCTUBRE DE 1825 POR EL LIBERTADOR SIMÓN BOLÍVAR\nAño XL - Nº 17089\nSUMARIO\nPODER LE'
-(datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30444', False) 0 1 ''
-(datetime.date(2022, 12, 13), 'Ley', '31641', True) 14676 28 'MARTES 13 DE DICIEMBRE DE 2022  1\nNORMAS  LEGALES\n“AÑO DEL FORTALECIMIENTO DE LA SOBERANÍA NACIONAL”\nFUNDADO EL 22 DE OCTUBRE DE 1825 POR EL LIBERTADOR SIMÓN BOLÍVAR\nSUMARIO\nAño XXXIX - Nº 16964\nGerente de Publicaciones Oficiales :  Ricardo Montero R'
-(datetime.date(2020, 12, 29), 'Resolucion Legislativa', '31098', True) 13905 9 '2 NORMAS LEGALES Martes 29 de diciembre de 2020 / \n  El Peruano\nORGANISMOS EJECUTORES\nSEGURO INTEGRAL DE SALUD\nR.J. Nº 183-2020/SIS.-  Aprueban desagregación de \nrecursos aprobados mediante D.S. N° 405-2020-EF  33\nCONVENIOS                           '
-(datetime.date(2016, 6, 17), 'Ley 30466', '', False) 15322 5 '589716 NORMAS LEGALES Viernes 17 de junio de 2016 / \n  El Peruano\ncargo a su presupuesto institucional, a favor \nde los organismos públicos del Ministerio de \nSalud y a los gobiernos regionales para el \nfinanciamiento del personal contratado bajo \nel'
-(datetime.date(2017, 8, 23), 'Ley', '30653', False) 18227 5 '4 NORMAS LEGALES Miércoles 23 de agosto de 2017 / \n  El Peruano\nPODER LEGISLATIVO\nCONGRESO DE LA REPUBLICA\nLEY Nº 30652\nEL PRESIDENTE DEL CONGRESO\nDE LA REPÚBLICA\nPOR CUANTO:\nLA COMISIÓN PERMANENTE DEL\nCONGRESO DE LA REPÚBLICA;\nHa dado la Ley siguien'
-(datetime.date(2016, 11, 30), 'Acuerdo 03/11/2016', '', False) 16781 7 '605389NORMAS LEGALESMiércoles 30 de noviembre de 2016\n El Peruano /\nRes. Adm. Nº 251-2016-CE-PJ.-  Aprueban Reglamento de \nOrganización y Funciones de la Gerencia General del Poder \nJudicial  605434\nRes. Adm. Nº 283-2016-CE-PJ.-  Crean los Centros Ju'
-(datetime.date(2022, 6, 6), 'Resolucion Legislativa', '31489', True) 19872 15 '2 NORMAS LEGALES Lunes 6 de junio de 2022  El Peruano /\nPODER LEGISLATIVO\nCONGRESO DE LA REPUBLICA\nRESOLUCIÓN LEGISLATIVA\nNº 31489\nEL CONGRESO DE LA REPÚBLICA;\nHa dado la Resolución Legislativa siguiente:\nRESOLUCIÓN LEGISLATIVA QUE AUTORIZA AL \nSEÑOR'
-con texto: 8 de 10
+Revisados: [('N', 'n2_ok', 1099), ('N', 'n3_ok', 1038), ('N', 'n4_ok', 101), ('N', 'n4_sin_texto', 40), ('N', 'ok', 1), ('P', 'ok', 4283)]
+NORMAS 247286 {'ok': 247246, 'sin_pdf': 40} | ultima fecha 2026-10-16
+PROYECTOS 15478 {'ok': 15478} | ultima fecha 2026-10-15
+
+Normas sin texto:
+  (datetime.date(2016, 5, 27), 'Resolucion Jefatural', '001-004-00003725', 'Designan Analista Auxiliar Coactivo I del SAT')
+  (datetime.date(2016, 5, 28), 'Ley', '30440', 'Ley de creación del distrito de Pueblo Nuevo en la provincia de Leoncio Prado de')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30441', 'Resolución Legislativa que aprueba el Acuerdo de Cooperación en el Ámbito de Def')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30442', 'Resolución Legislativa que aprueba el Acuerdo entre la República Federal de Alem')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30443', 'Resolución Legislativa que aprueba el Acuerdo entre la República Federal de Alem')
+  (datetime.date(2016, 5, 28), 'Resolucion Legislativa', '30444', 'Resolución Legislativa que autoriza al Señor Presidente de la República para sal')
+  (datetime.date(2016, 5, 31), 'Resolucion Jefatural', '001-004-00003727', 'Designan Especialista Ejecutor Coactivo II del SAT')
+  (datetime.date(2016, 6, 1), 'Resolucion', '027-2016-SUNAT/600000', 'Designan Ejecutor Coactivo encargado de la gestión de cobranza coactiva de la In')
+  (datetime.date(2016, 6, 29), 'Ley', '30474', 'Ley que modifica los artículos 26 37 44 y 46 e incorpora los artículos 38-A y 38')
+  (datetime.date(2016, 6, 29), 'Ley', '30476', 'Ley que regula los Programas Deportivos de Alta Competencia en las universidades')
+  (datetime.date(2016, 6, 29), 'Ley', '30473', 'Ley que modifica los artículos 2 3 y 4 y la disposición complementaria única de ')
+  (datetime.date(2016, 6, 29), 'Ley', '30475', 'Ley que declara de necesidad pública y de preferente interés nacional la organiz')
+  (datetime.date(2016, 6, 29), 'Resolucion Legislativa', '30480', 'Resolución Legislativa que autoriza al Señor Presidente de la República para sal')
+  (datetime.date(2016, 6, 29), 'Ley', '30479', 'Ley de mecenazgo deportivo')
+  (datetime.date(2016, 6, 29), 'Ley', '30478', 'Ley que modifica el artículo 40 y la vigésimo cuarta disposición final y transit')
+  (datetime.date(2016, 6, 29), 'Ley', '30477', 'Ley que regula la ejecución de obras de servicios públicos autorizadas por las m')
+  (datetime.date(2016, 9, 2), 'Acuerdo (28/6/2016)', '', 'Reconocen a representante del Ilustre Colegio de Abogados de Lima por su destaca')
+  (datetime.date(2016, 12, 31), 'Ley', '30532', 'Ley que promueve el desarrollo del Mercado de Capitales')
+  (datetime.date(2016, 12, 31), 'Resolucion Legislativa', '30531', 'Resolución Legislativa que autoriza el ingreso de personal militar al territorio')
+  (datetime.date(2017, 10, 19), 'Resolucion', '144-2017-SUNAT/800000', 'Aprueban reordenamiento de cargos del Cuadro para Asignación de Personal Provisi')
+  (datetime.date(2017, 10, 20), 'Ley', '30673', 'Ley que modifica la Ley 28094 Ley de Organizaciones Políticas; La Ley 26859 Ley ')
+  (datetime.date(2017, 10, 21), 'Ley', '30674', 'Ley que declara de necesidad pública e interés nacional la creación e implementa')
+  (datetime.date(2017, 10, 22), 'Resolucion Legislativa', '30675', 'Resolución Legislativa que autoriza al señor Presidente de la República para sal')
+  (datetime.date(2017, 10, 22), 'Resolucion Legislativa', '30676', 'Resolución Legislativa que autoriza al señor Presidente de la República para sal')
+  (datetime.date(2017, 10, 22), 'Resolucion', '12-2017/SUNAT/310000', 'Modifican Procedimiento General Restitución Simplificado de Derechos Arancelario')
+  (datetime.date(2017, 10, 22), 'Resolucion Administrativa', '05225-2017/CAH-Ley N° 29625', 'Resolución Administrativa que aprueba el Padrón Nacional de Fonavistas Beneficia')
+  (datetime.date(2017, 10, 23), 'Resolucion', '13-2017/SUNAT/310000', 'Modifican procedimiento general Exportación Temporal para Reimportación en el Mi')
+  (datetime.date(2018, 6, 22), 'Resolucion Jefatural', '001-004-00004082', 'Aprueban Directiva que establece lineamientos para el registro y uso de la Agenc')
+  (datetime.date(2018, 7, 5), 'Resolucion', '172-3G0000/2018-000010', 'Dan por concluida designación de Auxiliar Coactivo de la Intendencia Aduana de T')
+  (datetime.date(2018, 7, 25), 'Acuerdo', '025-2018-SO-GRL-CR:11/07/2018', 'Autorizan viaje de Gobernador Regional a EE.UU. en comisión de servicios')
+  (datetime.date(2018, 9, 15), 'Resolucion Jefatural', '001-004-00004121', 'Encargan a funcionario la Gerencia de Informática y como responsable del Portal ')
+  (datetime.date(2019, 5, 15), 'Resolucion', '1772-32019', 'Autorizan inscripción de personas naturales en el Registro de Intermediarios y A')
+  (datetime.date(2019, 8, 29), 'Resolucion Correlativo 19-383311', '', 'Autorizan la redistribución de diversos expedientes tramitados en el Distrito Ju')
+  (datetime.date(2021, 5, 3), 'Resolucion', '000065-2021-SUNAT/8000000000', 'Dejan sin efecto designaciones y designan\nFedataria Institucional Titular de la ')
+  (datetime.date(2021, 12, 14), 'Fe De Errata Ley', '31365', 'FE DE ERRATA')
+  (datetime.date(2021, 12, 24), 'Resolucion Jefatural', '001-004-00004719', 'Autorizan utilización de los formatos de actas de control homologadas como actas')
+  (datetime.date(2022, 6, 1), 'Fe De Errata R.J.', '001-004-0004806', 'FE DE ERRATA')
+  (datetime.date(2022, 6, 15), 'Separata Especial Resolución', '0912-2022-JNE y Acuerdo del Pleno (14/6/2022)', 'Convocan a ciudadano para que asuma el cargo de tercer miembro del Jurado Electo')
+  (datetime.date(2022, 12, 6), 'Ley', '31638, 31639 y 31640', 'Ley de Presupuesto del Sector Público para el Año Fiscal 2023 Ley de Equilibrio ')
+  (datetime.date(2024, 2, 9), 'Aviso', 'TIFICACION POR EDICTO', '.')
