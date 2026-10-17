@@ -122,10 +122,15 @@ def main():
     if a.contar:
         print(len(pend))
         return
-    # Datos de la base principal (una sola consulta)
+    if not pend:
+        print("No hay documentos pendientes.")
+        return
+    # Datos de la base principal: solo los documentos pendientes (para no gastar su trafico mensual)
     c = indexar.principal()
     cur = c.cursor()
-    cur.execute("SELECT periodo || '|' || camara || '|' || numero, periodo, camara, num_pley, coalesce(titulo, '') FROM proyectos_ley")
+    claves_p = [k for t, k in pend if t == "P"]
+    cur.execute("""SELECT periodo || '|' || camara || '|' || numero, periodo, camara, num_pley, coalesce(titulo, '')
+                   FROM proyectos_ley WHERE periodo || '|' || camara || '|' || numero = ANY(%s)""", (claves_p,))
     proyectos = {r[0]: r[1:] for r in cur.fetchall()}
     claves_n = [k for t, k in pend if t == "N"]
     cur.execute("SELECT hash_unico, fecha, url_detalle, numero, tipo FROM normas WHERE hash_unico = ANY(%s)", (claves_n,))

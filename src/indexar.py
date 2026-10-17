@@ -22,7 +22,7 @@ import re
 import time
 import unicodedata
 import zlib
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import psycopg2
 import requests
@@ -628,11 +628,27 @@ def trabajar_proyectos(minutos, parte=0, de=1):
     bases = Bases()
     nombre = f"proyectos-{parte}-de-{de}"
     bases.limpiar_avance(de, "proyectos")
+    # Para no gastar el trafico mensual de la base principal (5 GB gratis), solo se leen los proyectos
+    # aun no procesados (sumilla_revisada no marcada). Una vez al dia se
+    # revisan todos (el trabajador 0, una vez por dia), leyendo solo sus claves, por si alguno quedo sin guardar.
     conn = principal()
     with conn.cursor() as cur:
+        hoy_lima = (datetime.now(timezone.utc) - timedelta(hours=5)).date()
+        faltan = set()
+        barrido = bases.leer_avance("barrido-proyectos") if parte == 0 else None
+        if parte == 0 and (not barrido or barrido[0] != hoy_lima):
+            cur.execute("""SELECT periodo, camara, numero FROM proyectos_ley WHERE num_pley IS NOT NULL""")
+            todas = [f"{p}|{c}|{n}" for p, c, n in cur.fetchall()]
+            faltan = set(todas) - bases.existentes("P", todas)
+            filtro, args = "(sumilla_revisada IS NOT TRUE OR periodo || '|' || camara || '|' || numero = ANY(%s))", [list(faltan)]
+            bases.guardar_avance("barrido-proyectos", hoy_lima, True, 0)
+            print(f"Revision diaria completa: {len(faltan)} proyectos sin texto guardado")
+        else:
+            filtro, args = "sumilla_revisada IS NOT TRUE", []
         cur.execute(
-            """SELECT periodo, camara, numero, num_pley, coalesce(titulo, '') FROM proyectos_ley
-               WHERE num_pley IS NOT NULL ORDER BY fecha_presentacion DESC NULLS LAST, id DESC"""
+            f"""SELECT periodo, camara, numero, num_pley, coalesce(titulo, '') FROM proyectos_ley
+                WHERE num_pley IS NOT NULL AND {filtro}
+                ORDER BY fecha_presentacion DESC NULLS LAST, id DESC""", args
         )
         filas = cur.fetchall()
     conn.close()   # la principal se libera mientras se trabaja
@@ -640,8 +656,9 @@ def trabajar_proyectos(minutos, parte=0, de=1):
     claves = [f"{p}|{c}|{n}" for p, c, n, _, _ in filas]
     hechas = bases.existentes("P", claves)
     # Cada trabajador toma su parte (reparto fijo segun la clave)
+    # (los que faltaban en la revision diaria los toma todos el trabajador 0)
     pendientes = [(k, f) for k, f in zip(claves, filas)
-                  if k not in hechas and zlib.crc32(k.encode()) % de == parte]
+                  if k not in hechas and (zlib.crc32(k.encode()) % de == parte or k in faltan)]
     print(f"Proyectos: {len(filas)} en total, {len(pendientes)} pendientes")
     sumillas = []
     hechos = 0
@@ -676,6 +693,9 @@ def trabajar_proyectos(minutos, parte=0, de=1):
         terminado = hechos >= len(pendientes)
         bases.guardar_avance(nombre, None, terminado, hechos)
     finally:
+        # Primero se guardan los textos; despues se marcan los proyectos como procesados (si guardar
+        # los textos fallara, quedan sin marcar y se reintentan en la siguiente ejecucion)
+        bases.cerrar()
         # Las sumillas se guardan en la principal de una sola vez, al final
         if sumillas:
             conn = principal()
@@ -690,7 +710,6 @@ def trabajar_proyectos(minutos, parte=0, de=1):
             conn.commit()
             conn.close()
         print(f"Proyectos: {hechos} procesados en esta ejecucion")
-        bases.cerrar()
 
 
 def main():
