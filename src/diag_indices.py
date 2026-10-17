@@ -1,14 +1,10 @@
-"""Diagnostico temporal: tamano (bytes) de lo que leen las tareas de la base principal."""
+"""Diagnostico temporal: espacio que ocupa cada base del sistema."""
 import os, psycopg2
-c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
-def medir(nombre, sql):
-    cur.execute(f"SELECT count(*), sum(pg_column_size(t.*)) FROM ({sql}) t"); n, b = cur.fetchone()
-    print(f"{nombre}: {n} filas, {round((b or 0) / 1048576, 2)} MB")
-medir("indexar proyectos (cada trabajador)", "SELECT periodo, camara, numero, num_pley, coalesce(titulo, '') FROM proyectos_ley WHERE num_pley IS NOT NULL")
-medir("indexar normas recientes (todos)", "SELECT hash_unico, fecha, url_detalle FROM normas WHERE fecha >= current_date - 7")
-medir("ocr: proyectos (cada trabajador)", "SELECT periodo || '|' || camara || '|' || numero, periodo, camara, num_pley, coalesce(titulo, '') FROM proyectos_ley")
-medir("verificar / diag: todas las normas", "SELECT hash_unico, fecha, url_detalle FROM normas")
-medir("diag: hash y fecha", "SELECT hash_unico, fecha FROM normas")
-medir("monitoreo: normas de un mes", "SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle FROM normas n WHERE n.fecha >= current_date - 30")
-medir("csv portada 50 000", "SELECT * FROM normas ORDER BY fecha DESC LIMIT 50000")
-medir("todas las sumillas", "SELECT id, sumilla, tipo, entidad FROM normas")
+tot = 0
+bases = [("principal", os.environ["DATABASE_URL"])] + [(f"texto {i}", os.environ[f"TEXTOS_URL_{i}"]) for i in range(2, 13) if i != 4 and os.getenv(f"TEXTOS_URL_{i}", "").strip()]
+for n, u in bases:
+    c = psycopg2.connect(u, connect_timeout=60); cur = c.cursor()
+    cur.execute("SELECT pg_database_size(current_database()), current_setting('neon.project_id')")
+    b, pid = cur.fetchone(); c.close(); tot += b
+    print(f"{n}: {b / 1048576:.0f} MB ({pid})")
+print(f"TOTAL: {tot / 1048576:.0f} MB = {tot / 1024 ** 3:.2f} GB en {len(bases)} bases")
