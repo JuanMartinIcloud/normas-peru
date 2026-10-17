@@ -17,6 +17,7 @@ import zlib
 import requests
 from psycopg2.extras import execute_values
 
+import cupos
 import indexar
 from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_cuadernillo, texto_html_norma, texto_ley_congreso
 
@@ -117,6 +118,10 @@ def main():
     a = ap.parse_args()
     fin = time.time() + a.max_minutos * 60
 
+    if cupos.principal_agotada():
+        if a.contar:
+            print(0)   # no relanzar hasta que se renueve el cupo
+        return
     bases = Bases()
     pend = pendientes(bases)
     if a.contar:

@@ -22,6 +22,7 @@ from datetime import date, timedelta
 import psycopg2
 from psycopg2.extras import Json, execute_values
 
+import cupos
 import db
 import gemini
 from textos import pdf_norma, texto_pdf
@@ -391,6 +392,8 @@ def main():
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "historico":
+        if cupos.principal_agotada():
+            return
         global MODELOS_FILTRO, MODELOS_ANALISIS
         MODELOS_FILTRO, MODELOS_ANALISIS = HIST_FILTRO, HIST_ANALISIS
         # Un mes por dia (salvo que se pida --forzar)

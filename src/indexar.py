@@ -31,6 +31,7 @@ from psycopg2.extras import execute_values
 from pypdf import PdfReader
 
 import config
+import cupos
 import ocr as ocr_mod
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
@@ -166,6 +167,8 @@ class Bases:
     def destino(self):
         """Base con espacio libre (se revisa en cada envio)."""
         for n, url in enumerate(self.urls, start=1):
+            if cupos.agotada(url):
+                continue   # llego a 4 GB de transferencia este mes: no se le agrega nada mas
             mb = self.tamano_mb(url)
             if mb < LIMITE_MB:
                 if url != self.actual:
@@ -636,7 +639,7 @@ def trabajar_proyectos(minutos, parte=0, de=1):
         hoy_lima = (datetime.now(timezone.utc) - timedelta(hours=5)).date()
         faltan = set()
         barrido = bases.leer_avance("barrido-proyectos") if parte == 0 else None
-        if parte == 0 and (not barrido or barrido[0] != hoy_lima):
+        if parte == 0 and (not barrido or barrido[0] != hoy_lima) and not cupos.principal_agotada():
             cur.execute("""SELECT periodo, camara, numero FROM proyectos_ley WHERE num_pley IS NOT NULL""")
             todas = [f"{p}|{c}|{n}" for p, c, n in cur.fetchall()]
             faltan = set(todas) - bases.existentes("P", todas)
