@@ -1,8 +1,12 @@
-indexar proyectos (cada trabajador): 15480 filas, 3.21 MB
-indexar normas recientes (todos): 562 filas, 0.08 MB
-ocr: proyectos (cada trabajador): 15480 filas, 3.27 MB
-verificar / diag: todas las normas: 247378 filas, 51.1 MB
-diag: hash y fecha: 247378 filas, 22.65 MB
-monitoreo: normas de un mes: 2198 filas, 0.73 MB
-csv portada 50 000: 50000 filas, 24.07 MB
-todas las sumillas: 247378 filas, 52.8 MB
+principal: 284 MB (patient-sea-69646257)
+texto 2: 407 MB (fancy-hat-66269858)
+texto 3: 438 MB (curly-scene-84890205)
+texto 5: 428 MB (hidden-frog-42034021)
+texto 6: 405 MB (royal-river-02571089)
+texto 7: 406 MB (autumn-shadow-36964286)
+texto 8: 105 MB (shy-bonus-96281774)
+texto 9: 7 MB (frosty-moon-50891139)
+texto 10: 7 MB (delicate-hill-14504793)
+texto 11: 7 MB (bold-truth-25005404)
+texto 12: 430 MB (tiny-firefly-10069383)
+TOTAL: 2924 MB = 2.86 GB en 11 bases
