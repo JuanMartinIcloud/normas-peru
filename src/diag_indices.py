@@ -1,17 +1,14 @@
-"""Diagnostico temporal: que consultas sacan mas datos de la base principal (trafico de red)."""
+"""Diagnostico temporal: tamano (bytes) de lo que leen las tareas de la base principal."""
 import os, psycopg2
-c = psycopg2.connect(os.environ["DATABASE_URL"]); c.autocommit = True; cur = c.cursor()
-cur.execute("SELECT extname FROM pg_extension"); print("ext:", [r[0] for r in cur.fetchall()])
-try:
-    cur.execute("CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
-    cur.execute("SELECT stats_reset FROM pg_stat_statements_info"); print("desde:", cur.fetchall())
-    cur.execute("""SELECT calls, rows, round(rows::numeric / greatest(calls, 1)) AS filas_por_llamada,
-                          left(regexp_replace(query, '\\s+', ' ', 'g'), 230)
-                   FROM pg_stat_statements ORDER BY rows DESC LIMIT 30""")
-    for r in cur.fetchall(): print(r)
-except Exception as e:
-    print("pg_stat_statements:", e)
-cur.execute("SELECT pg_size_pretty(pg_database_size(current_database()))"); print("tamano:", cur.fetchone())
-cur.execute("""SELECT relname, pg_size_pretty(pg_total_relation_size(relid)) FROM pg_catalog.pg_statio_user_tables
-               ORDER BY pg_total_relation_size(relid) DESC LIMIT 12"""); print(cur.fetchall())
-cur.execute("SELECT usename, application_name, client_addr, count(*) FROM pg_stat_activity GROUP BY 1,2,3"); print(cur.fetchall())
+c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
+def medir(nombre, sql):
+    cur.execute(f"SELECT count(*), sum(pg_column_size(t.*)) FROM ({sql}) t"); n, b = cur.fetchone()
+    print(f"{nombre}: {n} filas, {round((b or 0) / 1048576, 2)} MB")
+medir("indexar proyectos (cada trabajador)", "SELECT periodo, camara, numero, num_pley, coalesce(titulo, '') FROM proyectos_ley WHERE num_pley IS NOT NULL")
+medir("indexar normas recientes (todos)", "SELECT hash_unico, fecha, url_detalle FROM normas WHERE fecha >= current_date - 7")
+medir("ocr: proyectos (cada trabajador)", "SELECT periodo || '|' || camara || '|' || numero, periodo, camara, num_pley, coalesce(titulo, '') FROM proyectos_ley")
+medir("verificar / diag: todas las normas", "SELECT hash_unico, fecha, url_detalle FROM normas")
+medir("diag: hash y fecha", "SELECT hash_unico, fecha FROM normas")
+medir("monitoreo: normas de un mes", "SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle FROM normas n WHERE n.fecha >= current_date - 30")
+medir("csv portada 50 000", "SELECT * FROM normas ORDER BY fecha DESC LIMIT 50000")
+medir("todas las sumillas", "SELECT id, sumilla, tipo, entidad FROM normas")
