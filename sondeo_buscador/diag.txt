@@ -1,35 +1,8 @@
-ext: ['plpgsql', 'pg_trgm']
-desde: [(datetime.datetime(2026, 10, 17, 14, 0, 49, 357250, tzinfo=datetime.timezone.utc),)]
-(343, 7448, Decimal('22'), 'SELECT bucket_le, value FROM neon.neon_perf_counters WHERE metric = $1')
-(49, 1764, Decimal('36'), 'SELECT CASE WHEN pg_database.datname IN ($1 /*, ... */) THEN pg_database.datname ELSE $2 END as datname, pg_database.oid as datid, tmp.mode as mode, COALESCE(count, $3) as count FROM ( VALUES ($4), ($5), ($6), ($7), ($8), ($9), ($')
-(849, 1154, Decimal('1'), 'SELECT state, pg_catalog.to_char(state_change, $1::pg_catalog.text) AS state_change FROM pg_stat_activity WHERE backend_type OPERATOR(pg_catalog.=) $2::pg_catalog.text AND pid OPERATOR(pg_catalog.!=) pg_catalog.pg_backend_pid() AN')
-(1, 1013, Decimal('1013'), 'SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle FROM normas n WHERE n.fecha BETWEEN $1::date AND $2::date AND NOT EXISTS (SELECT $3 FROM analisis a WHERE a.tipo = $4 AND a.ref_id = n.id) O')
-(860, 860, Decimal('1'), 'SELECT CASE WHEN pg_catalog.pg_is_in_recovery() THEN pg_catalog.pg_last_wal_replay_lsn() ELSE pg_catalog.pg_current_wal_lsn() END AS lsn, CURRENT_TIMESTAMP')
-(849, 849, Decimal('1'), 'select count(*) from pg_stat_replication where application_name not in ($1 /*, ... */)')
-(849, 849, Decimal('1'), 'select count(*) from pg_stat_subscription where pid is not null')
-(849, 849, Decimal('1'), 'SELECT COALESCE(pg_catalog.sum(active_time), $1)::pg_catalog.float8 AS total_active_time, COALESCE(pg_catalog.sum(sessions), $2)::pg_catalog.int8 AS total_sessions FROM pg_catalog.pg_stat_database WHERE datname NOT IN ($3 /*, ... ')
-(849, 849, Decimal('1'), 'select count(*) from pg_stat_activity where backend_type = $1')
-(849, 849, Decimal('1'), 'SELECT $1')
-(392, 392, Decimal('1'), 'SELECT COALESCE(lfc_value, $1) AS used_pages FROM neon.neon_lfc_stats WHERE lfc_key = $2')
-(49, 392, Decimal('8'), 'SELECT x AS duration, COALESCE(neon.approximate_working_set_size_seconds(extract($1 FROM x::pg_catalog.interval)::pg_catalog.int4), $2) AS size FROM ( VALUES ($3), ($4), ($5), ($6), ($7), ($8), ($9), ($10) ) AS t (x)')
-(49, 245, Decimal('5'), 'SELECT datid, numbackends, xact_commit, xact_rollback, tup_returned, tup_fetched, conflicts, temp_bytes FROM pg_catalog.pg_stat_database')
-(49, 245, Decimal('5'), 'SELECT split_part(metric, $1, $2) AS operation, value FROM neon.neon_perf_counters WHERE split_part(metric, $3, $4) = $5')
-(49, 196, Decimal('4'), 'SELECT CASE WHEN datname IN ($1 /*, ... */) THEN datname ELSE $2 END AS database_name, oid AS datid, pg_catalog.age(datfrozenxid) frozen_xid_age FROM pg_catalog.pg_database ORDER BY frozen_xid_age DESC LIMIT $3')
-(49, 196, Decimal('4'), 'select x as duration, COALESCE(neon.approximate_working_set_size_seconds(extract($1 from x::interval)::int), $2)::bigint*$3 as size from (values ($4), ($5),($6),($7)) as t (x)')
-(49, 196, Decimal('4'), 'SELECT CASE WHEN datname IN ($1 /*, ... */) THEN datname ELSE $2 END AS database_name, oid AS datid, pg_catalog.mxid_age(datminmxid) min_mxid_age FROM pg_catalog.pg_database ORDER BY min_mxid_age DESC LIMIT $3')
-(49, 164, Decimal('3'), 'SELECT datid, datname, state, usename, application_name, backend_type, wait_event_type, wait_event, SUM(count) AS count, -- xact_start is NULL for backends with no open transaction, so MAX() can be -- NULL; sql_exporter rejects NU')
-(49, 147, Decimal('3'), 'SELECT name AS settings, (setting = $1)::int AS enabled FROM pg_catalog.pg_settings WHERE name IN ($2 /*, ... */)')
-(49, 147, Decimal('3'), 'SELECT split_part(metric, $1, $2) AS safekeeper, max(CASE WHEN metric LIKE $3 THEN value END) AS bytes_sent_total, max(CASE WHEN metric LIKE $4 THEN value END) AS flush_wait_seconds_total, max(CASE WHEN metric LIKE $5 THEN value E')
-(49, 147, Decimal('3'), 'SELECT datid, CASE WHEN datname IN ($1 /*, ... */) THEN datname ELSE $2 END AS datname, state, pg_catalog.count(*) AS count FROM pg_catalog.pg_stat_activity WHERE state <> $3 GROUP BY datid, datname, state')
-(2, 100, Decimal('50'), 'SELECT id, fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria, hash_unico FROM normas ORDER BY fecha DESC, id DESC LIMIT $1 OFFSET $2')
-(1, 100, Decimal('100'), 'INSERT INTO analisis (tipo, ref_id, fecha, relevante, resumen, cambios, comentario, sector, calificacion, impacto, comites, acciones, accion_directorio, lectura, modelo) VALUES ($1,$2,$3::date,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14')
-(49, 98, Decimal('2'), 'SELECT slot_name, CASE WHEN wal_status = $1 THEN $2 ELSE $3 END AS wal_is_lost FROM pg_catalog.pg_replication_slots')
-(2, 86, Decimal('43'), 'SELECT id::text AS id, tipo, numero, url_detalle, url_pdf FROM normas WHERE id = ANY($1::bigint[])')
-(2, 80, Decimal('40'), 'SELECT max(tipo) AS valor, count(*)::int AS n FROM normas WHERE tipo IS NOT NULL GROUP BY translate(lower(tipo), $1, $2) ORDER BY 2 DESC LIMIT $3')
-(1, 60, Decimal('60'), 'INSERT INTO analisis (tipo, ref_id, fecha, relevante, resumen, cambios, comentario, sector, calificacion, impacto, comites, acciones, accion_directorio, lectura, modelo) VALUES ($1,$2,$3::date,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14')
-(8, 56, Decimal('7'), 'SELECT pid, backend_type FROM pg_stat_activity WHERE pid IS NOT NULL AND pid != pg_backend_pid() AND backend_type != $1')
-(54, 54, Decimal('1'), 'SELECT pg_size_bytes(current_setting($1))')
-(49, 49, Decimal('1'), 'SELECT CASE -- Only replicas evict LFC pages during redo; report 0 on primaries. WHEN NOT pg_catalog.pg_is_in_recovery() THEN $1 ELSE COALESCE((SELECT lfc_value FROM neon.neon_lfc_stats WHERE lfc_key = $2), $3) END AS count')
-tamano: ('283 MB',)
-[('normas', '230 MB'), ('proyectos_ley', '29 MB'), ('vocabulario', '12 MB'), ('analisis', '2520 kB'), ('seguimientos', '616 kB'), ('descargas', '464 kB'), ('consultas_ia', '152 kB'), ('busqueda_ejecuciones', '128 kB'), ('resumenes', '128 kB'), ('usuarios', '48 kB'), ('textos', '32 kB'), ('informes', '32 kB')]
-[('neondb_owner', 'pgbouncer', '::1', 6), ('cloud_admin', 'pgbouncer', '::1', 1), ('cloud_admin', 'compute_ctl:compute_monitor', '127.0.0.1', 1), ('cloud_admin', 'neon_compute_sql_exporter', '127.0.0.1', 1), ('cloud_admin', '', None, 1), ('neondb_owner', 'pgbouncer', '127.0.0.1', 8), ('cloud_admin', 'vm-monitor', '::1', 1), ('cloud_admin', 'TimescaleDB Background Worker Launcher', None, 1), (None, '', None, 4), ('cloud_admin', 'pg_cron scheduler', None, 1)]
+indexar proyectos (cada trabajador): 15480 filas, 3.21 MB
+indexar normas recientes (todos): 562 filas, 0.08 MB
+ocr: proyectos (cada trabajador): 15480 filas, 3.27 MB
+verificar / diag: todas las normas: 247378 filas, 51.1 MB
+diag: hash y fecha: 247378 filas, 22.65 MB
+monitoreo: normas de un mes: 2198 filas, 0.73 MB
+csv portada 50 000: 50000 filas, 24.07 MB
+todas las sumillas: 247378 filas, 52.8 MB
