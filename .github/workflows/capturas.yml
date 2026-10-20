@@ -35,6 +35,8 @@ jobs:
           openssl pkeyutl -encrypt -pubin -inkey capturas_publica.pem -pkeyopt rsa_padding_mode:oaep -in clave.txt -out clave.enc
           rm -f clave.txt capturas.tgz
           mkdir -p /tmp/sal && mv capturas.tgz.enc clave.enc /tmp/sal/
+          # Esta rama no es la web: se le indica a Vercel que no la publique (si no, envia un correo de error)
+          mkdir -p /tmp/sal/web && echo '{"git": {"deploymentEnabled": false}, "ignoreCommand": "exit 0"}' > /tmp/sal/web/vercel.json
           cd /tmp/sal && git init -q -b capturas && git add -A
           git -c user.name=JuanMartinIcloud -c user.email=noreply@github.com commit -qm "Capturas cifradas"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" capturas
