@@ -117,7 +117,7 @@ with sync_playwright() as pw:
     @paso("portada filtros rubro y fechas")
     def _():
         ir(page, "/")
-        page.locator("select[name=rubro]").select_option(label=re.compile("^Tributario y Aduanero"))
+        page.locator("select[name=rubro]").select_option(value="Tributario y Aduanero")
         page.locator("input[name=desde]").fill("2026-09-01")
         page.locator("input[name=hasta]").fill("2026-09-30")
         foto(page, "x14_filtros_llenos", loc=page.locator("form.filtros"))
@@ -225,8 +225,8 @@ with sync_playwright() as pw:
     @paso("proyectos filtros")
     def _():
         ir(page, "/proyectos")
-        page.locator("select[name=periodo]").select_option(label=re.compile("^2026"))
-        page.locator("select[name=estado]").select_option(label=re.compile("^EN COMISI"))
+        page.locator("select[name=periodo]").select_option(value="2026")
+        page.locator("select[name=estado]").select_option(value="EN COMISIÓN")
         foto(page, "x40_proyectos_filtros", loc=page.locator("form.filtros"))
         page.locator("form.filtros button[type=submit]").click(); page.wait_for_load_state("networkidle")
         ver(page, page.locator("p.resumen"), 80)
