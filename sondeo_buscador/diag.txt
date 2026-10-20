@@ -1,12 +1,16 @@
-principal: 284 MB (patient-sea-69646257)
-texto 2: 407 MB (fancy-hat-66269858)
-texto 3: 438 MB (curly-scene-84890205)
-texto 5: 428 MB (hidden-frog-42034021)
-texto 6: 405 MB (royal-river-02571089)
-texto 7: 406 MB (autumn-shadow-36964286)
-texto 8: 105 MB (shy-bonus-96281774)
-texto 9: 7 MB (frosty-moon-50891139)
-texto 10: 7 MB (delicate-hill-14504793)
-texto 11: 7 MB (bold-truth-25005404)
-texto 12: 430 MB (tiny-firefly-10069383)
-TOTAL: 2924 MB = 2.86 GB en 11 bases
+resumenes ['fecha', 'datos', 'modelo', 'n_normas', 'n_proyectos', 'n_cambios', 'ventana_desde', 'ventana_hasta', 'creado_en']
+analisis ['id', 'tipo', 'ref_id', 'fecha', 'relevante', 'resumen', 'cambios', 'comentario', 'sector', 'calificacion', 'impacto', 'comites', 'acciones', 'accion_directorio', 'lectura', 'modelo', 'excluido', 'excluido_por', 'excluido_en', 'creado_en']
+informes ['fecha', 'estado', 'aprobado_por', 'aprobado_en', 'enviado_en', 'ejecutivo', 'actualizado']
+busqueda_ejecuciones ['id', 'busqueda_id', 'desde', 'hasta', 'total_normas', 'total_proyectos', 'normas', 'proyectos', 'resumen', 'enviado', 'creado_en']
+busquedas_guardadas ['id', 'nombre', 'pregunta', 'q', 'terminos', 'refinar', 'frecuencia', 'con_resumen', 'destinatarios', 'activa', 'creado_por', 'creado_en', 'ultima_ejecucion']
+seguimientos ['id', 'proyecto_id', 'fecha', 'camara', 'estado', 'comisiones', 'detalle', 'creado_en']
+descargas ['fecha', 'estado', 'cantidad', 'detalle', 'actualizado']
+normas por dia: [(datetime.date(2026, 10, 14), 105), (datetime.date(2026, 10, 15), 134), (datetime.date(2026, 10, 16), 119), (datetime.date(2026, 10, 17), 84), (datetime.date(2026, 10, 18), 32), (datetime.date(2026, 10, 19), 16)]
+proyectos por dia: [(datetime.date(2026, 10, 14), 3), (datetime.date(2026, 10, 15), 10), (datetime.date(2026, 10, 16), 2), (datetime.date(2026, 10, 19), 4)]
+totales: [(247429, 15484)]
+descargas: [(datetime.date(2026, 10, 19), 'ok', 16, '', datetime.datetime(2026, 10, 19, 9, 15, 3, 566599, tzinfo=datetime.timezone.utc)), (datetime.date(2026, 10, 18), 'ok', 32, '', datetime.datetime(2026, 10, 19, 9, 15, 1, 235301, tzinfo=datetime.timezone.utc)), (datetime.date(2026, 10, 17), 'ok', 84, '', datetime.datetime(2026, 10, 19, 3, 41, 1, 888296, tzinfo=datetime.timezone.utc)), (datetime.date(2026, 10, 16), 'ok', 119, '', datetime.datetime(2026, 10, 18, 3, 40, 39, 442008, tzinfo=datetime.timezone.utc)), (datetime.date(2026, 10, 15), 'ok', 134, '', datetime.datetime(2026, 10, 17, 3, 41, 27, 170460, tzinfo=datetime.timezone.utc)), (datetime.date(2026, 10, 14), 'ok', 105, '', datetime.datetime(2026, 10, 16, 3, 40, 55, 856065, tzinfo=datetime.timezone.utc))]
+proyectos sin procesar (sumilla_revisada): [(0,)]
+textos normas ultimos 7 dias: Counter({'ok': 490})
+textos proyectos recientes: Counter({'ok': 204})
+cupos: [(None,)]
+avance no terminado: []
