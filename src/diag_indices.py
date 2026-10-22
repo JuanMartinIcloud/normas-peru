@@ -1,12 +1,14 @@
-"""Diagnostico temporal: calificaciones del monitoreo en octubre 2026, con ejemplos."""
+"""Diagnostico temporal: avance de la recalificacion del monitoreo."""
 import os, psycopg2
 c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
-cur.execute("""SELECT tipo, calificacion, impacto, count(*) FROM analisis
-               WHERE fecha BETWEEN '2026-10-01' AND '2026-10-31' AND relevante AND NOT coalesce(excluido, false)
-               GROUP BY 1, 2, 3 ORDER BY 1, 2, 3""")
-for r in cur.fetchall(): print(r)
-cur.execute("""SELECT a.tipo, a.impacto, coalesce(n.tipo || ' ' || n.numero, 'Proy ' || p.numero), left(coalesce(n.sumilla, p.titulo), 110), left(a.comentario, 260)
-               FROM analisis a LEFT JOIN normas n ON a.tipo = 'N' AND n.id = a.ref_id LEFT JOIN proyectos_ley p ON a.tipo = 'P' AND p.id = a.ref_id
-               WHERE a.fecha BETWEEN '2026-10-01' AND '2026-10-31' AND a.relevante AND a.calificacion = 'Favorable'
-                 AND NOT coalesce(a.excluido, false) ORDER BY random() LIMIT 14""")
-for r in cur.fetchall(): print("\n", r)
+def q(s): cur.execute(s); return cur.fetchall()
+print("columnas:", q("SELECT column_name FROM information_schema.columns WHERE table_name='analisis' AND column_name IN ('puntaje','criterio')"))
+print("pendientes:", q("SELECT count(*) FROM analisis WHERE relevante AND criterio IS DISTINCT FROM 2"))
+print("recalificados:", q("SELECT relevante, calificacion, count(*) FROM analisis WHERE criterio = 2 GROUP BY 1, 2 ORDER BY 1, 2"))
+print("puntajes:", q("SELECT puntaje, count(*) FROM analisis WHERE criterio = 2 AND relevante GROUP BY 1 ORDER BY 1"))
+for t in ("Decreto Supremo%021-2026-EM%", "%397-2026-VIVIENDA%", "%2860%"):
+    print(t, q(f"""SELECT n.tipo, n.numero, a.relevante, a.calificacion, a.puntaje, a.criterio FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo='N'
+                   WHERE (n.tipo || ' ' || n.numero) ILIKE '{t}' AND n.fecha >= '2026-10-01'"""))
+print("muestra:", q("""SELECT coalesce(n.tipo||' '||n.numero, 'Proy '||p.numero), a.relevante, a.calificacion, a.puntaje, left(coalesce(n.sumilla, p.titulo), 90)
+   FROM analisis a LEFT JOIN normas n ON a.tipo='N' AND n.id=a.ref_id LEFT JOIN proyectos_ley p ON a.tipo='P' AND p.id=a.ref_id
+   WHERE a.criterio = 2 ORDER BY random() LIMIT 25"""))
