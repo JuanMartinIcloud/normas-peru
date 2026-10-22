@@ -52,7 +52,46 @@ HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
-FILTRO_INSTR = """Eres analista de asuntos públicos de la Cámara de Comercio Americana del Perú (AmCham).
+# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 2)
+CRITERIO = 2
+NO_RELEVANTES = """NO son relevantes (quedan fuera del reporte) aunque mencionen a empresas o sectores:
+- Actos dirigidos a una empresa, persona o entidad concreta, que no cambian las reglas para el resto:
+  concesiones, autorizaciones, licencias, permisos, registros u otorgamiento de derechos a un titular;
+  modificación, cesión o adenda de un contrato concreto (por ejemplo, el contrato de un lote petrolero);
+  calificación o aprobación de una empresa para un régimen o beneficio (por ejemplo, recuperación
+  anticipada del IGV); servidumbres, expropiaciones o transferencias de un predio concreto.
+- Designaciones, renuncias, encargos, viajes y licencias de funcionarios; nombramientos de docentes o
+  jueces; actos sobre personas concretas; saludos y reconocimientos.
+- Ordenanzas y planes municipales o regionales de desarrollo urbano, zonificación, planeamiento, vías,
+  anexión de áreas o habilitaciones; beneficios tributarios municipales (amnistías, prórrogas de pago);
+  tasas y servicios municipales (TUPA, TUSNE); ordenanzas municipales menores.
+- Guías, manuales, protocolos y documentos técnicos internos del sector público sin obligaciones nuevas
+  para las empresas; asuntos internos de entidades; declaraciones de interés sin efecto económico."""
+CRITERIOS_CALIFICACION = """Calificación (para el sector empresarial y el clima de inversiones en el Perú):
+- "Favorable": promueve o favorece el clima de inversión, o beneficia a las empresas de un sector o en
+  general: reduce impuestos, costos, cargas o trámites; da incentivos; abre mercados o facilita la
+  competencia; da seguridad jurídica o predictibilidad.
+- "Desfavorable": perjudica a las empresas o al clima de inversión: aumenta impuestos, costos,
+  obligaciones, sanciones o restricciones; crea inseguridad jurídica o trabas.
+- "Para seguimiento": el efecto es mixto o incierto, depende de su reglamentación, o es un proyecto de ley
+  aún no aprobado cuyo efecto no se puede anticipar con claridad.
+Puntaje de impacto, del 1 al 10 (qué tanto afecta a las empresas y al clima de inversión, sea para bien
+o para mal):
+- 9-10: cambio de gran alcance para muchas empresas o un sector clave (reforma tributaria, laboral o de un
+  régimen sectorial; nueva ley general).
+- 7-8: cambio importante para un sector o para un grupo amplio de empresas.
+- 5-6: efecto moderado o acotado a un subsector o a un tipo de operación.
+- 3-4: efecto menor (ajustes operativos o procedimentales).
+- 1-2: efecto mínimo.
+Usa todo el rango; no pongas puntajes altos por costumbre."""
+
+
+def impacto_de(puntaje):
+    """Nivel de impacto segun el puntaje: Alto 8-10, Moderado 5-7, Bajo 1-4."""
+    return "Alto" if puntaje >= 8 else ("Moderado" if puntaje >= 5 else "Bajo")
+
+
+FILTRO_INSTR_BASE = """Eres analista de asuntos públicos de la Cámara de Comercio Americana del Perú (AmCham).
 Recibes una lista de normas legales o proyectos de ley del Perú (id y descripción). Marca como
 relevantes SOLO los que pueden afectar a las empresas privadas, a sectores económicos o al clima de
 inversiones en el Perú: tributos, aduanas y comercio exterior, laboral, regulación sectorial (minería,
@@ -60,11 +99,10 @@ energía, hidrocarburos, telecomunicaciones, salud y medicamentos, transporte, f
 turismo, educación privada), concesiones, APP e inversión pública relevante para privados,
 contrataciones del Estado, competencia y consumidor, ambiental, datos y economía digital, permisos y
 trámites, propiedad, arbitraje, compliance y anticorrupción empresarial.
-NO son relevantes: designaciones, renuncias, encargos, viajes y licencias de funcionarios, actos
-administrativos sobre personas concretas, saludos y reconocimientos, nombramientos de docentes o
-jueces, asuntos internos de entidades sin efecto en privados, ordenanzas municipales menores
-(nombres de calles, ceremonias), declaraciones de interés sin efecto económico.
+{NO_RELEVANTES}
 Responde solo con el JSON pedido: "relevantes" = lista de los id relevantes."""
+
+FILTRO_INSTR = FILTRO_INSTR_BASE.replace("{NO_RELEVANTES}", NO_RELEVANTES)
 
 FILTRO_ESQUEMA = {"type": "OBJECT", "properties": {"relevantes": {"type": "ARRAY", "items": {"type": "STRING"}}},
                   "required": ["relevantes"]}
@@ -80,28 +118,29 @@ Usa solo lo que dice el documento; si no se puede saber algo, dilo. Responde sol
   reglamenta, si el documento lo indica); si crea algo nuevo, dilo.
 - "comentario": 2 a 4 oraciones: cómo afecta al sector empresarial y al clima de inversiones en el Perú.
 - "sector": el sector económico principal, uno de: {", ".join(SECTORES)}.
-- "calificacion": "Favorable", "Desfavorable" o "Para seguimiento" (usa "Para seguimiento" cuando el
-  impacto es moderado, incierto o depende de su reglamentación o aprobación).
-- "impacto": "Alto", "Moderado" o "Bajo".
+- "calificacion": "Favorable", "Desfavorable" o "Para seguimiento", según los criterios de abajo.
+- "puntaje": número entero del 1 al 10, según los criterios de abajo.
 - "comites": los comités de AmCham a los que interesa (1 a 3), elegidos de esta lista exacta:
   {", ".join(COMITES)}.
 - "acciones": para cada comité elegido, una acción concreta que debería realizar (por ejemplo: emitir
   opinión técnica, solicitar reunión con la comisión o el ministerio, preparar comentarios al
   reglamento, alertar a los asociados, monitorear su debate).
-- "accion_directorio": acción recomendada al Directorio de AmCham (o "Ninguna por ahora")."""
+- "accion_directorio": acción recomendada al Directorio de AmCham (o "Ninguna por ahora").
+
+{CRITERIOS_CALIFICACION}"""
 
 
 ANALISIS_ESQUEMA = {
     "type": "OBJECT",
     "properties": {
         "resumen": {"type": "STRING"}, "cambios": {"type": "STRING"}, "comentario": {"type": "STRING"},
-        "sector": {"type": "STRING"}, "calificacion": {"type": "STRING"}, "impacto": {"type": "STRING"},
+        "sector": {"type": "STRING"}, "calificacion": {"type": "STRING"}, "puntaje": {"type": "INTEGER"},
         "comites": {"type": "ARRAY", "items": {"type": "STRING"}},
         "acciones": {"type": "ARRAY", "items": {"type": "OBJECT", "properties": {
             "comite": {"type": "STRING"}, "accion": {"type": "STRING"}}, "required": ["comite", "accion"]}},
         "accion_directorio": {"type": "STRING"},
     },
-    "required": ["resumen", "cambios", "comentario", "sector", "calificacion", "impacto", "comites",
+    "required": ["resumen", "cambios", "comentario", "sector", "calificacion", "puntaje", "comites",
                  "acciones", "accion_directorio"],
 }
 
@@ -158,6 +197,13 @@ def filtrar(items):
     return relevantes, len(items)
 
 
+def entero_1_10(v, defecto=5):
+    try:
+        return max(1, min(10, int(round(float(v)))))
+    except (TypeError, ValueError):
+        return defecto
+
+
 def _limpia(datos):
     def uno(v, opciones, defecto):
         v = str(v or "").strip()
@@ -181,13 +227,17 @@ def _limpia(datos):
             acciones.append({"comite": com, "accion": str(a["accion"]).strip()})
             if com not in comites:
                 comites.append(com)
+    puntaje = entero_1_10(datos.get("puntaje"), {"Alto": 8, "Moderado": 6, "Bajo": 3}.get(
+        uno(datos.get("impacto"), IMPACTOS, "Moderado")))
     return {
         "resumen": str(datos.get("resumen") or "").strip(),
         "cambios": str(datos.get("cambios") or "").strip(),
         "comentario": str(datos.get("comentario") or "").strip(),
         "sector": uno(datos.get("sector"), SECTORES, "Transversal (todos los sectores)"),
         "calificacion": uno(datos.get("calificacion"), CALIFICACIONES, "Para seguimiento"),
-        "impacto": uno(datos.get("impacto"), IMPACTOS, "Moderado"),
+        "puntaje": puntaje,
+        "impacto": impacto_de(puntaje),
+        "criterio": CRITERIO,
         "comites": comites,
         "acciones": acciones,
         "accion_directorio": str(datos.get("accion_directorio") or "").strip(),
@@ -207,7 +257,8 @@ def guardar(filas):
     if not filas:
         return
     cols = ["tipo", "ref_id", "fecha", "relevante", "resumen", "cambios", "comentario", "sector",
-            "calificacion", "impacto", "comites", "acciones", "accion_directorio", "lectura", "modelo"]
+            "calificacion", "impacto", "puntaje", "criterio", "comites", "acciones", "accion_directorio",
+            "lectura", "modelo"]
     valores = []
     for f in filas:
         v = [f.get(c) for c in cols]
@@ -218,7 +269,8 @@ def guardar(filas):
         execute_values(cur, f"""INSERT INTO analisis ({', '.join(cols)}) VALUES %s
             ON CONFLICT (tipo, ref_id) DO UPDATE SET relevante = EXCLUDED.relevante, resumen = EXCLUDED.resumen,
               cambios = EXCLUDED.cambios, comentario = EXCLUDED.comentario, sector = EXCLUDED.sector,
-              calificacion = EXCLUDED.calificacion, impacto = EXCLUDED.impacto, comites = EXCLUDED.comites,
+              calificacion = EXCLUDED.calificacion, impacto = EXCLUDED.impacto, puntaje = EXCLUDED.puntaje,
+              criterio = EXCLUDED.criterio, comites = EXCLUDED.comites,
               acciones = EXCLUDED.acciones, accion_directorio = EXCLUDED.accion_directorio,
               lectura = EXCLUDED.lectura, modelo = EXCLUDED.modelo""", valores)
     c.commit()
@@ -256,7 +308,7 @@ def procesar_normas(desde, hasta, reloj):
             return hechas, False
         relevantes, cubiertos = r
         grupo = grupo[:cubiertos]
-        no_rel = [{"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": False} for f in grupo if str(f[0]) not in relevantes]
+        no_rel = [{"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": False, "criterio": CRITERIO} for f in grupo if str(f[0]) not in relevantes]
         guardar(no_rel)
         rel = [f for f in grupo if str(f[0]) in relevantes]
         txt = textos("N", [f[6] for f in rel])
@@ -317,7 +369,7 @@ def procesar_proyectos(desde, hasta, reloj):
         relevantes, cubiertos = r
         grupo = grupo[:cubiertos]
         fecha = lambda f: f[1] or desde  # noqa: E731
-        guardar([{"tipo": "P", "ref_id": f[0], "fecha": fecha(f), "relevante": False}
+        guardar([{"tipo": "P", "ref_id": f[0], "fecha": fecha(f), "relevante": False, "criterio": CRITERIO}
                  for f in grupo if str(f[0]) not in relevantes])
         rel = [f for f in grupo if str(f[0]) in relevantes]
         txt = textos("P", [f[9] for f in rel])

@@ -207,3 +207,8 @@ CREATE TABLE IF NOT EXISTS informes (
 
 -- Busqueda: proyectos hallados por su texto completo (clave periodo|camara|numero)
 CREATE INDEX IF NOT EXISTS idx_proy_clave ON proyectos_ley ((periodo || '|' || camara || '|' || numero));
+
+-- Etapa 7: puntaje de impacto (1 a 10) y version de los criterios de calificacion.
+ALTER TABLE analisis ADD COLUMN IF NOT EXISTS puntaje SMALLINT;
+ALTER TABLE analisis ADD COLUMN IF NOT EXISTS criterio SMALLINT;   -- 2 = criterios de octubre de 2026
+CREATE INDEX IF NOT EXISTS idx_analisis_criterio ON analisis (criterio) WHERE relevante;
