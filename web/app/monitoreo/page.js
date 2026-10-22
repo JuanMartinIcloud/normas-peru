@@ -1,7 +1,8 @@
-import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados } from "../../lib/monitoreo";
+import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados, finDeMes, nombreMes } from "../../lib/monitoreo";
+import { urlProyecto } from "../../lib/resumenes";
 import { leerPeriodo } from "../../lib/periodo";
 import { contar } from "./Graficos";
-import { Balance, Evolucion, Puntajes, Sectores, Comites } from "./Tablero";
+import { Balance, Evolucion, Puntajes, Sectores, Comites, Matriz, Principales } from "./Tablero";
 import BotonEjecutivo from "./BotonEjecutivo";
 
 export const metadata = { title: "Resumen ejecutivo · Monitoreo empresarial" };
@@ -15,8 +16,20 @@ export default async function ResumenEjecutivo({ searchParams }) {
   let normas = [];
   let proyectos = [];
   let error = "";
+  // Mes anterior, para comparar las cifras (solo cuando se ve un mes)
+  const [a, m] = per.mes.split("-").map(Number);
+  const mesAnt = `${m === 1 ? a - 1 : a}-${String(m === 1 ? 12 : m - 1).padStart(2, "0")}`;
+  let previos = null;
   try {
-    [normas, proyectos] = await Promise.all([normasAnalizadas(f, per.desde, per.hasta), proyectosAnalizados(f, per.desde, per.hasta)]);
+    const [n0, p0, nAnt, pAnt] = await Promise.all([
+      normasAnalizadas(f, per.desde, per.hasta),
+      proyectosAnalizados(f, per.desde, per.hasta),
+      per.tipo === "mes" ? normasAnalizadas(f, `${mesAnt}-01`, finDeMes(mesAnt)) : Promise.resolve(null),
+      per.tipo === "mes" ? proyectosAnalizados(f, `${mesAnt}-01`, finDeMes(mesAnt)) : Promise.resolve(null),
+    ]);
+    normas = n0;
+    proyectos = p0;
+    if (nAnt && (nAnt.length || pAnt.length)) previos = { normas: nAnt, proyectos: pAnt, todos: [...nAnt, ...pAnt] };
   } catch (e) {
     error = String(e.message || e);
   }
@@ -33,6 +46,15 @@ export default async function ResumenEjecutivo({ searchParams }) {
   const ver = (filtro) => `/monitoreo/impacto?${periodo}&${new URLSearchParams(filtro).toString()}#detalle`;
   const total = todos.length;
   const pct = (n) => (total ? `${Math.round((n / total) * 100)} % del total` : "");
+  // Diferencia frente al mes anterior (flecha y cifra, en texto neutro)
+  const nomAnt = nombreMes(mesAnt).split(" ")[0];
+  const delta = (actual, anterior) => {
+    if (!previos) return null;
+    const d = actual - anterior;
+    return <div className="d">{d === 0 ? `igual que ${nomAnt}` : `${d > 0 ? "▲" : "▼"} ${Math.abs(d)} frente a ${nomAnt} (${anterior})`}</div>;
+  };
+  const ant = (campo, valor) => (previos ? previos.todos.filter((x) => x[campo] === valor).length : 0);
+  const enlaceDoc = (x) => (x.origen === "N" ? x.url_detalle : urlProyecto(x));
 
   return (
     <>
@@ -53,18 +75,20 @@ export default async function ResumenEjecutivo({ searchParams }) {
       {error && <div className="error"><strong>No se pudo leer el reporte.</strong><p>{error}</p></div>}
 
       <div className="kpis">
-        <a className="kpi" href={per.tipo === "mes" ? `/monitoreo/normas?mes=${per.mes}` : ver({})}><div className="n">{normas.length}</div><div className="t">Normas legales con impacto</div></a>
-        <a className="kpi" href={ver({})}><div className="n">{proyectos.length}</div><div className="t">Proyectos de ley con impacto</div></a>
-        <a className="kpi" href={ver({ calificacion: "Favorable" })}><div className="n" style={{ color: "#2f8f4e" }}>{cuenta("calificacion", "Favorable")}</div><div className="t">Favorables</div><div className="p">{pct(cuenta("calificacion", "Favorable"))}</div></a>
-        <a className="kpi" href={ver({ calificacion: "Desfavorable" })}><div className="n" style={{ color: "#c0392b" }}>{cuenta("calificacion", "Desfavorable")}</div><div className="t">Desfavorables</div><div className="p">{pct(cuenta("calificacion", "Desfavorable"))}</div></a>
-        <a className="kpi" href={ver({ calificacion: "Para seguimiento" })}><div className="n" style={{ color: "#a07800" }}>{cuenta("calificacion", "Para seguimiento")}</div><div className="t">Para seguimiento</div><div className="p">{pct(cuenta("calificacion", "Para seguimiento"))}</div></a>
-        <a className="kpi" href={ver({ impacto: "Alto" })}><div className="n">{cuenta("impacto", "Alto")}</div><div className="t">De impacto alto (8 a 10)</div><div className="p">{pct(cuenta("impacto", "Alto"))}</div></a>
+        <a className="kpi" href={per.tipo === "mes" ? `/monitoreo/normas?mes=${per.mes}` : ver({})}><div className="n">{normas.length}</div><div className="t">Normas legales con impacto</div>{delta(normas.length, previos?.normas.length)}</a>
+        <a className="kpi" href={ver({})}><div className="n">{proyectos.length}</div><div className="t">Proyectos de ley con impacto</div>{delta(proyectos.length, previos?.proyectos.length)}</a>
+        <a className="kpi" href={ver({ calificacion: "Favorable" })}><div className="n" style={{ color: "#2f8f4e" }}>{cuenta("calificacion", "Favorable")}</div><div className="t">Favorables</div><div className="p">{pct(cuenta("calificacion", "Favorable"))}</div>{delta(cuenta("calificacion", "Favorable"), ant("calificacion", "Favorable"))}</a>
+        <a className="kpi" href={ver({ calificacion: "Desfavorable" })}><div className="n" style={{ color: "#c0392b" }}>{cuenta("calificacion", "Desfavorable")}</div><div className="t">Desfavorables</div><div className="p">{pct(cuenta("calificacion", "Desfavorable"))}</div>{delta(cuenta("calificacion", "Desfavorable"), ant("calificacion", "Desfavorable"))}</a>
+        <a className="kpi" href={ver({ calificacion: "Para seguimiento" })}><div className="n" style={{ color: "#a07800" }}>{cuenta("calificacion", "Para seguimiento")}</div><div className="t">Para seguimiento</div><div className="p">{pct(cuenta("calificacion", "Para seguimiento"))}</div>{delta(cuenta("calificacion", "Para seguimiento"), ant("calificacion", "Para seguimiento"))}</a>
+        <a className="kpi" href={ver({ impacto: "Alto" })}><div className="n">{cuenta("impacto", "Alto")}</div><div className="t">De impacto alto (8 a 10)</div><div className="p">{pct(cuenta("impacto", "Alto"))}</div>{delta(cuenta("impacto", "Alto"), ant("impacto", "Alto"))}</a>
       </div>
 
       <BotonEjecutivo desde={per.desde} hasta={per.hasta} nombre={per.nombre} cantidad={todos.length} />
 
       <div className="tablero">
+        <Principales todos={todos} nombre={nombre} enlace={enlaceDoc} />
         <Balance todos={todos} ver={ver} />
+        <Matriz todos={todos} ver={ver} />
         <Evolucion todos={todos} desde={per.desde} hasta={per.hasta} verDia={(d) => `/monitoreo/impacto?fecha=${d}#detalle`} />
         <Puntajes todos={todos} ver={ver} />
         <Sectores todos={todos} ver={ver} />

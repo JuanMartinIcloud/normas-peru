@@ -99,7 +99,7 @@ with sync_playwright() as pw:
     @paso("clic en favorable")
     def _():
         ir(page, "/monitoreo?mes=2026-10")
-        page.locator("a.kpi", has_text="Favorables").click(); page.wait_for_load_state("networkidle")
+        page.locator("a.kpi", has_text=re.compile(r"^\d+\s*Favorables")).first.click(); page.wait_for_load_state("networkidle")
         nota("url: " + page.url)
         foto(page, "t3_clic_favorables")
 

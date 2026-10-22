@@ -245,3 +245,66 @@ export function Comites({ todos, ver }) {
     </Tarjeta>
   );
 }
+
+// 6) Matriz de impacto: nivel de impacto (filas) por calificacion (columnas). Cada celda lleva a sus documentos.
+//    Intensidad del color = cantidad de documentos (una sola tonalidad por columna).
+export function Matriz({ todos, ver }) {
+  const filas = [["Alto", "8 a 10"], ["Moderado", "5 a 7"], ["Bajo", "1 a 4"]];
+  const cols = ["Desfavorable", "Para seguimiento", "Favorable"];
+  const n = (imp, cal) => todos.filter((x) => x.impacto === imp && x.calificacion === cal).length;
+  const tope = Math.max(1, ...filas.flatMap(([imp]) => cols.map((c) => n(imp, c))));
+  const lectura = { Desfavorable: "Riesgo", "Para seguimiento": "Vigilar", Favorable: "Oportunidad" };
+  return (
+    <Tarjeta titulo="Matriz de impacto" nota="Cuántos documentos hay según su impacto y su efecto. Arriba a la izquierda, los riesgos mayores; arriba a la derecha, las mayores oportunidades. Pulsa una celda para verlos." ancho>
+      <div className="matriz">
+        <div />
+        {cols.map((c) => (
+          <div key={c} className="mz-col"><i style={{ background: COLOR_CAL[c] }} />{c}<span>{lectura[c]}</span></div>
+        ))}
+        {filas.map(([imp, rango]) => (
+          <div key={imp} style={{ display: "contents" }}>
+            <div className="mz-fila">Impacto {imp.toLowerCase()}<span>puntaje {rango}</span></div>
+            {cols.map((c) => {
+              const v = n(imp, c);
+              const a = v ? 0.12 + 0.78 * (v / tope) : 0;
+              const fuerte = a > 0.5;
+              return (
+                <a key={c} className="mz-celda" href={ver({ impacto: imp, calificacion: c })}
+                  title={`${imp} · ${c}: ${v} documentos`}
+                  style={{ background: v ? `color-mix(in srgb, ${COLOR_CAL[c]} ${Math.round(a * 100)}%, #ffffff)` : "#f6f5f2", color: fuerte ? "#fff" : TINTA }}>
+                  <b>{v}</b>
+                  <span>{v === 1 ? "documento" : "documentos"}</span>
+                </a>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </Tarjeta>
+  );
+}
+
+// 7) Los temas mas importantes del periodo (mayor puntaje)
+export function Principales({ todos, nombre, enlace }) {
+  const top = [...todos].filter((x) => x.puntaje).sort((a, b) => b.puntaje - a.puntaje || (a.calificacion === "Desfavorable" ? -1 : 1)).slice(0, 5);
+  if (!top.length) return null;
+  return (
+    <Tarjeta titulo="Los 5 temas más importantes del periodo" nota="Los documentos con mayor puntaje de impacto." ancho>
+      <ol className="principales">
+        {top.map((x) => (
+          <li key={`${x.origen}-${x.analisis_id}`}>
+            <span className="pr-puntaje">{x.puntaje}<small>/10</small></span>
+            <div>
+              <div className="pr-titulo">
+                <a href={enlace(x)} target="_blank" rel="noopener noreferrer">{nombre(x)}</a>
+                <span className="pr-tipo">{x.origen === "N" ? "Norma legal" : "Proyecto de ley"} · {x.sector}</span>
+                <span className="pr-cal"><i style={{ background: COLOR_CAL[x.calificacion] }} />{x.calificacion}</span>
+              </div>
+              <p>{x.resumen}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Tarjeta>
+  );
+}
