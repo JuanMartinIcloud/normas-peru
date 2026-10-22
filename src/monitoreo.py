@@ -52,8 +52,8 @@ HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
-# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 2)
-CRITERIO = 2
+# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 3)
+CRITERIO = 3
 NO_RELEVANTES = """NO son relevantes (quedan fuera del reporte) aunque mencionen a empresas o sectores:
 - Actos dirigidos a una empresa, persona o entidad concreta, que no cambian las reglas para el resto:
   concesiones, autorizaciones, licencias, permisos, registros u otorgamiento de derechos a un titular;
@@ -62,11 +62,16 @@ NO_RELEVANTES = """NO son relevantes (quedan fuera del reporte) aunque mencionen
   anticipada del IGV); servidumbres, expropiaciones o transferencias de un predio concreto.
 - Designaciones, renuncias, encargos, viajes y licencias de funcionarios; nombramientos de docentes o
   jueces; actos sobre personas concretas; saludos y reconocimientos.
-- Ordenanzas y planes municipales o regionales de desarrollo urbano, zonificación, planeamiento, vías,
-  anexión de áreas o habilitaciones; beneficios tributarios municipales (amnistías, prórrogas de pago);
-  tasas y servicios municipales (TUPA, TUSNE); ordenanzas municipales menores.
+- Normas municipales y regionales (ordenanzas, decretos de alcaldía, acuerdos de concejo, ordenanzas y
+  acuerdos regionales): NO son relevantes, incluidos planes de desarrollo urbano o acondicionamiento
+  territorial, zonificación, vías, anexión de áreas, habilitaciones, arbitrios y tasas, TUPA o TUSNE,
+  beneficios o prórrogas tributarias, reglamentos y comisiones internas. Única excepción: que regulen
+  con alcance general una actividad económica importante en Lima Metropolitana o en una región entera
+  (por ejemplo, un nuevo régimen de licencias de funcionamiento) y con efecto claro en las empresas.
 - Guías, manuales, protocolos y documentos técnicos internos del sector público sin obligaciones nuevas
-  para las empresas; asuntos internos de entidades; declaraciones de interés sin efecto económico."""
+  para las empresas; remuneraciones, escalas, plazas y régimen de los trabajadores del Estado;
+  presupuesto, transferencias de partidas y asuntos internos de entidades públicas; declaraciones de
+  interés sin efecto económico."""
 CRITERIOS_CALIFICACION = """Calificación (para el sector empresarial y el clima de inversiones en el Perú):
 - "Favorable": promueve o favorece el clima de inversión, o beneficia a las empresas de un sector o en
   general: reduce impuestos, costos, cargas o trámites; da incentivos; abre mercados o facilita la
