@@ -12,8 +12,8 @@ import time
 import cupos
 import db
 import gemini
-from monitoreo import (CALIFICACIONES, CRITERIO, CRITERIOS_CALIFICACION, HIST_ANALISIS, HIST_FILTRO,
-                       NO_RELEVANTES, entero_1_10, impacto_de)
+from monitoreo import (CALIFICACIONES, CRITERIO, CRITERIOS_CALIFICACION, HIST_ANALISIS, HIST_FILTRO, INDIVIDUAL,
+                       NO_RELEVANTES, entero_1_10, es_local, impacto_de)
 
 LOTE = 15
 MODELOS = list(dict.fromkeys(HIST_ANALISIS + HIST_FILTRO))
@@ -25,6 +25,7 @@ decide, con los criterios de abajo:
   corresponde a alguno de los casos que NO son relevantes.
 - "calificacion": "Favorable", "Desfavorable" o "Para seguimiento".
 - "puntaje": entero del 1 al 10.
+- {INDIVIDUAL}
 Responde solo con el JSON pedido, con un elemento por cada id recibido.
 
 {NO_RELEVANTES}
@@ -33,14 +34,16 @@ Responde solo con el JSON pedido, con un elemento por cada id recibido.
 
 ESQUEMA = {"type": "OBJECT", "properties": {"documentos": {"type": "ARRAY", "items": {"type": "OBJECT", "properties": {
     "id": {"type": "STRING"}, "relevante": {"type": "BOOLEAN"}, "calificacion": {"type": "STRING"},
-    "puntaje": {"type": "INTEGER"}}, "required": ["id", "relevante", "calificacion", "puntaje"]}}},
+    "puntaje": {"type": "INTEGER"}, "acto_individual": {"type": "BOOLEAN"}},
+    "required": ["id", "relevante", "calificacion", "puntaje", "acto_individual"]}}},
     "required": ["documentos"]}
 
 SQL_PENDIENTES = """
     SELECT a.id, a.tipo,
            coalesce(n.tipo || ' ' || coalesce(n.numero, ''), 'Proyecto de ley ' || p.numero),
            coalesce(n.entidad, p.proponente, ''), coalesce(n.sumilla, p.titulo, ''),
-           coalesce(a.resumen, ''), coalesce(a.cambios, ''), coalesce(a.comentario, '')
+           coalesce(a.resumen, ''), coalesce(a.cambios, ''), coalesce(a.comentario, ''),
+           n.tipo, n.entidad, n.sector
     FROM analisis a
     LEFT JOIN normas n ON a.tipo = 'N' AND n.id = a.ref_id
     LEFT JOIN proyectos_ley p ON a.tipo = 'P' AND p.id = a.ref_id
@@ -64,7 +67,7 @@ def calificar(lote):
     texto = "\n\n".join(
         f"id: {i}\nDocumento: {doc}\nEntidad o proponente: {ent[:200]}\nSumilla: {sum_[:600]}\n"
         f"En qué consiste: {res[:700]}\nQué cambia: {cam[:500]}\nComentario: {com[:500]}"
-        for i, _, doc, ent, sum_, res, cam, com in lote)
+        for i, _, doc, ent, sum_, res, cam, com, *_ in lote)
     datos, _ = gemini.generar_json(INSTR, texto, ESQUEMA, MODELOS, 8192)
     salida = {}
     docs = datos.get("documentos", []) if isinstance(datos, dict) else (datos if isinstance(datos, list) else [])
@@ -76,6 +79,7 @@ def calificar(lote):
         rel = d.get("relevante")
         if cal is None or not isinstance(rel, bool):
             continue
+        rel = rel and d.get("acto_individual") is not True   # acto sobre una empresa o contrato concreto: fuera
         salida[int(str(d["id"]).strip())] = (rel, cal, entero_1_10(d.get("puntaje"), 5))
     return salida
 
@@ -100,6 +104,18 @@ def main():
         if time.time() > fin - 120:
             break
         lote = filas[i:i + LOTE]
+        # Normas municipales y regionales: fuera del reporte, sin consultar a la IA
+        locales = [f for f in lote if f[1] == "N" and es_local(f[8], f[9], f[10])]
+        if locales:
+            with conn.cursor() as cur:
+                for f in locales:
+                    cur.execute("UPDATE analisis SET relevante = FALSE, criterio = %s WHERE id = %s", (CRITERIO, f[0]))
+            conn.commit()
+            hechos += len(locales)
+            fuera += len(locales)
+        lote = [f for f in lote if f not in locales]
+        if not lote:
+            continue
         try:
             r = calificar(lote)
         except gemini.ErrorGemini as e:

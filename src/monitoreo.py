@@ -52,8 +52,8 @@ HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
-# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 3)
-CRITERIO = 3
+# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 4)
+CRITERIO = 4
 NO_RELEVANTES = """NO son relevantes (quedan fuera del reporte) aunque mencionen a empresas o sectores:
 - Actos dirigidos a una empresa, persona o entidad concreta, que no cambian las reglas para el resto:
   concesiones, autorizaciones, licencias, permisos, registros u otorgamiento de derechos a un titular;
@@ -91,6 +91,30 @@ o para mal):
 Usa todo el rango; no pongas puntajes altos por costumbre."""
 
 
+SECTORES_LOCALES = ("Gobiernos Locales", "Gobiernos Regionales")
+_TIPOS_LOCALES = ("ORDENANZA", "DECRETO DE ALCALDIA", "ACUERDO DE CONCEJO", "RESOLUCION DE ALCALDIA",
+                  "ACUERDO REGIONAL", "RESOLUCION EJECUTIVA REGIONAL", "ACUERDO DE CONSEJO REGIONAL")
+
+
+def es_local(tipo, entidad, sector):
+    """Norma municipal o regional (queda fuera del reporte, sin consultar a la IA)."""
+    import unicodedata
+    def n(t):
+        return unicodedata.normalize("NFKD", str(t or "")).encode("ascii", "ignore").decode().upper()
+    if sector in SECTORES_LOCALES:
+        return True
+    if any(n(tipo).startswith(t) for t in _TIPOS_LOCALES):
+        return True
+    e = n(entidad)
+    return any(x in e for x in ("MUNICIPALIDAD", "GOBIERNO REGIONAL", "CONSEJO REGIONAL"))
+
+
+INDIVIDUAL = """"acto_individual": true si el documento se refiere a una empresa, contrato, lote, concesión, predio,
+  proyecto o persona concreta (por ejemplo: modifica o cede el contrato de un lote petrolero, otorga una
+  concesión o autorización a una empresa, califica a una empresa para la recuperación anticipada del IGV,
+  designa a un funcionario, aprueba una expropiación); false si establece reglas generales."""
+
+
 def impacto_de(puntaje):
     """Nivel de impacto segun el puntaje: Alto 8-10, Moderado 5-7, Bajo 1-4."""
     return "Alto" if puntaje >= 8 else ("Moderado" if puntaje >= 5 else "Bajo")
@@ -125,6 +149,7 @@ Usa solo lo que dice el documento; si no se puede saber algo, dilo. Responde sol
 - "sector": el sector económico principal, uno de: {", ".join(SECTORES)}.
 - "calificacion": "Favorable", "Desfavorable" o "Para seguimiento", según los criterios de abajo.
 - "puntaje": número entero del 1 al 10, según los criterios de abajo.
+- {INDIVIDUAL}
 - "comites": los comités de AmCham a los que interesa (1 a 3), elegidos de esta lista exacta:
   {", ".join(COMITES)}.
 - "acciones": para cada comité elegido, una acción concreta que debería realizar (por ejemplo: emitir
@@ -140,6 +165,7 @@ ANALISIS_ESQUEMA = {
     "properties": {
         "resumen": {"type": "STRING"}, "cambios": {"type": "STRING"}, "comentario": {"type": "STRING"},
         "sector": {"type": "STRING"}, "calificacion": {"type": "STRING"}, "puntaje": {"type": "INTEGER"},
+        "acto_individual": {"type": "BOOLEAN"},
         "comites": {"type": "ARRAY", "items": {"type": "STRING"}},
         "acciones": {"type": "ARRAY", "items": {"type": "OBJECT", "properties": {
             "comite": {"type": "STRING"}, "accion": {"type": "STRING"}}, "required": ["comite", "accion"]}},
@@ -243,6 +269,7 @@ def _limpia(datos):
         "puntaje": puntaje,
         "impacto": impacto_de(puntaje),
         "criterio": CRITERIO,
+        "acto_individual": datos.get("acto_individual") is True,
         "comites": comites,
         "acciones": acciones,
         "accion_directorio": str(datos.get("accion_directorio") or "").strip(),
@@ -266,6 +293,8 @@ def guardar(filas):
             "lectura", "modelo"]
     valores = []
     for f in filas:
+        if f.pop("acto_individual", False):
+            f["relevante"] = False   # acto sobre una empresa, contrato o persona concreta: fuera del reporte
         v = [f.get(c) for c in cols]
         v[cols.index("acciones")] = Json(f["acciones"]) if f.get("acciones") is not None else None
         valores.append(v)
@@ -296,7 +325,7 @@ def consultar(sql, params=()):
 
 def procesar_normas(desde, hasta, reloj):
     filas = consultar(
-        """SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle
+        """SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle, n.sector
            FROM normas n WHERE n.fecha BETWEEN %s AND %s
              AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)
            ORDER BY n.fecha DESC, n.id DESC""", (desde, hasta))
@@ -306,6 +335,13 @@ def procesar_normas(desde, hasta, reloj):
         if not reloj.queda():
             break
         grupo = filas[i:i + 200]
+        # Normas municipales y regionales: fuera del reporte, sin consultar a la IA
+        locales = [f for f in grupo if es_local(f[2], f[4], f[8])]
+        guardar([{"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": False, "criterio": CRITERIO} for f in locales])
+        grupo = [f for f in grupo if not es_local(f[2], f[4], f[8])]
+        if not grupo:
+            continue
+        n_grupo = len(grupo)
         items = [(str(f[0]), f"{f[2]} {f[3] or ''} — {f[4] or ''}: {f[5] or ''}") for f in grupo]
         r = filtrar(items)
         if r is None:
@@ -344,7 +380,7 @@ def procesar_normas(desde, hasta, reloj):
                 lote = []
         guardar(lote)
         print(f"  {i + len(grupo)} normas revisadas, {hechas} analizadas")
-        if cubiertos < len(filas[i:i + 200]):
+        if cubiertos < n_grupo:
             return hechas, False
     return hechas, True
 
