@@ -15,7 +15,10 @@ export default function Tarjeta({ titulo, subtitulo, fecha, enlaces = [], descri
       {movimiento && <p className="movimiento">{movimiento}</p>}
       <div className="etiquetas">
         <span className={`etq cal-${COLOR[a.calificacion] || "seguimiento"}`}>{a.calificacion}</span>
-        <span className="etq gris">Impacto {String(a.impacto || "").toLowerCase()}</span>
+        <span className="etq gris">
+          Impacto {String(a.impacto || "").toLowerCase()}
+          {a.puntaje ? ` · ${a.puntaje}/10` : ""}
+        </span>
         <span className="etq gris">{a.sector}</span>
         {(a.comites || []).map((c) => (
           <span key={c} className="etq gris">Comité {c}</span>

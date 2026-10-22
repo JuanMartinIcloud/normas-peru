@@ -11,6 +11,7 @@ export const COMITES = [
 ];
 export const CALIFICACIONES = ["Favorable", "Desfavorable", "Para seguimiento"];
 export const IMPACTOS = ["Alto", "Moderado", "Bajo"];
+// Nivel de impacto segun el puntaje (1 a 10): Alto 8-10, Moderado 5-7, Bajo 1-4
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const MES = /^\d{4}-\d{2}$/;
@@ -36,6 +37,12 @@ export function fechaLarga(f) {
   return `${dias[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
 }
 
+// Puntaje de impacto: entero del 1 al 10 (o 0 si no se indico)
+function puntaje(x) {
+  const n = Number(x);
+  return Number.isInteger(n) && n >= 1 && n <= 10 ? n : 0;
+}
+
 // Filtros comunes (vienen en la direccion de la pagina)
 export function leerFiltrosMonitoreo(sp = {}) {
   const v = (k) => (typeof sp[k] === "string" ? sp[k].trim() : "");
@@ -50,6 +57,8 @@ export function leerFiltrosMonitoreo(sp = {}) {
     comite: COMITES.includes(v("comite")) ? v("comite") : "",
     tipoNorma: v("tipo_norma").slice(0, 80),
     entidad: v("entidad").slice(0, 100),
+    puntajeMin: puntaje(v("puntaje_min")),
+    puntajeMax: puntaje(v("puntaje_max")),
     quitados: v("quitados") === "1",
   };
 }
@@ -61,6 +70,8 @@ function condAnalisis(f, p, textoDoc) {
   if (f.sector) c.push(`a.sector = ${p(f.sector)}`);
   if (f.calificacion) c.push(`a.calificacion = ${p(f.calificacion)}`);
   if (f.impacto) c.push(`a.impacto = ${p(f.impacto)}`);
+  if (f.puntajeMin) c.push(`a.puntaje >= ${p(f.puntajeMin)}`);
+  if (f.puntajeMax) c.push(`a.puntaje <= ${p(f.puntajeMax)}`);
   if (f.comite) c.push(`${p(f.comite)} = ANY(a.comites)`);
   if (f.texto) {
     const t = p(`%${f.texto}%`);
@@ -79,7 +90,7 @@ function armar() {
 }
 
 const COLS_A = `a.id AS analisis_id, a.tipo AS a_tipo, a.ref_id, a.resumen, a.cambios, a.comentario, a.sector,
-  a.calificacion, a.impacto, a.comites, a.acciones, a.accion_directorio, a.lectura, a.excluido, a.excluido_por`;
+  a.calificacion, a.impacto, a.puntaje, a.comites, a.acciones, a.accion_directorio, a.lectura, a.excluido, a.excluido_por`;
 
 // Normas analizadas de un periodo [desde, hasta]
 export async function normasAnalizadas(f, desde, hasta) {
@@ -92,7 +103,7 @@ export async function normasAnalizadas(f, desde, hasta) {
     `SELECT ${COLS_A}, n.fecha::text AS fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.url_detalle, n.url_pdf
      FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo = 'N'
      WHERE ${c.join(" AND ")}
-     ORDER BY CASE a.impacto WHEN 'Alto' THEN 0 WHEN 'Moderado' THEN 1 ELSE 2 END, n.fecha DESC, n.id DESC
+     ORDER BY a.puntaje DESC NULLS LAST, CASE a.impacto WHEN 'Alto' THEN 0 WHEN 'Moderado' THEN 1 ELSE 2 END, n.fecha DESC, n.id DESC
      LIMIT 1500`,
     params
   );
@@ -128,7 +139,7 @@ async function proyectosCon(f, base, paramsBase, extraSel = "") {
      FROM (${base}) b JOIN proyectos_ley p ON p.id = b.pid
      LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = p.id
      WHERE ${ca.join(" AND ")}
-     ORDER BY CASE a.impacto WHEN 'Alto' THEN 0 WHEN 'Moderado' THEN 1 ELSE 2 END, p.numero`,
+     ORDER BY a.puntaje DESC NULLS LAST, CASE a.impacto WHEN 'Alto' THEN 0 WHEN 'Moderado' THEN 1 ELSE 2 END, p.numero`,
     params
   );
 }

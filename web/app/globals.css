@@ -278,6 +278,10 @@ body:has(.bandeja) .contenedor { padding-bottom: 140px; }
 .graficos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 10px 0 18px; }
 .grafico { border: 1px solid var(--linea); border-radius: 10px; padding: 12px; background: #fff; }
 .grafico h3 { margin: 0 0 8px; font-size: 1rem; }
+.ayuda-grafico { margin: -4px 0 8px; font-size: 0.8rem; color: #6b7280; }
+a.kpi { display: block; color: inherit; text-decoration: none; }
+a.kpi:hover { border-color: #8f1d2c; }
+a.kpi .t { text-decoration: underline; }
 .tabla-mon { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 8px 0 18px; }
 .tabla-mon th, .tabla-mon td { border-bottom: 1px solid var(--linea); padding: 6px 8px; text-align: left; vertical-align: top; }
 .tabla-mon th { background: var(--fondo); }
@@ -285,3 +289,25 @@ body:has(.bandeja) .contenedor { padding-bottom: 140px; }
 .envoltura-tabla { overflow-x: auto; }
 .otros { margin: 6px 0 16px; }
 .otros summary { cursor: pointer; color: var(--suave); }
+
+/* Tablero del resumen ejecutivo */
+.tablero { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; margin: 12px 0 20px; }
+.panel-graf { border: 1px solid var(--linea); border-radius: 12px; padding: 16px 18px; background: #fff; min-width: 0; }
+.panel-graf.ancho { grid-column: 1 / -1; }
+.panel-graf h3 { margin: 0 0 2px; font-size: 1.05rem; color: #1f2328; }
+.nota-graf { margin: 0 0 10px; font-size: 0.82rem; color: #57606a; }
+.svg-graf { width: 100%; height: auto; display: block; overflow: visible; }
+.svg-graf a .seg { transition: opacity 0.12s; }
+.svg-graf a:hover .seg { opacity: 0.78; }
+.svg-graf a { cursor: pointer; }
+.svg-graf .enlace-graf { text-decoration: underline; text-decoration-color: #c9c4ba; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 10px; font-size: 0.82rem; color: #57606a; }
+.leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.kpi .p { font-size: 0.78rem; color: #57606a; margin-top: 2px; }
+@media (max-width: 520px) { .tablero { grid-template-columns: 1fr; } }
+/* En el celular los graficos conservan un tamaño legible y se desplazan de lado dentro de su recuadro */
+@media (max-width: 700px) {
+  .panel-graf { overflow-x: auto; }
+  .panel-graf .svg-graf { min-width: 460px; }
+  .panel-graf.ancho .svg-graf { min-width: 680px; }
+}

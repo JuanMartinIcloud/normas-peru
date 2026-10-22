@@ -4,7 +4,8 @@ const COLORES = {
   Alto: "#8f1d2c", Moderado: "#c46b2d", Bajo: "#7a8a99",
 };
 
-export function Barras({ titulo, datos, maximo = 12, colorBase = "#8f1d2c" }) {
+// enlace(etiqueta) -> direccion a la que lleva cada barra al pulsarla (opcional)
+export function Barras({ titulo, datos, maximo = 12, colorBase = "#8f1d2c", enlace = null }) {
   const filas = datos.filter((d) => d.valor > 0).slice(0, maximo);
   const tope = Math.max(1, ...filas.map((d) => d.valor));
   const alto = 26;
@@ -13,6 +14,7 @@ export function Barras({ titulo, datos, maximo = 12, colorBase = "#8f1d2c" }) {
   return (
     <div className="grafico">
       <h3>{titulo}</h3>
+      {enlace && filas.length > 0 && <p className="ayuda-grafico">Pulsa una barra para ver esos documentos.</p>}
       {filas.length === 0 ? (
         <p className="vacio">Sin datos.</p>
       ) : (
@@ -20,14 +22,22 @@ export function Barras({ titulo, datos, maximo = 12, colorBase = "#8f1d2c" }) {
           {filas.map((d, i) => {
             const w = Math.max(2, (d.valor / tope) * anchoBarra);
             const y = i * alto + 4;
-            return (
-              <g key={d.etiqueta}>
-                <text x={anchoEtq - 8} y={y + 15} textAnchor="end" fontSize="12" fill="#333">
+            const barra = (
+              <g>
+                <title>{enlace ? `Ver ${d.valor}: ${d.etiqueta}` : `${d.etiqueta}: ${d.valor}`}</title>
+                <rect x="0" y={y - 2} width={anchoEtq + anchoBarra + 50} height={alto} fill="transparent" />
+                <text x={anchoEtq - 8} y={y + 15} textAnchor="end" fontSize="12" fill={enlace ? "#8f1d2c" : "#333"}
+                  textDecoration={enlace ? "underline" : undefined}>
                   {d.etiqueta.length > 32 ? `${d.etiqueta.slice(0, 31)}…` : d.etiqueta}
                 </text>
                 <rect x={anchoEtq} y={y} width={w} height={alto - 8} rx="3" fill={COLORES[d.etiqueta] || colorBase} />
                 <text x={anchoEtq + w + 6} y={y + 14} fontSize="12" fill="#333">{d.valor}</text>
               </g>
+            );
+            return enlace ? (
+              <a key={d.etiqueta} href={enlace(d.etiqueta)} style={{ cursor: "pointer" }}>{barra}</a>
+            ) : (
+              <g key={d.etiqueta}>{barra}</g>
             );
           })}
         </svg>

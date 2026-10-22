@@ -1,6 +1,7 @@
 import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados } from "../../lib/monitoreo";
 import { leerPeriodo } from "../../lib/periodo";
-import { Barras, contar } from "./Graficos";
+import { contar } from "./Graficos";
+import { Balance, Evolucion, Puntajes, Sectores, Comites } from "./Tablero";
 import BotonEjecutivo from "./BotonEjecutivo";
 
 export const metadata = { title: "Resumen ejecutivo · Monitoreo empresarial" };
@@ -23,7 +24,15 @@ export default async function ResumenEjecutivo({ searchParams }) {
   const cuenta = (campo, valor) => todos.filter((x) => x[campo] === valor).length;
   const sectores = contar(todos, "sector");
   const nombre = (x) => (x.origen === "N" ? [x.tipo, x.numero].filter(Boolean).join(" N° ") : `Proposición ${x.numero}`);
-  const destacados = todos.filter((x) => x.impacto === "Alto").slice(0, 15);
+  // Todos los de impacto alto (normas y proyectos), del mayor al menor puntaje
+  const destacados = todos
+    .filter((x) => x.impacto === "Alto")
+    .sort((a, b) => (b.puntaje || 0) - (a.puntaje || 0));
+  // Al pulsar una cifra o una barra se abre "Impacto" con ese filtro (mismo periodo)
+  const periodo = per.tipo === "mes" ? `mes=${per.mes}` : `fecha=${per.fecha}`;
+  const ver = (filtro) => `/monitoreo/impacto?${periodo}&${new URLSearchParams(filtro).toString()}#detalle`;
+  const total = todos.length;
+  const pct = (n) => (total ? `${Math.round((n / total) * 100)} % del total` : "");
 
   return (
     <>
@@ -44,21 +53,22 @@ export default async function ResumenEjecutivo({ searchParams }) {
       {error && <div className="error"><strong>No se pudo leer el reporte.</strong><p>{error}</p></div>}
 
       <div className="kpis">
-        <div className="kpi"><div className="n">{normas.length}</div><div className="t">Normas legales con impacto</div></div>
-        <div className="kpi"><div className="n">{proyectos.length}</div><div className="t">Proyectos de ley con impacto</div></div>
-        <div className="kpi"><div className="n" style={{ color: "#2f8f4e" }}>{cuenta("calificacion", "Favorable")}</div><div className="t">Favorables</div></div>
-        <div className="kpi"><div className="n" style={{ color: "#c0392b" }}>{cuenta("calificacion", "Desfavorable")}</div><div className="t">Desfavorables</div></div>
-        <div className="kpi"><div className="n" style={{ color: "#a07800" }}>{cuenta("calificacion", "Para seguimiento")}</div><div className="t">Para seguimiento</div></div>
-        <div className="kpi"><div className="n">{cuenta("impacto", "Alto")}</div><div className="t">De impacto alto</div></div>
+        <a className="kpi" href={per.tipo === "mes" ? `/monitoreo/normas?mes=${per.mes}` : ver({})}><div className="n">{normas.length}</div><div className="t">Normas legales con impacto</div></a>
+        <a className="kpi" href={ver({})}><div className="n">{proyectos.length}</div><div className="t">Proyectos de ley con impacto</div></a>
+        <a className="kpi" href={ver({ calificacion: "Favorable" })}><div className="n" style={{ color: "#2f8f4e" }}>{cuenta("calificacion", "Favorable")}</div><div className="t">Favorables</div><div className="p">{pct(cuenta("calificacion", "Favorable"))}</div></a>
+        <a className="kpi" href={ver({ calificacion: "Desfavorable" })}><div className="n" style={{ color: "#c0392b" }}>{cuenta("calificacion", "Desfavorable")}</div><div className="t">Desfavorables</div><div className="p">{pct(cuenta("calificacion", "Desfavorable"))}</div></a>
+        <a className="kpi" href={ver({ calificacion: "Para seguimiento" })}><div className="n" style={{ color: "#a07800" }}>{cuenta("calificacion", "Para seguimiento")}</div><div className="t">Para seguimiento</div><div className="p">{pct(cuenta("calificacion", "Para seguimiento"))}</div></a>
+        <a className="kpi" href={ver({ impacto: "Alto" })}><div className="n">{cuenta("impacto", "Alto")}</div><div className="t">De impacto alto (8 a 10)</div><div className="p">{pct(cuenta("impacto", "Alto"))}</div></a>
       </div>
 
       <BotonEjecutivo desde={per.desde} hasta={per.hasta} nombre={per.nombre} cantidad={todos.length} />
 
-      <div className="graficos">
-        <Barras titulo="Por calificación" datos={contar(todos, "calificacion")} />
-        <Barras titulo="Por nivel de impacto" datos={contar(todos, "impacto")} />
-        <Barras titulo="Por sector económico" datos={sectores} />
-        <Barras titulo="Por comité de AmCham" datos={contar(todos, "comites")} />
+      <div className="tablero">
+        <Balance todos={todos} ver={ver} />
+        <Evolucion todos={todos} desde={per.desde} hasta={per.hasta} verDia={(d) => `/monitoreo/impacto?fecha=${d}#detalle`} />
+        <Puntajes todos={todos} ver={ver} />
+        <Sectores todos={todos} ver={ver} />
+        <Comites todos={todos} ver={ver} />
       </div>
 
       <h2 className="seccion">Cuadro del informe: sector económico por calificación</h2>
@@ -86,17 +96,19 @@ export default async function ResumenEjecutivo({ searchParams }) {
         </table>
       </div>
 
-      <h2 className="seccion">Documentos de impacto alto</h2>
+      <h2 className="seccion">Documentos de impacto alto ({destacados.length}: {destacados.filter((x) => x.origen === "N").length} normas y {destacados.filter((x) => x.origen === "P").length} proyectos de ley)</h2>
       {destacados.length === 0 ? (
         <p className="vacio">No hay documentos de impacto alto en este periodo.</p>
       ) : (
         <div className="envoltura-tabla">
           <table className="tabla-mon">
-            <thead><tr><th>Documento</th><th>Sector</th><th>Calificación</th><th>En qué consiste</th></tr></thead>
+            <thead><tr><th>Documento</th><th>Tipo</th><th className="num">Puntaje</th><th>Sector</th><th>Calificación</th><th>En qué consiste</th></tr></thead>
             <tbody>
               {destacados.map((x) => (
                 <tr key={`${x.origen}-${x.analisis_id}`}>
-                  <td>{nombre(x)}</td><td>{x.sector}</td><td>{x.calificacion}</td><td>{x.resumen}</td>
+                  <td>{nombre(x)}</td><td>{x.origen === "N" ? "Norma legal" : "Proyecto de ley"}</td>
+                  <td className="num">{x.puntaje ? `${x.puntaje}/10` : "—"}</td>
+                  <td>{x.sector}</td><td>{x.calificacion}</td><td>{x.resumen}</td>
                 </tr>
               ))}
             </tbody>

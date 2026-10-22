@@ -1,5 +1,7 @@
 import { COMITES, CALIFICACIONES, IMPACTOS } from "../../lib/monitoreo";
 
+const PUNTAJES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
 // Filtros comunes a todos los reportes (formulario GET: cada filtro queda en la direccion)
 export default function Filtros({ accion, f, sectores = [], tipos = [], periodo = "mes", extra = null }) {
   return (
@@ -28,6 +30,20 @@ export default function Filtros({ accion, f, sectores = [], tipos = [], periodo 
         <select name="impacto" defaultValue={f.impacto}>
           <option value="">Todos</option>
           {IMPACTOS.map((c) => <option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <label>
+        Puntaje desde
+        <select name="puntaje_min" defaultValue={f.puntajeMin || ""}>
+          <option value="">1</option>
+          {PUNTAJES.slice(1).map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </label>
+      <label>
+        Puntaje hasta
+        <select name="puntaje_max" defaultValue={f.puntajeMax || ""}>
+          <option value="">10</option>
+          {PUNTAJES.slice(0, -1).reverse().map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </label>
       <label>

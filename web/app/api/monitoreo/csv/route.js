@@ -14,16 +14,16 @@ function celda(v) {
 const acciones = (a) => (a || []).map((x) => `${x.comite}: ${x.accion}`).join(" | ");
 
 const COLS = ["Sección", "Tipo", "Documento", "Fecha", "Entidad o proponente", "Descripción", "Movimiento", "Sector",
-  "Calificación", "Impacto", "Comités", "En qué consiste", "Qué cambia", "Impacto empresarial", "Acciones de comités",
+  "Calificación", "Impacto", "Puntaje (1 a 10)", "Comités", "En qué consiste", "Qué cambia", "Impacto empresarial", "Acciones de comités",
   "Acción del Directorio", "Enlace"];
 
 function filaNorma(n, seccion = "Normas legales") {
   return [seccion, "Norma legal", [n.tipo, n.numero].filter(Boolean).join(" N° "), n.fecha, n.entidad, n.sumilla, "", n.sector,
-    n.calificacion, n.impacto, n.comites, n.resumen, n.cambios, n.comentario, acciones(n.acciones), n.accion_directorio, n.url_detalle];
+    n.calificacion, n.impacto, n.puntaje, n.comites, n.resumen, n.cambios, n.comentario, acciones(n.acciones), n.accion_directorio, n.url_detalle];
 }
 function filaProyecto(p, seccion) {
   return [seccion, "Proyecto de ley", p.numero, p.mov_fecha || p.fecha_presentacion, p.proponente, p.titulo,
-    [p.mov_comisiones, p.mov_detalle].filter(Boolean).join(" · "), p.sector, p.calificacion, p.impacto, p.comites, p.resumen,
+    [p.mov_comisiones, p.mov_detalle].filter(Boolean).join(" · "), p.sector, p.calificacion, p.impacto, p.puntaje, p.comites, p.resumen,
     p.cambios, p.comentario, acciones(p.acciones), p.accion_directorio, urlProyecto(p)];
 }
 

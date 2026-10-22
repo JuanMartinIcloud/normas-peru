@@ -29,16 +29,18 @@ export default async function Impacto({ searchParams }) {
     ...normas.map((n) => ({ ...n, origen: "Norma legal" })),
     ...proyectos.map((p) => ({ ...p, origen: "Proyecto de ley" })),
   ].sort(
-    (a, b) => (ORDEN_IMP[a.impacto] ?? 3) - (ORDEN_IMP[b.impacto] ?? 3) || (ORDEN_CAL[a.calificacion] ?? 3) - (ORDEN_CAL[b.calificacion] ?? 3)
+    (a, b) => (b.puntaje || 0) - (a.puntaje || 0) || (ORDEN_IMP[a.impacto] ?? 3) - (ORDEN_IMP[b.impacto] ?? 3) ||
+      (ORDEN_CAL[a.calificacion] ?? 3) - (ORDEN_CAL[b.calificacion] ?? 3)
   );
+  const imp = (x) => `${x.impacto || ""}${x.puntaje ? ` (${x.puntaje}/10)` : ""}`;
   const nombre = (x) => (x.origen === "Norma legal" ? [x.tipo, x.numero].filter(Boolean).join(" N° ") : `Proposición ${x.numero}`);
 
   // Acciones agrupadas por comite
   const porComite = new Map(COMITES.map((c) => [c, []]));
   const directorio = [];
   for (const x of todos) {
-    for (const a of x.acciones || []) porComite.get(a.comite)?.push({ doc: nombre(x), accion: a.accion, cal: x.calificacion, imp: x.impacto });
-    if (x.accion_directorio && !/^ninguna/i.test(x.accion_directorio)) directorio.push({ doc: nombre(x), accion: x.accion_directorio, cal: x.calificacion, imp: x.impacto });
+    for (const a of x.acciones || []) porComite.get(a.comite)?.push({ doc: nombre(x), accion: a.accion, cal: x.calificacion, imp: imp(x) });
+    if (x.accion_directorio && !/^ninguna/i.test(x.accion_directorio)) directorio.push({ doc: nombre(x), accion: x.accion_directorio, cal: x.calificacion, imp: imp(x) });
   }
   const qs = new URLSearchParams(Object.entries(searchParams || {}).filter(([, v]) => typeof v === "string" && v)).toString();
 
@@ -46,7 +48,7 @@ export default async function Impacto({ searchParams }) {
     <>
       <h1>Impacto en el sector empresarial · {per.nombre}</h1>
       <p className="sub">
-        Normas legales y proyectos de ley juntos, ordenados por nivel de impacto. Abajo, las acciones sugeridas a cada
+        Normas legales y proyectos de ley juntos, ordenados por puntaje de impacto (de 10 a 1). Abajo, las acciones sugeridas a cada
         comité y al Directorio de AmCham.
       </p>
       <Filtros accion="/monitoreo/impacto" f={f} sectores={opciones.sectores} />
@@ -89,7 +91,7 @@ export default async function Impacto({ searchParams }) {
         </details>
       ))}
 
-      <h2 className="seccion">Detalle por documento</h2>
+      <h2 className="seccion" id="detalle">Detalle por documento ({todos.length})</h2>
       <div className="lista">
         {todos.map((x) => (
           <Tarjeta

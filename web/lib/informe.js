@@ -30,7 +30,7 @@ function bloque(titulo, desc, url, a, extra = "") {
   return `<div style="border:1px solid #ddd;border-radius:8px;padding:12px;margin:10px 0">
   <div style="font-weight:600">${url ? `<a href="${esc(url)}">${esc(titulo)}</a>` : esc(titulo)}</div>
   <div style="color:#555;font-size:13px">${esc(desc)}</div>${extra ? `<div style="color:#555;font-size:13px">${esc(extra)}</div>` : ""}
-  <div style="margin:6px 0;font-size:13px"><b style="color:${COLOR[a.calificacion] || "#333"}">${esc(a.calificacion)}</b> · Impacto ${esc(String(a.impacto).toLowerCase())} · ${esc(a.sector)} · Comités: ${esc((a.comites || []).join(", "))}</div>
+  <div style="margin:6px 0;font-size:13px"><b style="color:${COLOR[a.calificacion] || "#333"}">${esc(a.calificacion)}</b> · Impacto ${esc(String(a.impacto).toLowerCase())}${a.puntaje ? ` (${a.puntaje}/10)` : ""} · ${esc(a.sector)} · Comités: ${esc((a.comites || []).join(", "))}</div>
   <p style="margin:4px 0"><b>En qué consiste:</b> ${esc(a.resumen)}</p>
   <p style="margin:4px 0"><b>Qué cambia:</b> ${esc(a.cambios)}</p>
   <p style="margin:4px 0"><b>Impacto empresarial:</b> ${esc(a.comentario)}</p>
