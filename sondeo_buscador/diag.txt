@@ -1,12 +1,40 @@
-200   3.6s   164946 /  ['500']
-200   0.9s    70151 /?fecha=2026-10-19  ['500']
-200   4.3s   126811 /buscar?q=teletrabajo  ['500']
-200   3.9s    33372 /buscar?q=piscologica  ['500']
-200   0.3s   195180 /proyectos  ['500']
-200   3.5s   223566 /proyectos?q=pensiones  ['500']
-200   0.2s    30426 /resumenes  ['500']
-200   0.2s     5851 /unir  ['500']
-200   0.1s     5609 /ingresar  ['500']
-200   0.3s     5665 /monitoreo /ingresar?volver=/monitoreo ['500']
-200   0.5s    93156 /api/csv?q=teletrabajo  []
-200 21 /api/ia/interpretar {"terminos":["teletrabajo","trabajo remoto","empleados publicos","servidores civiles","entidades publicas","regimen laboral estatal"],"desde":"","hasta":"","guardado":false}
+('N', 'Desfavorable', 'Moderado', 1)
+('N', 'Favorable', 'Alto', 5)
+('N', 'Favorable', 'Bajo', 66)
+('N', 'Favorable', 'Moderado', 61)
+('N', 'Para seguimiento', 'Alto', 13)
+('N', 'Para seguimiento', 'Bajo', 38)
+('N', 'Para seguimiento', 'Moderado', 81)
+('P', 'Desfavorable', 'Alto', 2)
+('P', 'Favorable', 'Alto', 2)
+('P', 'Favorable', 'Moderado', 3)
+('P', 'Para seguimiento', 'Alto', 7)
+('P', 'Para seguimiento', 'Moderado', 50)
+
+ ('N', 'Moderado', 'Resolución 190-2026-OS/CD', 'Resolución de Consejo Directivo que aprueba las Bases Ajustadas de la Licitación de Corto Plazo de Suministro ', 'Esta medida resulta clave para garantizar la continuidad del suministro eléctrico a usuarios regulados en el norte del país bajo reglas claras de competencia. Fomenta la participación de generadores eléctricos y aporta predictibilidad regulatoria a las inversi')
+
+ ('N', 'Bajo', 'Resolución Ministerial 561-2026-MTC/01.03', 'Otorgan a la empresa PAPINTOSH NETWORKS S.A.C. Concesión Única para la prestación de servicios públicos de tel', 'La medida refleja la dinámica del mercado de telecomunicaciones al incorporar a un nuevo operador con cobertura nacional, lo cual fomenta la competencia en la provisión de servicios. Esto resulta positivo para el clima de inversiones al dinamizar el sector de ')
+
+ ('N', 'Moderado', 'Ordenanza 022-2026-MPC', 'Ordenanza que aprueba el procedimiento de planeamiento integral con fines de anexión al área urbana y asignaci', 'Esta ordenanza facilita la formalización y el desarrollo inmobiliario de predios rústicos en la provincia de Cañete al permitir su incorporación al área urbana. Impacta positivamente en el sector de construcción e inmobiliario al otorgar seguridad jurídica sob')
+
+ ('N', 'Bajo', 'Decreto De Alcaldía D000015-2026-AL-MDI', 'Prorrogan el plazo de vencimiento que otorga incentivos para la regularización y pago de las deudas tributaria', 'Ofrece un alivio temporal a las empresas y contribuyentes con operaciones en el distrito de Independencia que mantienen obligaciones pendientes con el gobierno local. Facilita la regularización financiera en un contexto de menor presión de liquidez por multas ')
+
+ ('N', 'Moderado', 'Resolución Ministerial 00361-2026-PRODUCE', 'Modifican Lineamientos para la asignación de la cuota de jurel de alta mar conferida al Estado Peruano por la ', 'La medida aporta predictibilidad y criterios técnicos claros para la distribución de los saldos de cuotas de jurel en alta mar, lo cual impacta positivamente en la planificación de las empresas del sector pesquero dedicadas a esta actividad. Esto fomenta un en')
+
+ ('N', 'Bajo', 'Resolución 000125-2026-CD/OSIPTEL', 'Aprueban la exclusión de la empresa concesionaria Integratel Perú S.A.A. de las obligaciones relacionadas con ', 'La medida resulta favorable para el mercado de telecomunicaciones al reflejar la realidad competitiva actual y eliminar cargas regulatorias y administrativas obsoletas sobre un servicio que ha perdido vigencia frente a las nuevas tecnologías. Esto demuestra fl')
+
+ ('N', 'Bajo', 'Decreto De Alcaldía 015-2026-MDEA', 'Prorrogan vigencia de la Ordenanza N°781-2026-MDEA que establece beneficios tributarios y no tributarios a fav', 'Esta prórroga otorga un alivio temporal a los contribuyentes y empresas con operaciones o inmuebles en el distrito de El Agustino para regularizar sus deudas pendientes. Contribuye a prever contingencias financieras y fomenta el cumplimiento de obligaciones en')
+
+ ('N', 'Bajo', 'Decreto De Alcaldía 013-2026/MDSMP', 'Prorrogan vigencia de la Ordenanza N° 595/MDSMP que aprueba beneficios tributarios y no tributarios en el dist', 'La norma tiene un impacto positivo puntual para las empresas con operaciones, locales comerciales, almacenes o predios en San Martín de Porres. Les permite sanear deudas tributarias y no tributarias locales con descuentos o flexibilidades vigentes. Al ser una ')
+
+ ('N', 'Moderado', 'Ordenanzas 2861', 'Ordenanza que aprueba el Plan Específico Parte del Sector Bicho Prieto del Área de Tratamiento Normativo IV - ', 'La norma resulta favorable para el sector inmobiliario y de construcción al destrabar y dotar de certidumbre jurídica el desarrollo de proyectos urbanísticos en la zona sur de Lima. No obstante, impone condiciones estrictas de cumplimiento, como la presentació')
+
+ ('N', 'Bajo', 'Resolución De Alcaldía 160-2026-A/MM', 'Modifican el Texto Único de Servicios No Exclusivos – TUSNE de la Municipalidad Distrital de Miraflores y prec', 'La norma tiene un impacto focalizado en la gestión administrativa local y en las actividades culturales y turísticas ofrecidas en el distrito de Miraflores. Al tratarse de ajustes en servicios no exclusivos y tarifas del Museo de Sitio Pucllana, su efecto en e')
+
+ ('N', 'Moderado', 'Resolución Directoral 0007-2026-EF/63.01', 'Modifican el Anexo Nº 05: Lineamientos para las modificaciones de la Cartera de Inversiones del PMI de la Dire', 'Esta modificación optimiza los procedimientos administrativos y destraba los trámites de migración de inversiones entre diferentes sectores del Estado, otorgando mayor predictibilidad y agilidad en la gestión pública. Esto resulta positivo para el clima de inv')
+
+ ('N', 'Bajo', 'Resolución Directoral 0558-2026-MTC/17.03', 'Autorizan a la empresa CESMARTIN E.I.R.L. para operar como Centro de Inspección Técnica Vehicular Fijo en loca', 'Esta autorización amplía la oferta de servicios formales de revisión técnica vehicular en la región Puno, lo que facilita el cumplimiento de las obligaciones normativas para el sector transportes y contribuye a la seguridad vial. Asimismo, dinamiza el mercado ')
+
+ ('N', 'Bajo', 'Resolución Suprema 300-2026-PCM', 'Designan miembro del Consejo Directivo del Instituto Nacional de Defensa de la Competencia y de la Protección ', 'La recomposición del Consejo Directivo del INDECOPI es un procedimiento administrativo regular de relevo de funcionarios que no altera el marco normativo de la institución. No genera un impacto directo en el clima de inversiones, ya que se trata de la continui')
+
+ ('N', 'Moderado', 'Resolución Ministerial 928-2026/MINSA', 'Aprueban la Guía Técnica del Tratamiento Directamente Observado para Tuberculosis por Telemonitoreo', 'Esta medida facilita el seguimiento de los pacientes mediante herramientas digitales, lo cual optimiza la gestión sanitaria y reduce los costos operativos asociados al control presencial. Para el sector empresarial, representa un avance en la adopción de teles')
