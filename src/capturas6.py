@@ -26,7 +26,7 @@ cur.execute("INSERT INTO usuarios (usuario, nombre, clave_hash, rol) VALUES (%s,
             (usuario, f"scrypt${sal.hex()}${h.hex()}"))
 uid = cur.fetchone()[0]
 db.close()
-EJEMPLO = "Minería e inversiones (ejemplo del manual)"
+EJEMPLO = "Cambios laborales (ejemplo)"
 
 
 def nota(t):
@@ -132,9 +132,9 @@ with sync_playwright() as pw:
     def _():
         ir(page, "/monitoreo/busquedas")
         f = page.locator("form").filter(has_text="Crear búsqueda guardada")
-        f.locator("input[name=pregunta]").fill("cambios tributarios que afecten a las empresas mineras")
+        f.locator("input[name=pregunta]").fill("cambios en las obligaciones laborales de las empresas")
         f.locator("input[name=nombre]").fill(EJEMPLO)
-        f.locator("select[name=frecuencia]").select_option("semanal")
+        f.locator("select[name=frecuencia]").select_option("mensual")
         f.get_by_role("button", name="Crear búsqueda guardada").click()
         page.locator("article", has_text=EJEMPLO).first.wait_for(timeout=120000)
         page.locator("article", has_text=EJEMPLO).first.get_by_role("button", name="Ejecutar ahora").click()
