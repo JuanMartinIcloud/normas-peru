@@ -1,20 +1,17 @@
-normas-textos-12                 452 MB  ramas 1
-normas-textos-11                  30 MB  ramas 1
-normas-textos-10                  30 MB  ramas 1
-normas-textos-9                   30 MB  ramas 1
-normas-textos-8                  134 MB  ramas 1
-normas-textos-7                  429 MB  ramas 1
-normas-textos-6                  428 MB  ramas 1
-normas-textos-5                  451 MB  ramas 1
-normas-textos-4                  314 MB  ramas 1
-normas-textos-3                  461 MB  ramas 1
-normas-textos-2                  430 MB  ramas 1
-normas-peru                      512 MB  ramas 1
-ERH-Bermeo                        32 MB  ramas 1
-ERH-JMSR                          32 MB  ramas 1
-presupuestos-barra61-jmsr         30 MB  ramas 1
-expedientes-jmsr                  30 MB  ramas 1
-matriz-riesgos-jmsr               31 MB  ramas 1
-liquidacion-beneficios            31 MB  ramas 1
-contratos-erh                     30 MB  ramas 1
-TOTAL 3917 MB = 3.83 GB
+proyectos: 18 | normas-peru sigue: False
+DATABASE_URL ok
+TEXTOS_URL_2 ok
+TEXTOS_URL_3 ok
+TEXTOS_URL_5 ok
+TEXTOS_URL_6 ok
+TEXTOS_URL_7 ok
+TEXTOS_URL_8 ok
+TEXTOS_URL_9 ok
+TEXTOS_URL_10 ok
+TEXTOS_URL_11 ok
+TEXTOS_URL_12 ok
+200 / False
+200 /buscar?q=teletrabajo False
+200 /proyectos False
+200 /resumenes False
+200 /ingresar False
