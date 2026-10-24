@@ -36,6 +36,7 @@ jobs:
           TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
           TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
           TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           Q: ${{ github.event.inputs.q }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |

@@ -1,19 +1,14 @@
-"""Freno manual: la base principal ya paso de 4 GB de transferencia este mes (aviso de Neon del 24 de octubre:
-4.2 GB). Sin NEON_API_KEY no hay medicion automatica, asi que se marca a mano hasta fin de mes: se detienen
-las tareas no indispensables. La marca vence sola el 1 de noviembre (00:00 de Lima)."""
-import os, sys
-sys.path.insert(0, os.path.dirname(__file__))
-import psycopg2
-import cupos
-c = psycopg2.connect(cupos.control_url()); cur = c.cursor()
-cur.execute(cupos.SQL)
-url = os.environ["DATABASE_URL"]
-cur.execute("""INSERT INTO cupos (host, base, proyecto, transferido, periodo, actualizado)
-               VALUES (%s, 'principal', 'normas-textos-4', %s, '2026-10-01', '2026-10-29 05:00+00')
-               ON CONFLICT (host) DO UPDATE SET transferido = EXCLUDED.transferido, actualizado = EXCLUDED.actualizado""",
-            (cupos.host(url), int(4.2 * 1024 ** 3)))
-c.commit()
-print("principal_agotada:", cupos.principal_agotada())
-m = psycopg2.connect(url); mc = m.cursor()
-mc.execute("SELECT count(*) FROM analisis WHERE relevante AND criterio IS DISTINCT FROM (SELECT max(criterio) FROM analisis)")
-print("recalificacion pendiente:", mc.fetchone()[0])
+"""Diagnostico temporal: consumo de todos los proyectos de la cuenta de Neon (API)."""
+import os, requests
+h = {"Authorization": f"Bearer {os.environ.get('NEON_API_KEY', '').strip()}", "Accept": "application/json"}
+API = "https://console.neon.tech/api/v2"
+r = requests.get(f"{API}/projects", headers=h, params={"limit": 100}, timeout=60)
+print("lista:", r.status_code, r.text[:300] if r.status_code != 200 else "")
+if r.status_code != 200:
+    r2 = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60); print("orgs:", r2.status_code, r2.text[:500])
+tot_alm = 0
+for p in r.json().get("projects", []) if r.status_code == 200 else []:
+    d = requests.get(f"{API}/projects/{p['id']}", headers=h, timeout=60).json().get("project", {})
+    alm = (d.get("synthetic_storage_size") or 0); tot_alm += alm
+    print(f"{d.get('name'):28s} transf {((d.get('data_transfer_bytes') or 0)/1024**3):5.2f} GB | espacio {alm/1024**2:7.0f} MB | computo {((d.get('compute_time_seconds') or 0)/3600):5.1f} h | periodo {d.get('consumption_period_start')} a {d.get('consumption_period_end')}")
+print(f"ESPACIO TOTAL: {tot_alm/1024**3:.2f} GB")
