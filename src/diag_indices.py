@@ -1,15 +1,23 @@
-"""Diagnostico temporal: consumo de todos los proyectos de la cuenta de Neon (API)."""
-import os, requests
-h = {"Authorization": f"Bearer {os.environ.get('NEON_API_KEY', '').strip()}", "Accept": "application/json"}
+"""Diagnostico temporal: que es el proyecto normas-peru de Neon y quien lo usa."""
+import os, requests, psycopg2
+from urllib.parse import urlparse
+h = {"Authorization": f"Bearer {os.environ['NEON_API_KEY'].strip()}", "Accept": "application/json"}
 API = "https://console.neon.tech/api/v2"
-orgs = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60).json().get("organizations", [])
-r = requests.get(f"{API}/projects", headers=h, params={"limit": 100, "org_id": orgs[0]["id"]}, timeout=60)
-print("lista:", r.status_code, r.text[:300] if r.status_code != 200 else "")
-if r.status_code != 200:
-    r2 = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60); print("orgs:", r2.status_code, r2.text[:500])
-tot_alm = 0
-for p in r.json().get("projects", []) if r.status_code == 200 else []:
-    d = requests.get(f"{API}/projects/{p['id']}", headers=h, timeout=60).json().get("project", {})
-    alm = (d.get("synthetic_storage_size") or 0); tot_alm += alm
-    print(f"{d.get('name'):28s} transf {((d.get('data_transfer_bytes') or 0)/1024**3):5.2f} GB | espacio {alm/1024**2:7.0f} MB | computo {((d.get('compute_time_seconds') or 0)/3600):5.1f} h | periodo {d.get('consumption_period_start')} a {d.get('consumption_period_end')}")
-print(f"ESPACIO TOTAL: {tot_alm/1024**3:.2f} GB")
+org = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60).json()["organizations"][0]["id"]
+ps = requests.get(f"{API}/projects", headers=h, params={"limit": 100, "org_id": org}, timeout=60).json()["projects"]
+nuestros = {}
+for k, v in os.environ.items():
+    if k.startswith("TEXTOS_URL_") or k == "DATABASE_URL":
+        nuestros[(urlparse(v).hostname or "").replace("-pooler", "")] = k
+for p in ps:
+    if p["name"] not in ("normas-peru", "normas-textos-4"):
+        continue
+    d = requests.get(f"{API}/projects/{p['id']}", headers=h, timeout=60).json()["project"]
+    print("\n==", p["name"], p["id"], "creado", d.get("created_at"))
+    print({k: d.get(k) for k in ("data_transfer_bytes", "written_data_bytes", "compute_time_seconds", "synthetic_storage_size", "quota_reset_at", "owner_id")})
+    eps = requests.get(f"{API}/projects/{p['id']}/endpoints", headers=h, timeout=60).json().get("endpoints", [])
+    for e in eps:
+        print("  endpoint", e.get("host"), e.get("current_state"), "ultimo uso", e.get("last_active"), "suspendido", e.get("suspended_at") or e.get("disabled"), "| en nuestros secretos como:", nuestros.get(e.get("host"), "NO"))
+    br = requests.get(f"{API}/projects/{p['id']}/branches", headers=h, timeout=60).json().get("branches", [])
+    for b in br:
+        print("  rama", b.get("name"), "tamano logico MB", round((b.get("logical_size") or 0) / 1048576), "escrito", b.get("updated_at"))

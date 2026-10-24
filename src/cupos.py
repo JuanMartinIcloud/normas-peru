@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 import psycopg2
 import requests
 
-TOPE_BYTES = 4 * 1024 ** 3          # 4 GB de los 5 GB gratuitos
+TOPE_BYTES = 4 * 10 ** 9           # 4 GB de los 5 GB gratuitos (Neon cuenta GB de 1000 millones de bytes)
 API = "https://console.neon.tech/api/v2"
 SQL = """CREATE TABLE IF NOT EXISTS cupos (
     host        TEXT PRIMARY KEY,           -- servidor de la base (de su cadena de conexion)
@@ -112,9 +112,9 @@ def actualizar():
         b = int(p.get("data_transfer_bytes") or 0)
         filas.append((host(url), nombre, p.get("name"), b, p.get("consumption_period_start")))
         estado = "TOPE ALCANZADO" if b >= TOPE_BYTES else "ok"
-        print(f"{nombre} ({p.get('name')}): {b / 1024 ** 3:.2f} GB transferidos de 4 GB permitidos [{estado}]")
+        print(f"{nombre} ({p.get('name')}): {b / 1e9:.2f} GB transferidos de 4 GB permitidos [{estado}]")
         if b >= TOPE_BYTES * 0.8:
-            print(f"::warning title=Cupo {nombre}::{b / 1024 ** 3:.2f} GB transferidos este mes")
+            print(f"::warning title=Cupo {nombre}::{b / 1e9:.2f} GB transferidos este mes")
     if not filas:
         return
     c = psycopg2.connect(control_url(), connect_timeout=60)
