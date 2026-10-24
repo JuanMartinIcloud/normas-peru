@@ -1,10 +1,20 @@
-
-== normas-textos-4 patient-sea-69646257 creado 2026-10-13T04:29:15Z
-{'data_transfer_bytes': 4199170630, 'written_data_bytes': 0, 'compute_time_seconds': 73935, 'synthetic_storage_size': 0, 'quota_reset_at': None, 'owner_id': 'org-fancy-heart-74067952'}
-  endpoint ep-ancient-grass-b7wngm3p.c-13.us-east-1.aws.neon.tech active ultimo uso 2026-10-24T16:31:19Z suspendido False | en nuestros secretos como: DATABASE_URL
-  rama production tamano logico MB 314 escrito 2026-10-24T16:30:21Z
-
-== normas-peru mute-mouse-29926510 creado 2026-10-12T02:53:16Z
-{'data_transfer_bytes': 14438615164, 'written_data_bytes': 0, 'compute_time_seconds': 16869, 'synthetic_storage_size': 0, 'quota_reset_at': None, 'owner_id': 'org-fancy-heart-74067952'}
-  endpoint ep-still-king-b8lqymr0.c-14.us-east-1.aws.neon.tech idle ultimo uso 2026-10-13T13:56:00Z suspendido 2026-10-13T13:59:46Z | en nuestros secretos como: NO
-  rama production tamano logico MB 512 escrito 2026-10-17T18:46:07Z
+normas-textos-12                 452 MB  ramas 1
+normas-textos-11                  30 MB  ramas 1
+normas-textos-10                  30 MB  ramas 1
+normas-textos-9                   30 MB  ramas 1
+normas-textos-8                  134 MB  ramas 1
+normas-textos-7                  429 MB  ramas 1
+normas-textos-6                  428 MB  ramas 1
+normas-textos-5                  451 MB  ramas 1
+normas-textos-4                  314 MB  ramas 1
+normas-textos-3                  461 MB  ramas 1
+normas-textos-2                  430 MB  ramas 1
+normas-peru                      512 MB  ramas 1
+ERH-Bermeo                        32 MB  ramas 1
+ERH-JMSR                          32 MB  ramas 1
+presupuestos-barra61-jmsr         30 MB  ramas 1
+expedientes-jmsr                  30 MB  ramas 1
+matriz-riesgos-jmsr               31 MB  ramas 1
+liquidacion-beneficios            31 MB  ramas 1
+contratos-erh                     30 MB  ramas 1
+TOTAL 3917 MB = 3.83 GB
