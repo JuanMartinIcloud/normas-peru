@@ -63,6 +63,6 @@ export function htmlInforme(d, comite = null) {
 <h1 style="font-size:20px;color:#8f1d2c">${esc(titulo)}</h1>
 <p style="color:#555">Normas legales y movimientos del Congreso que afectan al sector empresarial y al clima de inversiones. Análisis preparado con IA y revisado antes de su envío.</p>
 ${cuerpo}
-<p style="color:#888;font-size:12px">Calificación: Favorable, Desfavorable o Para seguimiento (impacto moderado o incierto).</p></div>`;
+<p style="color:#888;font-size:12px">Calificación: Favorable (promueve o favorece el clima de inversión o beneficia a las empresas), Desfavorable (las perjudica) o Para seguimiento (efecto incierto o pendiente de reglamento o aprobación). Puntaje de impacto del 1 al 10: alto 8 a 10, moderado 5 a 7, bajo 1 a 4.</p></div>`;
   return { titulo, html, total };
 }

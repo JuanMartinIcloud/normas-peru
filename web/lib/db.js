@@ -2,8 +2,8 @@ import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as sinCache } from "next/cache";
 import { clavesPorTexto, clavesPorGrupos } from "./textos";
 
-// Base principal. La original (DATABASE_URL) agoto su cuota gratuita del mes; mientras tanto se usa
-// la base de la variable TEXTOS_URL_4. Para volver a la original basta quitar "TEXTOS_URL_4 ||".
+// Base principal: la de la variable TEXTOS_URL_4 (normas-textos-4). DATABASE_URL queda solo como respaldo
+// (la base original de ese nombre se elimino el 24 de octubre de 2026).
 const URL_PRINCIPAL = (process.env.TEXTOS_URL_4 || process.env.DATABASE_URL || "").trim();
 
 export function consultar(texto, params = []) {

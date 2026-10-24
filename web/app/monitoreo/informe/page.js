@@ -19,7 +19,9 @@ export default async function Informe({ searchParams }) {
   } catch (e) {
     error = String(e.message || e);
   }
-  const vista = d ? htmlInforme(d) : null;
+  // Vista previa: el correo general o el que recibe un comite (?comite=...)
+  const comite = typeof sp.comite === "string" && COMITES.includes(sp.comite) ? sp.comite : null;
+  const vista = d ? htmlInforme(d, comite) : null;
   const porComite = d
     ? COMITES.map((c) => ({ c, n: htmlInforme(d, c).total, correos: (dest.comites[c] || []).length })).filter((x) => x.n || x.correos)
     : [];
@@ -54,13 +56,22 @@ export default async function Informe({ searchParams }) {
                 <thead><tr><th>Comité</th><th className="num">Ítems en el informe</th><th className="num">Destinatarios</th></tr></thead>
                 <tbody>
                   {porComite.map((x) => (
-                    <tr key={x.c}><td>{x.c}</td><td className="num">{x.n}</td><td className="num">{x.correos || "—"}</td></tr>
+                    <tr key={x.c}>
+                      <td><a href={`/monitoreo/informe?fecha=${fecha}&comite=${encodeURIComponent(x.c)}#vista`}>{x.c}</a></td>
+                      <td className="num">{x.n}</td><td className="num">{x.correos || "—"}</td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <h2 className="seccion">Vista previa del correo general ({vista.total} ítems)</h2>
+          <h2 className="seccion" id="vista">
+            {comite ? `Vista previa del correo al comité ${comite}` : "Vista previa del correo general"} ({vista.total} ítems)
+          </h2>
+          {comite && <p className="ia-pendiente"><a href={`/monitoreo/informe?fecha=${fecha}#vista`}>← Ver el correo general</a></p>}
+          {!comite && porComite.length > 0 && (
+            <p className="ia-pendiente">Para ver el correo que recibe cada comité, pulsa su nombre en la tabla de arriba.</p>
+          )}
           <div className="grafico" dangerouslySetInnerHTML={{ __html: vista.html }} />
           {u?.rol === "admin" && <Destinatarios general={dest.general} comites={dest.comites} lista={COMITES} />}
         </>
