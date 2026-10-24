@@ -1,21 +1,10 @@
-lista: 200 
-normas-textos-12             transf  0.34 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-11             transf  0.00 GB | espacio       0 MB | computo   9.7 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-10             transf  0.00 GB | espacio       0 MB | computo   9.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-9              transf  0.00 GB | espacio       0 MB | computo   8.9 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-8              transf  0.01 GB | espacio       0 MB | computo   9.2 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-7              transf  0.05 GB | espacio       0 MB | computo  10.5 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-6              transf  0.06 GB | espacio       0 MB | computo  10.9 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-5              transf  0.07 GB | espacio       0 MB | computo  12.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-4              transf  3.91 GB | espacio       0 MB | computo  20.5 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-3              transf  0.10 GB | espacio       0 MB | computo  14.6 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-textos-2              transf  0.31 GB | espacio       0 MB | computo  15.2 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-normas-peru                  transf 13.45 GB | espacio       0 MB | computo   4.7 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-ERH-Bermeo                   transf  0.00 GB | espacio       0 MB | computo   0.1 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-ERH-JMSR                     transf  0.00 GB | espacio       0 MB | computo   0.6 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-presupuestos-barra61-jmsr    transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-expedientes-jmsr             transf  0.00 GB | espacio       0 MB | computo   0.5 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-matriz-riesgos-jmsr          transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-liquidacion-beneficios       transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-contratos-erh                transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
-ESPACIO TOTAL: 0.00 GB
+
+== normas-textos-4 patient-sea-69646257 creado 2026-10-13T04:29:15Z
+{'data_transfer_bytes': 4199170630, 'written_data_bytes': 0, 'compute_time_seconds': 73935, 'synthetic_storage_size': 0, 'quota_reset_at': None, 'owner_id': 'org-fancy-heart-74067952'}
+  endpoint ep-ancient-grass-b7wngm3p.c-13.us-east-1.aws.neon.tech active ultimo uso 2026-10-24T16:31:19Z suspendido False | en nuestros secretos como: DATABASE_URL
+  rama production tamano logico MB 314 escrito 2026-10-24T16:30:21Z
+
+== normas-peru mute-mouse-29926510 creado 2026-10-12T02:53:16Z
+{'data_transfer_bytes': 14438615164, 'written_data_bytes': 0, 'compute_time_seconds': 16869, 'synthetic_storage_size': 0, 'quota_reset_at': None, 'owner_id': 'org-fancy-heart-74067952'}
+  endpoint ep-still-king-b8lqymr0.c-14.us-east-1.aws.neon.tech idle ultimo uso 2026-10-13T13:56:00Z suspendido 2026-10-13T13:59:46Z | en nuestros secretos como: NO
+  rama production tamano logico MB 512 escrito 2026-10-17T18:46:07Z
