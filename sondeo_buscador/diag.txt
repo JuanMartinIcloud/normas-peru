@@ -1,3 +1,21 @@
-lista: 400 {"request_id":"6f8265e2-7a66-42b2-af04-636943f2366e","code":"","message":"org_id is required, you can find it on your organization settings page"}
-orgs: 200 {"organizations":[{"id":"org-fancy-heart-74067952","name":"juanmartin1968@outlook.com","handle":"-org-fancy-heart-74067952","plan":"free","created_at":"2026-03-19T20:16:50Z","managed_by":"console","updated_at":"2026-07-31T15:28:35Z","require_mfa":false}]}
+lista: 200 
+normas-textos-12             transf  0.34 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-11             transf  0.00 GB | espacio       0 MB | computo   9.7 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-10             transf  0.00 GB | espacio       0 MB | computo   9.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-9              transf  0.00 GB | espacio       0 MB | computo   8.9 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-8              transf  0.01 GB | espacio       0 MB | computo   9.2 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-7              transf  0.05 GB | espacio       0 MB | computo  10.5 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-6              transf  0.06 GB | espacio       0 MB | computo  10.9 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-5              transf  0.07 GB | espacio       0 MB | computo  12.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-4              transf  3.91 GB | espacio       0 MB | computo  20.5 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-3              transf  0.10 GB | espacio       0 MB | computo  14.6 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-textos-2              transf  0.31 GB | espacio       0 MB | computo  15.2 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+normas-peru                  transf 13.45 GB | espacio       0 MB | computo   4.7 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+ERH-Bermeo                   transf  0.00 GB | espacio       0 MB | computo   0.1 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+ERH-JMSR                     transf  0.00 GB | espacio       0 MB | computo   0.6 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+presupuestos-barra61-jmsr    transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+expedientes-jmsr             transf  0.00 GB | espacio       0 MB | computo   0.5 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+matriz-riesgos-jmsr          transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+liquidacion-beneficios       transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
+contratos-erh                transf  0.00 GB | espacio       0 MB | computo   0.0 h | periodo 2026-10-01T00:00:00Z a 2026-11-01T00:00:00Z
 ESPACIO TOTAL: 0.00 GB
