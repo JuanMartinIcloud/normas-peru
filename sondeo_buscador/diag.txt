@@ -1,8 +1,10 @@
-criterio actual: [(4,)]
-pendientes: [(122,)]
-por mes: [('2026-06', 20, 20), ('2026-07', 206, 102), ('2026-08', 134, 0), ('2026-09', 214, 0), ('2026-10', 161, 0)]
-%021-2026-EM% [('Decreto Supremo', '021-2026-EM', False, 'Desfavorable', 5, 4)]
-%397-2026-VIVIENDA% [('Resolución Ministerial', '397-2026-VIVIENDA', False, 'Favorable', 2, 4)]
-%2860% [('Ordenanzas', '2860', False, 'Para seguimiento', None, 4)]
-%000125-2026-CD/OSIPTEL% [('Resolución', '000125-2026-CD/OSIPTEL', False, 'Favorable', 3, 4)]
-%300-2026-PCM% [('Resolución Suprema', '300-2026-PCM', False, 'Para seguimiento', 1, 2)]
+desde: (datetime.datetime(2026, 10, 24, 15, 54, 27, 232486, tzinfo=datetime.timezone.utc),)
+(879, 879, 'SELECT $1')
+(10, 10, 'INSERT INTO public.health_check VALUES ($1, now()) ON CONFLICT (id) DO UPDATE SET updated_at = now() RETURNING $2 AS success')
+(2, 2, 'SELECT EXISTS (SELECT $1 FROM information_schema.columns WHERE table_schema = $2 AND table_name = $3 AND column_name = $4)')
+(2, 2, 'SELECT EXISTS (SELECT $1 FROM information_schema.tables WHERE table_schema = $2 AND table_name = $3) AND EXISTS (SELECT $4 FROM information_schema.columns WHERE table_schema = $5 AND table_name = $6 AND column_name = $7)')
+(7, 0, 'BEGIN')
+(1, 0, 'SELECT d::date FROM generate_series($1::date::date, $2::date::date, interval $3) d WHERE d::date NOT IN (SELECT fecha FROM resumenes) ORDER BY 1')
+(49, 0, 'SELECT bytes FROM (SELECT get_compute_primary_memory_bytes() AS bytes) t WHERE bytes IS NOT NULL')
+(5, 0, 'COMMIT')
+analisis sep-oct: 387 filas, 0.73 MB
