@@ -61,7 +61,13 @@ def revisar_computo():
         print("::notice title=Computo::Sin NEON_API_KEY no se pueden leer las horas de computo de Neon.")
         return 0.0
     h = {"Authorization": f"Bearer {clave}", "Accept": "application/json"}
-    r = requests.get("https://console.neon.tech/api/v2/projects", headers=h, params={"limit": 100}, timeout=60)
+    # Las claves personales necesitan la organizacion para listar los proyectos
+    orgs = requests.get("https://console.neon.tech/api/v2/users/me/organizations", headers=h, timeout=60)
+    orgs.raise_for_status()
+    params = {"limit": 100}
+    if orgs.json().get("organizations"):
+        params["org_id"] = orgs.json()["organizations"][0]["id"]
+    r = requests.get("https://console.neon.tech/api/v2/projects", headers=h, params=params, timeout=60)
     r.raise_for_status()
     peor = 0.0
     for p in r.json().get("projects", []):

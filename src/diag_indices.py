@@ -2,7 +2,8 @@
 import os, requests
 h = {"Authorization": f"Bearer {os.environ.get('NEON_API_KEY', '').strip()}", "Accept": "application/json"}
 API = "https://console.neon.tech/api/v2"
-r = requests.get(f"{API}/projects", headers=h, params={"limit": 100}, timeout=60)
+orgs = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60).json().get("organizations", [])
+r = requests.get(f"{API}/projects", headers=h, params={"limit": 100, "org_id": orgs[0]["id"]}, timeout=60)
 print("lista:", r.status_code, r.text[:300] if r.status_code != 200 else "")
 if r.status_code != 200:
     r2 = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60); print("orgs:", r2.status_code, r2.text[:500])
