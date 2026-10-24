@@ -1,17 +1,1 @@
-proyectos: 18 | normas-peru sigue: False
-DATABASE_URL ok
-TEXTOS_URL_2 ok
-TEXTOS_URL_3 ok
-TEXTOS_URL_5 ok
-TEXTOS_URL_6 ok
-TEXTOS_URL_7 ok
-TEXTOS_URL_8 ok
-TEXTOS_URL_9 ok
-TEXTOS_URL_10 ok
-TEXTOS_URL_11 ok
-TEXTOS_URL_12 ok
-200 / False
-200 /buscar?q=teletrabajo False
-200 /proyectos False
-200 /resumenes False
-200 /ingresar False
+200 0 {"desde":"","hasta":"","terminos":["tributacion minera","impuesto a la mineria","canon minero","regalia minera","deducciones tributarias mineria","impuesto general a la renta minera"],"guardado":true}
