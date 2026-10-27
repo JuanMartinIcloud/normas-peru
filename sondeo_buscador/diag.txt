@@ -1,1 +1,4 @@
-200 0 {"desde":"","hasta":"","terminos":["tributacion minera","impuesto a la mineria","canon minero","regalia minera","deducciones tributarias mineria","impuesto general a la renta minera"],"guardado":true}
+(270969, datetime.date(2026, 10, 17), 'Aviso Código De Buen Gobier', 'CORPORATIVO Y DE SOSTENIBILIDAD PARA LAS SOCIEDADES PERUANAS', 'SUPERINTENDENCIA DEL MERCADO DE VALORES', 'Otros', 'Código de Buen Gobierno Corporativo y de Sostenibilidad para las Sociedades Peruanas', 'https://epdoc2.elperuano.pe/EpPo/VistaNLSE.asp?Referencias=MjU2NDM0My0xMjAyNjEwMTc=', True, 'Favorable', 5, 'Moderado', 4, False, datetime.datetime(2026, 10, 17, 11, 41, 9, 630569, tzinfo=datetime.timezone.utc), 'La Superintendencia del Mercado de Valores (SMV) publica el nuevo Código de Buen Gobierno Corporativo y de Sostenibilidad para las Sociedades Peruanas. Este instrumento busca fortalecer la gobernanza ') 
+
+SMV: (datetime.date(2026, 10, 17), 'Aviso Código De Buen Gobier', 'CORPORATIVO Y DE SOSTENIBILIDAD PARA LAS SOCIEDADES PERUANAS', 'Código de Buen Gobierno Corporativo y de Sostenibilidad para las Sociedades Peruanas', True)
+ultima norma: (datetime.date(2026, 10, 27),)
