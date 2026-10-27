@@ -46,7 +46,9 @@ jobs:
           cache: pip
       - run: bash src/reintentar.sh pip install -r requirements.txt
       # OCR para PDF escaneados (si no se pudiera instalar, el indexado sigue igual, sin OCR)
-      - run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-spa poppler-utils || true
+      - run: timeout 300 bash -c "sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-spa poppler-utils" || true
+        timeout-minutes: 6
+        continue-on-error: true
       - name: Texto completo (${{ matrix.tipo }} ${{ matrix.parte }})
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}

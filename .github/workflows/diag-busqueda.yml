@@ -22,7 +22,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-spa poppler-utils qpdf ghostscript mupdf-tools || true
       - name: Medir
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
