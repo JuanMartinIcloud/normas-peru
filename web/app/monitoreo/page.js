@@ -121,18 +121,24 @@ export default async function ResumenEjecutivo({ searchParams }) {
       </div>
 
       <h2 className="seccion">Documentos de impacto alto ({destacados.length}: {destacados.filter((x) => x.origen === "N").length} normas y {destacados.filter((x) => x.origen === "P").length} proyectos de ley)</h2>
+      {destacados.length > 0 && (
+        <p className="acciones">
+          <a className="boton sec" href={`/api/monitoreo/alto-impacto?${periodo}&formato=word`}>Descargar en Word</a>
+          <a className="boton sec" href={`/api/monitoreo/alto-impacto?${periodo}&formato=excel`}>Descargar en Excel</a>
+        </p>
+      )}
       {destacados.length === 0 ? (
         <p className="vacio">No hay documentos de impacto alto en este periodo.</p>
       ) : (
         <div className="envoltura-tabla">
           <table className="tabla-mon">
-            <thead><tr><th>Documento</th><th>Tipo</th><th className="num">Puntaje</th><th>Sector</th><th>Calificación</th><th>En qué consiste</th></tr></thead>
+            <thead><tr><th>Documento</th><th>Tipo</th><th className="num">Puntaje</th><th>Sector</th><th>Calificación</th><th>En qué consiste</th><th>Cambios</th></tr></thead>
             <tbody>
               {destacados.map((x) => (
                 <tr key={`${x.origen}-${x.analisis_id}`}>
                   <td>{nombre(x)}</td><td>{x.origen === "N" ? "Norma legal" : "Proyecto de ley"}</td>
                   <td className="num">{x.puntaje ? `${x.puntaje}/10` : "—"}</td>
-                  <td>{x.sector}</td><td>{x.calificacion}</td><td>{x.resumen}</td>
+                  <td>{x.sector}</td><td>{x.calificacion}</td><td>{x.resumen}</td><td>{x.cambios}</td>
                 </tr>
               ))}
             </tbody>
