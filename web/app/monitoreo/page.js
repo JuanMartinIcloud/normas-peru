@@ -55,6 +55,10 @@ export default async function ResumenEjecutivo({ searchParams }) {
   };
   const ant = (campo, valor) => (previos ? previos.todos.filter((x) => x[campo] === valor).length : 0);
   const enlaceDoc = (x) => (x.origen === "N" ? x.url_detalle : urlProyecto(x));
+  const CAMARA = { D: "Cámara de Diputados", S: "Senado", C: "Congreso (unicameral)" };
+  // De donde viene: normas = entidad que la emitio; proyectos = camara y quien lo propuso
+  const origenDe = (x) => (x.origen === "N" ? x.entidad || "" : [CAMARA[x.camara] || x.camara, x.proponente && `Propuesto por: ${x.proponente}`].filter(Boolean).join(" · "));
+  const estadoDe = (x) => (x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : x.estado || "");
 
   return (
     <>
@@ -132,11 +136,12 @@ export default async function ResumenEjecutivo({ searchParams }) {
       ) : (
         <div className="envoltura-tabla">
           <table className="tabla-mon">
-            <thead><tr><th>Documento</th><th>Tipo</th><th className="num">Puntaje</th><th>Sector</th><th>Calificación</th><th>En qué consiste</th><th>Cambios</th></tr></thead>
+            <thead><tr><th>Documento</th><th>Tipo</th><th>Emisor u origen</th><th>Estado</th><th className="num">Puntaje</th><th>Sector</th><th>Calificación</th><th>En qué consiste</th><th>Cambios</th></tr></thead>
             <tbody>
               {destacados.map((x) => (
                 <tr key={`${x.origen}-${x.analisis_id}`}>
                   <td>{nombre(x)}</td><td>{x.origen === "N" ? "Norma legal" : "Proyecto de ley"}</td>
+                  <td>{origenDe(x)}</td><td>{estadoDe(x)}</td>
                   <td className="num">{x.puntaje ? `${x.puntaje}/10` : "—"}</td>
                   <td>{x.sector}</td><td>{x.calificacion}</td><td>{x.resumen}</td><td>{x.cambios}</td>
                 </tr>

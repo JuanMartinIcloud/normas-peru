@@ -14,14 +14,18 @@ export const maxDuration = 60;
 // "Documentos de impacto alto" del resumen ejecutivo, en Word (?formato=word) o en Excel (?formato=excel).
 // Mismo periodo (?mes= o ?fecha=) y mismos documentos que la tabla de la pantalla.
 
+const CAMARA = { D: "Cámara de Diputados", S: "Senado", C: "Congreso (unicameral)" };
+
 const COLUMNAS = [
   { titulo: "Documento", ancho: 15 },
-  { titulo: "Tipo", ancho: 9 },
-  { titulo: "Puntaje", ancho: 7 },
+  { titulo: "Tipo", ancho: 8 },
+  { titulo: "Emisor u origen", ancho: 13 },
+  { titulo: "Estado", ancho: 11 },
+  { titulo: "Puntaje", ancho: 6 },
   { titulo: "Sector", ancho: 11 },
   { titulo: "Calificación", ancho: 11 },
-  { titulo: "En qué consiste", ancho: 24 },
-  { titulo: "Cambios", ancho: 23 },
+  { titulo: "En qué consiste", ancho: 22 },
+  { titulo: "Cambios", ancho: 21 },
 ];
 
 async function documentos(sp) {
@@ -35,6 +39,9 @@ async function documentos(sp) {
     .map((x) => ({
       documento: x.origen === "N" ? [x.tipo, x.numero].filter(Boolean).join(" N° ") : `Proposición ${x.numero}`,
       tipo: x.origen === "N" ? "Norma legal" : "Proyecto de ley",
+      origen: x.origen === "N" ? x.entidad || ""
+        : [CAMARA[x.camara] || x.camara, x.proponente && `Propuesto por: ${x.proponente}`].filter(Boolean).join(" · "),
+      estado: x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : x.estado || "",
       puntaje: x.puntaje ? `${x.puntaje}/10` : "",
       sector: x.sector || "",
       calificacion: x.calificacion || "",
@@ -45,7 +52,7 @@ async function documentos(sp) {
   return { per, filas };
 }
 
-const valores = (r) => [r.documento, r.tipo, r.puntaje, r.sector, r.calificacion, r.consiste, r.cambios];
+const valores = (r) => [r.documento, r.tipo, r.origen, r.estado, r.puntaje, r.sector, r.calificacion, r.consiste, r.cambios];
 
 async function word(per, filas) {
   const total = COLUMNAS.reduce((s, c) => s + c.ancho, 0);
