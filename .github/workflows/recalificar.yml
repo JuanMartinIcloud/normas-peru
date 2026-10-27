@@ -6,6 +6,10 @@ on:
   schedule:
     - cron: "29 15 * * *"    # respaldo diario (si no hay nada pendiente, termina en segundos)
   workflow_dispatch:
+    inputs:
+      buscar:
+        description: "Opcional: solo los documentos que mencionan esta expresion (tanda pequeña)"
+        default: ""
 
 concurrency:
   group: recalificar
@@ -30,7 +34,11 @@ jobs:
           cache: pip
       - run: bash src/reintentar.sh pip install -r requirements.txt
       - name: Recalificar
-        run: python src/recalificar_monitoreo.py --max-minutos 50
+        env:
+          BUSCAR: ${{ github.event.inputs.buscar }}
+        run: |
+          if [ -n "$BUSCAR" ]; then python src/recalificar_monitoreo.py --max-minutos 50 --buscar "$BUSCAR"
+          else python src/recalificar_monitoreo.py --max-minutos 50; fi
 
   relanzar:
     needs: recalificar

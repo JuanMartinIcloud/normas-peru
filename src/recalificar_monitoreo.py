@@ -51,9 +51,15 @@ SQL_PENDIENTES = """
     ORDER BY a.fecha DESC, a.id"""
 
 
-def pendientes(conn, limite=None):
+def pendientes(conn, limite=None, buscar=None):
+    """buscar: expresion (sin distinguir mayusculas) que debe aparecer en la sumilla, el titulo o el analisis."""
+    sql, args = SQL_PENDIENTES, [CRITERIO]
+    if buscar:
+        sql = sql.replace("ORDER BY", """AND (coalesce(n.sumilla, '') ~* %s OR coalesce(p.titulo, '') ~* %s
+                                           OR coalesce(a.resumen, '') ~* %s) ORDER BY""")
+        args += [buscar] * 3
     with conn.cursor() as cur:
-        cur.execute(SQL_PENDIENTES + (f" LIMIT {int(limite)}" if limite else ""), (CRITERIO,))
+        cur.execute(sql + (f" LIMIT {int(limite)}" if limite else ""), args)
         return cur.fetchall()
 
 
@@ -88,16 +94,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-minutos", type=float, default=50)
     ap.add_argument("--contar", action="store_true")
+    ap.add_argument("--buscar", help="solo los documentos que mencionan esta expresion (tanda pequeña)")
     a = ap.parse_args()
     conn = db.conectar()   # aplica las etapas pendientes del esquema (columnas puntaje y criterio)
     if a.contar:
         print(0 if cupos.principal_agotada() else contar(conn))
         return
-    if cupos.principal_agotada():
+    # Una tanda pequeña (--buscar) sigue aunque la base principal este frenada: lee muy pocos datos
+    if cupos.principal_agotada() and not a.buscar:
         return
     gemini.verificar_clave()
     fin = time.time() + a.max_minutos * 60
-    filas = pendientes(conn)
+    filas = pendientes(conn, buscar=a.buscar)
     print(f"Por recalificar: {len(filas)}")
     hechos = fuera = fallos = 0
     for i in range(0, len(filas), LOTE):

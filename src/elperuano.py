@@ -36,8 +36,24 @@ def _pedir(desde: date, hasta: date) -> str:
     raise RuntimeError(f"Fallo tras {config.REINTENTOS} intentos: {ultimo_error}")
 
 
+# Abreviatura de "numero" en los titulos: N°, Nº, N.°, No., Nro. (y "No" solo si le sigue una cifra).
+# Debe ir precedida de un espacio: asi no se confunde con el "NO" final de palabras como GOBIERNO.
+_NUMERO = re.compile(r"^(.*?)\s+(?:N\.?\s?[°º]|N[°º]\.?|No\.|No\s+(?=\d)|Nro\.?)\s*(\S.*)$", re.I)
+
+
 def _separar_titulo(titulo: str) -> tuple[str, str]:
-    """'RESOLUCION N° 505-2026-CG' -> ('RESOLUCION', '505-2026-CG')."""
+    """'RESOLUCION N° 505-2026-CG' -> ('Resolucion', '505-2026-CG').
+    Sin numero (avisos, codigos): todo el titulo es el tipo, en tipo oracion si es largo."""
+    titulo = re.sub(r"\s+", " ", titulo).strip()
+    m = _NUMERO.match(titulo)
+    if m:
+        return m.group(1).strip().title(), m.group(2).strip()
+    return (titulo.capitalize() if len(titulo.split()) > 4 else titulo.title()), ""
+
+
+def _separar_titulo_antiguo(titulo: str) -> tuple[str, str]:
+    """Forma anterior de separar el titulo. Solo para calcular hash_unico igual que siempre (no cambia la
+    clave de las normas ya guardadas ni la de sus textos)."""
     titulo = re.sub(r"\s+", " ", titulo).strip()
     m = re.match(r"^(.*?)\s*N[°ºo]\.?\s*(.+)$", titulo, flags=re.I)
     if m:
@@ -56,6 +72,7 @@ def parsear(html: str) -> list[dict]:
         enlace = h5.find("a")
         titulo = h5.get_text(" ", strip=True)
         tipo, numero = _separar_titulo(titulo)
+        tipo_h, numero_h = _separar_titulo_antiguo(titulo)
         url_detalle = enlace["href"] if enlace and enlace.has_attr("href") else None
         texto = art.find("div", class_="ediciones_texto")
         parrafos = texto.find_all("p") if texto else []
@@ -68,13 +85,14 @@ def parsear(html: str) -> list[dict]:
             "url_detalle": url_detalle,
             "url_pdf": f"{url_detalle}/pdf" if url_detalle else None,
             "extraordinaria": art.find("strong", class_="extraordinaria") is not None,
+            "tipo_hash": tipo_h, "numero_hash": numero_h,
         })
     return filas
 
 
 def _hash(fecha: date, f: dict) -> str:
     base = "|".join([
-        fecha.isoformat(), str(f.get("tipo")), str(f.get("numero")),
+        fecha.isoformat(), str(f.get("tipo_hash", f.get("tipo"))), str(f.get("numero_hash", f.get("numero"))),
         str(f.get("entidad")), str(f.get("url_detalle")),
     ])
     return hashlib.sha256(base.encode("utf-8")).hexdigest()

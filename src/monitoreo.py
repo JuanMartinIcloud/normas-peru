@@ -53,7 +53,7 @@ LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
 # Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 4)
-CRITERIO = 4
+CRITERIO = 5
 NO_RELEVANTES = """NO son relevantes (quedan fuera del reporte) aunque mencionen a empresas o sectores:
 - Actos dirigidos a una empresa, persona o entidad concreta, que no cambian las reglas para el resto:
   concesiones, autorizaciones, licencias, permisos, registros u otorgamiento de derechos a un titular;
@@ -88,6 +88,10 @@ o para mal):
 - 5-6: efecto moderado o acotado a un subsector o a un tipo de operación.
 - 3-4: efecto menor (ajustes operativos o procedimentales).
 - 1-2: efecto mínimo.
+Las normas de alcance general sobre gobierno corporativo, códigos de buen gobierno, compliance y prevención
+(anticorrupción, lavado de activos), sostenibilidad empresarial (ESG, reportes de sostenibilidad), mercado de
+valores o deberes de directorios y accionistas aplican a muchas empresas a la vez: van de 7 a 9 según su alcance,
+aunque su cumplimiento sea voluntario ("cumplir o explicar").
 Usa todo el rango; no pongas puntajes altos por costumbre."""
 
 
