@@ -1,16 +1,6 @@
-"""Ultimos ajustes de titulos sin numero: palabras que el diccionario no reconocio (plurales)."""
-import os, re, psycopg2
+import os, psycopg2
 c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
-cambios = [(r"america no s\b", "americanos"), (r"americano s\b", "americanos"), (r"iberoamerica no\b", "iberoamericano"),
-           (r"mexicano s\b", "mexicanos"), (r"mejica no s\b", "mejicanos"), (r"gobbier no\b", "gobierno")]
-cur.execute(r"SELECT id, tipo FROM normas WHERE numero = '' AND tipo ~* '( no |no s\b| no$)'")
-for nid, tipo in cur.fetchall():
-    nuevo = tipo
-    for a, b in cambios:
-        nuevo = re.sub(a, b, nuevo, flags=re.I)
-    if nuevo != tipo:
-        cur.execute("UPDATE normas SET tipo = %s WHERE id = %s", (nuevo, nid))
-        print("corregido:", tipo[:90], "->", nuevo[:90])
-    else:
-        print("queda:", tipo[:110])
+for a, b in (("agua no s une", "agua nos une"), ("elgobier no", "elgobierno")):
+    cur.execute("UPDATE normas SET tipo = replace(tipo, %s, %s) WHERE numero = '' AND tipo LIKE %s", (a, b, f"%{a}%")); print(a, cur.rowcount)
+cur.execute("SELECT tipo FROM normas WHERE tipo ILIKE '%nitoge%'"); print(cur.fetchall())
 c.commit()
