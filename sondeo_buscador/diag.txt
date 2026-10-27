@@ -1,4 +1,27 @@
-(270969, datetime.date(2026, 10, 17), 'Aviso Código De Buen Gobier', 'CORPORATIVO Y DE SOSTENIBILIDAD PARA LAS SOCIEDADES PERUANAS', 'SUPERINTENDENCIA DEL MERCADO DE VALORES', 'Otros', 'Código de Buen Gobierno Corporativo y de Sostenibilidad para las Sociedades Peruanas', 'https://epdoc2.elperuano.pe/EpPo/VistaNLSE.asp?Referencias=MjU2NDM0My0xMjAyNjEwMTc=', True, 'Favorable', 5, 'Moderado', 4, False, datetime.datetime(2026, 10, 17, 11, 41, 9, 630569, tzinfo=datetime.timezone.utc), 'La Superintendencia del Mercado de Valores (SMV) publica el nuevo Código de Buen Gobierno Corporativo y de Sostenibilidad para las Sociedades Peruanas. Este instrumento busca fortalecer la gobernanza ') 
-
-SMV: (datetime.date(2026, 10, 17), 'Aviso Código De Buen Gobier', 'CORPORATIVO Y DE SOSTENIBILIDAD PARA LAS SOCIEDADES PERUANAS', 'Código de Buen Gobierno Corporativo y de Sostenibilidad para las Sociedades Peruanas', True)
-ultima norma: (datetime.date(2026, 10, 27),)
+candidatas: 107
+  'Acuerdo De Cooperacion Entre El Gobier' | 'DE LA REPUBLICA DEL PERU..............'  ->  'Acuerdo de cooperacion entre el gobierno de la republica del peru.....' | ''
+  'Convenio Acuerdo Entre El Gobier' | 'DE LA...........'  ->  'Convenio acuerdo entre el gobierno de la...........' | ''
+  'Acuerdo Entre Gobier' | 'REPUBLICA DEL PERU Y LA ONU'  ->  'Acuerdo entre gobierno republica del peru y la onu' | ''
+  'Acuerdo Cooperacion Entre Gobbier' | '.............................'  ->  'Acuerdo cooperacion entre gobbierno .............................' | ''
+  'Convenio Acuerdo Entre El Gobier' | 'DE LA REPUBLICA DEL PERU................'  ->  'Convenio acuerdo entre el gobierno de la republica del peru...........' | ''
+  'Aviso Código De Buen Gobier' | 'CORPORATIVO Y DE SOSTENIBILIDAD PARA LAS'  ->  'Aviso código de buen gobierno corporativo y de sostenibilidad para las' | ''
+  'Convenio Enmienda' | 'DIEZ AL CONVENIO DE DONACION............'  ->  'Convenio enmiendano diez al convenio de donacion...............' | ''
+  'Convenio Acuerdo Por Canje De' | 'TAS ENTRE.............'  ->  'Convenio acuerdo por canje deno tas entre.............' | ''
+  'Convenio Enmienda' | 'DIECIOCHO CONVENIO DE DONACION..........'  ->  'Convenio enmiendano dieciocho convenio de donacion..............' | ''
+  'Convenio Acuerdo Entre La Comision Eco' | 'MICA...........'  ->  'Convenio acuerdo entre la comision econo mica...........' | ''
+  'Convenio Enmienda' | 'NUEVE AL CONVENIO DE DONACION.......'  ->  'Convenio enmiendano nueve al convenio de donacion.......' | ''
+  'Separata Especial Marco Macroeco' | 'MICO'  ->  'Separata especial marco macroecono mico' | ''
+  'Convenio Entre El Gobier' | 'de la republica del Peru y Brasil ...'  ->  'Convenio entre el gobierno de la republica del peru y brasil ...' | ''
+  'Convenio Internacional Acuerdo Por Intercambio De' | 'TAS'  ->  'Convenio internacional acuerdo por intercambio deno tas' | ''
+  'Convenio Acuerdo Por Intercambio De' | 'TAS ENTRE.................'  ->  'Convenio acuerdo por intercambio deno tas entre.................' | ''
+  'Convenio Enmienda' | 'QUINCE AL CONVENIO DE DONACION..........'  ->  'Convenio enmiendano quince al convenio de donacion...............' | ''
+  'Acuerdo Entre Peru Y Estados America' | 'S'  ->  'Acuerdo entre peru y estados americano s' | ''
+  'Convenio Cooperacion Eco' | 'MICA Y TECNICA ENTRE....................'  ->  'Convenio cooperacion econo mica y tecnica entre.......................' | ''
+  'Fe De Errata Convenio Multilateral Iberoamerica' | 'DE SUGURIDAD SOCIAL'  ->  'Fe de errata convenio multilateral iberoamericano de suguridad social' | ''
+  'Convenio Multilateral Iberoamerica' | '................'  ->  'Convenio Multilateral Iberoamericano ................' | ''
+  'Convenio Acuerdo Por Canje De' | 'TAS...............'  ->  'Convenio acuerdo por canje deno tas...............' | ''
+  'Acuerdo Por Intercambio De' | 'TAS ENTRE PERU Y BOLIVIA'  ->  'Acuerdo por intercambio deno tas entre peru y bolivia' | ''
+  'Convenio Convenios Internaciones-Acuerdo Por Intercambio De' | 'TAS'  ->  'Convenio convenios internaciones-acuerdo por intercambio deno tas' | ''
+  'Convenio Vigencia De Las Enmiendas Al Codigo Tecnico Relativo Al Control De Las Emisiones De Oxidos De Nitoge' | 'DE LOS MOTORES DIÉSEL'  ->  'Convenio vigencia de las enmiendas al codigo tecnico relativo al contr' | ''
+  'Convenio Enmienda' | 'DOCE AL CONVENIO DE DONACION ENTRE USA Y'  ->  'Convenio enmiendano doce al convenio de donacion entre usa y peru' | ''
+corregidas: 107
