@@ -7,6 +7,16 @@ import BotonEjecutivo from "./BotonEjecutivo";
 
 export const metadata = { title: "Resumen ejecutivo · Monitoreo empresarial" };
 
+const CAMARA_NOMBRE = { D: "Cámara de Diputados", S: "Senado", C: "Congreso (unicameral)" };
+// Camara del proyecto y quien lo propuso (sin repetir la camara cuando la propuesta es de sus propios congresistas)
+const simple = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+function origenProyecto(x) {
+  const camara = CAMARA_NOMBRE[x.camara] || x.camara || "";
+  const prop = x.proponente || "";
+  const propio = !prop || simple(prop) === simple(camara) || /^(congreso|camara de diputados|senado)/.test(simple(prop));
+  return propio ? `${camara} · Propuesto por congresistas` : `${camara} · Propuesto por: ${prop}`;
+}
+
 const CALS = ["Favorable", "Desfavorable", "Para seguimiento"];
 
 export default async function ResumenEjecutivo({ searchParams }) {
@@ -55,9 +65,8 @@ export default async function ResumenEjecutivo({ searchParams }) {
   };
   const ant = (campo, valor) => (previos ? previos.todos.filter((x) => x[campo] === valor).length : 0);
   const enlaceDoc = (x) => (x.origen === "N" ? x.url_detalle : urlProyecto(x));
-  const CAMARA = { D: "Cámara de Diputados", S: "Senado", C: "Congreso (unicameral)" };
   // De donde viene: normas = entidad que la emitio; proyectos = camara y quien lo propuso
-  const origenDe = (x) => (x.origen === "N" ? x.entidad || "" : [CAMARA[x.camara] || x.camara, x.proponente && `Propuesto por: ${x.proponente}`].filter(Boolean).join(" · "));
+  const origenDe = (x) => (x.origen === "N" ? x.entidad || "" : origenProyecto(x));
   const estadoDe = (x) => (x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : x.estado || "");
 
   return (

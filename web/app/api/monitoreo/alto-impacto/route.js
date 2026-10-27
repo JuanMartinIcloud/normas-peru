@@ -14,7 +14,16 @@ export const maxDuration = 60;
 // "Documentos de impacto alto" del resumen ejecutivo, en Word (?formato=word) o en Excel (?formato=excel).
 // Mismo periodo (?mes= o ?fecha=) y mismos documentos que la tabla de la pantalla.
 
-const CAMARA = { D: "Cámara de Diputados", S: "Senado", C: "Congreso (unicameral)" };
+const CAMARA_NOMBRE = { D: "Cámara de Diputados", S: "Senado", C: "Congreso (unicameral)" };
+// Camara del proyecto y quien lo propuso (sin repetir la camara cuando la propuesta es de sus propios congresistas)
+const simple = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+function origenProyecto(x) {
+  const camara = CAMARA_NOMBRE[x.camara] || x.camara || "";
+  const prop = x.proponente || "";
+  const propio = !prop || simple(prop) === simple(camara) || /^(congreso|camara de diputados|senado)/.test(simple(prop));
+  return propio ? `${camara} · Propuesto por congresistas` : `${camara} · Propuesto por: ${prop}`;
+}
+
 
 const COLUMNAS = [
   { titulo: "Documento", ancho: 15 },
@@ -40,7 +49,7 @@ async function documentos(sp) {
       documento: x.origen === "N" ? [x.tipo, x.numero].filter(Boolean).join(" N° ") : `Proposición ${x.numero}`,
       tipo: x.origen === "N" ? "Norma legal" : "Proyecto de ley",
       origen: x.origen === "N" ? x.entidad || ""
-        : [CAMARA[x.camara] || x.camara, x.proponente && `Propuesto por: ${x.proponente}`].filter(Boolean).join(" · "),
+        : origenProyecto(x),
       estado: x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : x.estado || "",
       puntaje: x.puntaje ? `${x.puntaje}/10` : "",
       sector: x.sector || "",
