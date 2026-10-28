@@ -190,6 +190,15 @@ def propagar(cur):
     return a, cur.rowcount
 
 
+def reanalizar_recientes(cur):
+    """Paso 5: el analisis de una proposicion hecho antes de que se publicara como ley queda desactualizado
+    ("esta en comision..."): se borra para que el monitoreo de esa noche la analice de nuevo, ya como ley."""
+    cur.execute("""DELETE FROM analisis a USING proyectos_ley p
+                   WHERE a.tipo = 'P' AND a.ref_id = p.id AND p.ley_numero IS NOT NULL
+                     AND p.ley_fecha >= current_date - 45 AND a.creado_en < p.ley_fecha + 1 AND NOT a.excluido""")
+    return cur.rowcount
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-minutos", type=float, default=20)
@@ -208,12 +217,14 @@ def main():
         docs = documentos_de_leyes(cur)
         estados, leyes = propagar(cur)
         docs += documentos_de_leyes(cur)
+        nuevos = reanalizar_recientes(cur)
         cur.execute("SELECT count(*), count(*) FILTER (WHERE ley_docs->'ley' IS NOT NULL) FROM proyectos_ley WHERE ley_numero IS NOT NULL")
         total, con_norma = cur.fetchone()
     conn.commit()
     conn.close()
     print(f"Numeros de ley hallados: {n1 + n2} (expedientes leidos: {leidos}); camaras enlazadas: {enlaces}; "
-          f"enlaces a normas actualizados: {docs}; estados copiados: {estados}; leyes copiadas: {leyes}")
+          f"enlaces a normas actualizados: {docs}; estados copiados: {estados}; leyes copiadas: {leyes}; "
+          f"proposiciones por analizar de nuevo como ley: {nuevos}")
     print(f"Proposiciones convertidas en ley: {total} ({con_norma} con la norma hallada en El Peruano)")
 
 

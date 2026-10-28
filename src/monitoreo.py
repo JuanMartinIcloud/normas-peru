@@ -448,16 +448,20 @@ def procesar_normas(desde, hasta, reloj, ids=None):
 
 def procesar_proyectos(desde, hasta, reloj):
     filas = consultar(
-        """SELECT p.id, p.fecha_presentacion, p.numero, p.camara, p.proponente, p.autor, p.estado, p.titulo,
-                  p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero
+        """SELECT p.id, p.fecha_presentacion, p.numero, p.camara, p.proponente, p.autor,
+                  CASE WHEN p.ley_numero IS NOT NULL
+                       THEN 'Aprobada y publicada: ' || coalesce(p.ley_tipo, 'Ley') || ' N° ' || p.ley_numero ||
+                            coalesce(' (El Peruano, ' || p.ley_fecha || ')', '')
+                       ELSE p.estado END,
+                  p.titulo, p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero
            FROM proyectos_ley p
            WHERE NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = p.id)
-             AND (p.fecha_presentacion BETWEEN %s AND %s
+             AND (p.fecha_presentacion BETWEEN %s AND %s OR p.ley_fecha BETWEEN %s AND %s
                   OR EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id
                                AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %s AND %s
                                AND (s.estado ILIKE '%%dictamen%%' OR s.estado ILIKE '%%aut_grafa%%'
                                     OR s.estado ILIKE '%%senado%%' OR s.estado ILIKE 'publicad%%')))
-           ORDER BY p.fecha_presentacion DESC NULLS LAST""", (desde, hasta, desde, hasta))
+           ORDER BY p.fecha_presentacion DESC NULLS LAST""", (desde, hasta, desde, hasta, desde, hasta))
     print(f"Proyectos por revisar {desde} a {hasta}: {len(filas)}")
     hechas = 0
     for i in range(0, len(filas), 200):
