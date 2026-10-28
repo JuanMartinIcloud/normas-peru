@@ -1,3 +1,12 @@
-Proposiciones publicadas sin numero de ley: 0
-Numeros de ley hallados: 0 (expedientes leidos: 0); camaras enlazadas: 0; enlaces a normas actualizados: 0; estados copiados: 0; leyes copiadas: 0; proposiciones por analizar de nuevo como ley: 3
-Proposiciones convertidas en ley: 4002 (3778 con la norma hallada en El Peruano)
+('00009-2026-2031-S', False, None, None, None, None, None) 
+
+('00015-2026-2031-S', False, None, None, None, None, None) 
+
+('00008-2026-2031-S', False, None, None, None, None, None) 
+
+('00012-2026-2031-S', False, None, None, None, None, None) 
+
+('00013-2026-2031-S', True, 'Para seguimiento', 8, 'Alto', 'La Ley N° 32743 delega en el Poder Ejecutivo la facultad de legislar mediante decretos legislativos por el plazo de 90 días calendario. Las materias autorizadas comprenden la seguridad ciudadana (migración, telecomunicaciones, control de armas, sistema penitenciario, responsabilidad penal de adolescentes y lucha contra la criminalidad) y la gestión ante el Fenómeno El Niño (ayuda humanitaria, simplificación administrativa, transformación digital y medidas agrarias).', 'Esta norma tiene un impacto transversal importante en el clima de inversiones y la seguridad jurídica del país, ya que habilitará la emisión de múltiples decretos legislativos que afectarán el entorno empresarial, los controles de telecomunicaciones, la prevención de delitos y la regulación agraria y tecnológica. Su efectividad dependerá de cómo el Ejecutivo redacte las normas reglamentarias y operativas, existiendo riesgos regulatorios si se incrementan cargas o obligaciones sin la debida predictibilidad para el sector privado.') 
+
+('00098-2026-2031-CD', True, 'Para seguimiento', 8, 'Alto', 'La Ley N° 32743 delega en el Poder Ejecutivo la facultad de legislar en diversas materias, incluyendo seguridad ciudadana, fortalecimiento de micro y pequeñas empresas, promoción del empleo, desarrollo productivo, régimen tributario y simplificación administrativa. Esta delegación se otorga por un plazo de ciento veinte días calendario. El objetivo es permitir al Ejecutivo emitir decretos legislativos para implementar medidas urgentes en estos sectores.', 'Esta norma genera expectativas mixtas en el sector empresarial debido a que, si bien abre la posibilidad de implementar mejoras en simplificación administrativa y fortalecimiento de mype, también introduce incertidumbre por los cambios tributarios y regulatorios que el Ejecutivo pueda aprobar sin debate parlamentario previo. Su impacto final dependerá de los decretos legislativos específicos que se emitan durante el plazo otorgado.') 
+
