@@ -29,6 +29,9 @@ _ETAPAS = [
     ("-- Etapa 7:", """SELECT EXISTS (SELECT 1 FROM information_schema.columns
                                      WHERE table_schema = 'public' AND table_name = 'analisis'
                                        AND column_name = 'criterio')"""),
+    ("-- Etapa 8:", """SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                                     WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
+                                       AND column_name = 'enlace_estado')"""),
 ]
 
 

@@ -212,3 +212,14 @@ CREATE INDEX IF NOT EXISTS idx_proy_clave ON proyectos_ley ((periodo || '|' || c
 ALTER TABLE analisis ADD COLUMN IF NOT EXISTS puntaje SMALLINT;
 ALTER TABLE analisis ADD COLUMN IF NOT EXISTS criterio SMALLINT;   -- version de los criterios usada (ver CRITERIO en src/monitoreo.py)
 CREATE INDEX IF NOT EXISTS idx_analisis_criterio ON analisis (criterio) WHERE relevante;
+
+-- Etapa 8: proposiciones convertidas en ley y vinculo entre camaras (ver src/leyes.py).
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS ley_tipo      TEXT;    -- Ley | Resolución Legislativa ...
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS ley_numero    TEXT;    -- numero de la ley publicada
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS ley_fecha     DATE;    -- publicacion en El Peruano
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS ley_docs      JSONB;   -- {"ley": {id, fecha, url}, "erratas": [{id, fecha, url}]}
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_id     INTEGER; -- la misma iniciativa en la otra camara
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_numero TEXT;
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_camara CHAR(1);
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_estado TEXT;
+CREATE INDEX IF NOT EXISTS idx_proy_ley ON proyectos_ley (ley_numero) WHERE ley_numero IS NOT NULL;

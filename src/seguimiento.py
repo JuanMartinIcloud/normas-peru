@@ -7,6 +7,7 @@ cambiaron de estado en los ultimos 30 dias.
     python src/seguimiento.py [--max-minutos 40]
 """
 import argparse
+import re
 import time
 from datetime import datetime
 
@@ -18,6 +19,20 @@ from textos import API_CONGRESO, CABECERAS_CONGRESO, cifrar
 
 PAUSA = 0.5
 _s = requests.Session()
+# Enlace al expediente de la otra camara (p. ej. la propuesta que el Senado recibe de Diputados)
+_ENLACE = re.compile(r"/(diputados|senado)/expediente/(\d{4})/(\d+)", re.I)
+
+
+def enlace_de(e, camara):
+    """(camara, periodo, numero) del mismo expediente en la otra camara, segun los archivos del seguimiento."""
+    for s in e.get("seguimientos") or []:
+        for a in s.get("archivos") or []:
+            m = _ENLACE.search(a.get("enlace") or "")
+            if m and "EXPEDIENTE" in (a.get("descripcion") or "").upper():
+                otra = "D" if m.group(1).lower() == "diputados" else "S"
+                if otra != camara:
+                    return otra, m.group(2), int(m.group(3))
+    return None
 
 
 def expediente(periodo, camara, num_pley):
@@ -52,10 +67,10 @@ def main():
     conn.commit()
     print(f"Proyectos a revisar: {len(proyectos)}")
     hechos = nuevos = 0
-    filas, revisados, actuales = [], [], []
+    filas, revisados, actuales, enlaces = [], [], [], []
 
     def guardar():
-        nonlocal nuevos, filas, revisados, actuales
+        nonlocal nuevos, filas, revisados, actuales, enlaces
         c = db.conectar()   # conexion nueva: la base se apaga sola si pasa tiempo sin uso
         with c.cursor() as cur:
             if filas:
@@ -71,9 +86,16 @@ def main():
             if actuales:
                 cur.execute("UPDATE proyectos_ley SET seguimiento_revisado = now() WHERE id = ANY(%s)",
                             ([a[0] for a in actuales],))
+            # Misma iniciativa en las dos camaras: cada registro apunta al otro
+            for pid_, cam_, per_, num_ in enlaces:
+                cur.execute("""UPDATE proyectos_ley p SET enlace_id = o.id FROM proyectos_ley o
+                               WHERE p.id = %s AND o.camara = %s AND o.periodo = %s AND o.num_pley = %s
+                                 AND p.enlace_id IS DISTINCT FROM o.id RETURNING o.id""", (pid_, cam_, per_, num_))
+                for (oid,) in cur.fetchall():
+                    cur.execute("UPDATE proyectos_ley SET enlace_id = %s WHERE id = %s AND enlace_id IS NULL", (pid_, oid))
         c.commit()
         c.close()
-        filas, revisados, actuales = [], [], []
+        filas, revisados, actuales, enlaces = [], [], [], []
 
     for pid, periodo, camara, num in proyectos:
         if time.time() > fin:
@@ -92,6 +114,9 @@ def main():
                 (s.get("desComisiones") or "").strip() or None,
                 ((s.get("detalle") or s.get("observacion") or "").strip() or None),
             ))
+        otro = enlace_de(e, camara)
+        if otro:
+            enlaces.append((pid, *otro))
         actuales.append((pid,))
         hechos += 1
         if hechos % 100 == 0:
