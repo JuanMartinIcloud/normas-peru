@@ -15,6 +15,7 @@ Opciones: --max-minutos 300
 """
 import argparse
 import os
+import re
 import sys
 import time
 from datetime import date, timedelta
@@ -49,6 +50,7 @@ MODELOS_ANALISIS = None   # None = modelos por defecto (los mismos del buscador 
 # Los meses anteriores usan modelos distintos, para no gastar la cuota diaria del buscador ni del reporte diario
 HIST_FILTRO = [m for m in os.getenv("HIST_FILTRO", "gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3-flash-preview").split(",") if m]
 HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3-flash-preview").split(",") if m]
+MODELOS_SEGUNDA = HIST_ANALISIS   # segunda revision de las normas con rango de ley descartadas
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
@@ -132,6 +134,11 @@ energía, hidrocarburos, telecomunicaciones, salud y medicamentos, transporte, f
 turismo, educación privada), concesiones, APP e inversión pública relevante para privados,
 contrataciones del Estado, competencia y consumidor, ambiental, datos y economía digital, permisos y
 trámites, propiedad, arbitraje, compliance y anticorrupción empresarial.
+Las leyes que DELEGAN EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR son relevantes (el Ejecutivo dictará
+decretos legislativos con fuerza de ley), igual que las leyes, decretos legislativos y decretos de urgencia
+de alcance general que cambien reglas para las empresas o la economía. No confundir con las resoluciones
+que delegan atribuciones en funcionarios de una entidad (esas no son relevantes).
+Una fe de erratas sigue a la norma que corrige: es relevante si esa norma lo es.
 {NO_RELEVANTES}
 Responde solo con el JSON pedido: "relevantes" = lista de los id relevantes."""
 
@@ -216,14 +223,41 @@ def textos(tipo, claves):
 
 # --------------------------------------------------------------------------- IA
 
-def filtrar(items):
+RANGO_LEY = re.compile(r"^\s*(fe\s+de\s+erratas?\s+)?(ley|decreto\s+legislativo|decreto\s+de\s+urgencia|"
+                       r"resoluci[oó]n\s+legislativa)\b", re.I)
+ERRATA = re.compile(r"^\s*fe\s+de\s+erratas?\s+", re.I)
+
+
+def normas_corregidas(filas):
+    """{id de cada fe de erratas: (descripcion de la norma que corrige, si esa norma es relevante)}."""
+    erratas = [f for f in filas if ERRATA.match(f[2] or "") and f[3]]
+    if not erratas:
+        return {}
+    base = consultar(
+        """SELECT DISTINCT ON (lower(n.tipo), n.numero) lower(n.tipo), n.numero, n.tipo, n.entidad, n.sumilla,
+                  coalesce(a.relevante AND NOT a.excluido, FALSE)
+           FROM normas n LEFT JOIN analisis a ON a.tipo = 'N' AND a.ref_id = n.id
+           WHERE n.numero = ANY(%s) AND lower(n.tipo) = ANY(%s)
+           ORDER BY lower(n.tipo), n.numero, n.fecha DESC""",
+        (list({f[3] for f in erratas}), list({ERRATA.sub("", f[2]).strip().lower() for f in erratas})))
+    m = {(t, num): (f"{tipo} {num} — {ent or ''}: {sum_ or ''}", rel) for t, num, tipo, ent, sum_, rel in base}
+    salida = {}
+    for f in erratas:
+        b = m.get((ERRATA.sub("", f[2]).strip().lower(), f[3]))
+        if b:
+            salida[f[0]] = b
+    return salida
+
+
+def filtrar(items, modelos=None):
     """items: [(id, descripcion)] -> set de ids relevantes. None si la IA no responde."""
+    modelos = modelos or MODELOS_FILTRO
     relevantes = set()
     for i in range(0, len(items), LOTE_FILTRO):
         lote = items[i:i + LOTE_FILTRO]
         contenido = "\n".join(f"{k} | {d[:700]}" for k, d in lote)
         try:
-            datos, _ = gemini.generar_json(FILTRO_INSTR, contenido, FILTRO_ESQUEMA, MODELOS_FILTRO, 4096)
+            datos, _ = gemini.generar_json(FILTRO_INSTR, contenido, FILTRO_ESQUEMA, modelos, 4096)
         except gemini.ErrorGemini as e:
             print(f"  filtro sin respuesta: {str(e)[:200]}")
             return None if not relevantes and i == 0 else (relevantes, i)
@@ -327,12 +361,14 @@ def consultar(sql, params=()):
 
 # --------------------------------------------------------------------------- proceso
 
-def procesar_normas(desde, hasta, reloj):
+def procesar_normas(desde, hasta, reloj, ids=None):
+    """ids: solo esas normas (revisiones puntuales); None = todas las del rango sin analisis."""
     filas = consultar(
         """SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle, n.sector
            FROM normas n WHERE n.fecha BETWEEN %s AND %s
-             AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)
-           ORDER BY n.fecha DESC, n.id DESC""", (desde, hasta))
+             AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)""" +
+        (" AND n.id = ANY(%s)" if ids is not None else "") +
+        " ORDER BY n.fecha DESC, n.id DESC", (desde, hasta, list(ids)) if ids is not None else (desde, hasta))
     print(f"Normas por revisar {desde} a {hasta}: {len(filas)}")
     hechas = 0
     for i in range(0, len(filas), 200):
@@ -346,13 +382,32 @@ def procesar_normas(desde, hasta, reloj):
         if not grupo:
             continue
         n_grupo = len(grupo)
-        items = [(str(f[0]), f"{f[2]} {f[3] or ''} — {f[4] or ''}: {f[5] or ''}") for f in grupo]
+        corregidas = normas_corregidas(grupo)
+
+        def descripcion(f):
+            if f[0] in corregidas:
+                return f"{f[2]} {f[3] or ''} — Fe de erratas de: {corregidas[f[0]][0]}"
+            return f"{f[2]} {f[3] or ''} — {f[4] or ''}: {f[5] or ''}"
+        items = [(str(f[0]), descripcion(f)) for f in grupo]
         r = filtrar(items)
         if r is None:
             print("La IA no respondio al filtro; se continuara en la proxima ejecucion.")
             return hechas, False
         relevantes, cubiertos = r
         grupo = grupo[:cubiertos]
+        # La fe de erratas de una norma relevante tambien lo es
+        relevantes |= {str(f[0]) for f in grupo if corregidas.get(f[0], ("", False))[1]}
+        # Segunda opinion, con un modelo mas preciso, para las normas con rango de ley que el filtro
+        # rapido descarto (leyes, decretos legislativos y de urgencia, resoluciones legislativas)
+        dudosas = [(str(f[0]), descripcion(f)) for f in grupo if str(f[0]) not in relevantes and RANGO_LEY.match(f[2] or "")]
+        if dudosas:
+            r2 = filtrar(dudosas, MODELOS_SEGUNDA)
+            if r2 is None or r2[1] < len(dudosas):
+                print("La IA no respondio a la segunda revision de normas con rango de ley; se continuara en la proxima ejecucion.")
+                return hechas, False
+            if r2[0]:
+                print(f"  segunda revision: {len(r2[0])} de {len(dudosas)} normas con rango de ley pasan al analisis")
+            relevantes |= r2[0]
         no_rel = [{"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": False, "criterio": CRITERIO} for f in grupo if str(f[0]) not in relevantes]
         guardar(no_rel)
         rel = [f for f in grupo if str(f[0]) in relevantes]
@@ -370,6 +425,8 @@ def procesar_normas(desde, hasta, reloj):
                     texto = ""
             cab = (f"NORMA LEGAL publicada en El Peruano el {f[1]}\nTipo y número: {f[2]} {f[3] or ''}\n"
                    f"Entidad: {f[4] or ''}\nSumilla: {f[5] or ''}")
+            if f[0] in corregidas:
+                cab += f"\nEs la fe de erratas de: {corregidas[f[0]][0]}"
             try:
                 datos, modelo = analizar(cab, texto[:MAX_TEXTO] if texto else "")
             except gemini.ErrorGemini as e:
@@ -399,7 +456,7 @@ def procesar_proyectos(desde, hasta, reloj):
                   OR EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id
                                AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %s AND %s
                                AND (s.estado ILIKE '%%dictamen%%' OR s.estado ILIKE '%%aut_grafa%%'
-                                    OR s.estado ILIKE '%%senado%%')))
+                                    OR s.estado ILIKE '%%senado%%' OR s.estado ILIKE 'publicad%%')))
            ORDER BY p.fecha_presentacion DESC NULLS LAST""", (desde, hasta, desde, hasta))
     print(f"Proyectos por revisar {desde} a {hasta}: {len(filas)}")
     hechas = 0
@@ -465,9 +522,9 @@ def hoy_lima():
     return (datetime.now(timezone.utc) - timedelta(hours=5)).date()
 
 
-def rango(desde, hasta, reloj):
+def rango(desde, hasta, reloj, solo_normas=False):
     hn, ok1 = procesar_normas(desde, hasta, reloj)
-    hp, ok2 = procesar_proyectos(desde, hasta, reloj)
+    hp, ok2 = (0, True) if solo_normas else procesar_proyectos(desde, hasta, reloj)
     print(f"Rango {desde} a {hasta}: {hn} normas y {hp} proyectos analizados; completo={ok1 and ok2}")
     return ok1 and ok2
 
