@@ -453,7 +453,8 @@ def procesar_proyectos(desde, hasta, reloj):
                        THEN 'Aprobada y publicada: ' || coalesce(p.ley_tipo, 'Ley') || ' N° ' || p.ley_numero ||
                             coalesce(' (El Peruano, ' || p.ley_fecha || ')', '')
                        ELSE p.estado END,
-                  p.titulo, p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero
+                  p.titulo, p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero,
+                  (SELECT n.hash_unico FROM normas n WHERE n.id = (p.ley_docs->'ley'->>'id')::bigint)
            FROM proyectos_ley p
            WHERE NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = p.id)
              AND (p.fecha_presentacion BETWEEN %s AND %s OR p.ley_fecha BETWEEN %s AND %s
@@ -479,15 +480,21 @@ def procesar_proyectos(desde, hasta, reloj):
                  for f in grupo if str(f[0]) not in relevantes])
         rel = [f for f in grupo if str(f[0]) in relevantes]
         txt = textos("P", [f[9] for f in rel])
+        # Ya es ley: se analiza el texto de la ley publicada (el Congreso puede haberlo cambiado respecto del proyecto)
+        txt_ley = textos("N", [f[10] for f in rel if f[10]])
         lote = []
         for f in rel:
             if not reloj.queda():
                 break
-            texto = txt.get(f[9]) or ""
+            texto_ley = txt_ley.get(f[10]) if f[10] else ""
+            texto = texto_ley or txt.get(f[9]) or ""
             camara = {"D": "Cámara de Diputados", "S": "Senado", "C": "Congreso (unicameral)"}.get(f[3], f[3])
             cab = (f"PROYECTO DE LEY / PROPOSICIÓN LEGISLATIVA {f[2]} ({camara})\nPresentado: {f[1]}\n"
                    f"Proponente: {f[4] or ''}\nAutores: {(f[5] or '')[:300]}\nEstado: {f[6] or ''}\n"
                    f"Título: {f[7] or ''}\nSumilla: {f[8] or ''}")
+            if texto_ley:
+                cab += ("\nIMPORTANTE: ya es ley. El texto de abajo es el de la LEY PUBLICADA, que prevalece sobre lo "
+                        "que pedía el proyecto original; describe lo que dispone la ley.")
             try:
                 datos, modelo = analizar(cab, texto[:MAX_TEXTO])
             except gemini.ErrorGemini as e:
