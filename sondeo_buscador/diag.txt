@@ -1,111 +1,83 @@
-
-=== EXPEDIENTE S 13 ['general', 'seguimientos', 'acumulados', 'documentosAnexos', 'estudioComisiones', 'subseccionesEstudioComision', 'firmantes']
-general: {"pleyId": 21377, "perParId": 2026, "proyectoLey": "00013-2026-2031-S", "desPerParAbrev": "2026-2031", "indBicameral": true, "perParFecInicio": "2026-07-27T00:00:00", "perParFecFin": "2031-07-26T00:00:00", "desLegis": "Primera Legislatura Ordinaria 2026", "fecPresentacion": "2026-10-07", "desProponente": "Cámara de Diputados", "titulo": "PROPUESTA LEGISLATIVA REMITIDA POR LA CÁMARA DE DIPUTADOS - \n\nLEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA Y DEL FENÓMENO EL NIÑO", "sumilla": "PROPONE DELEGAR EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR, MEDIANTE DECRETOS LEGISLATIVOS, POR EL PLAZO DE NOVENTA (90) DÍAS CALENDARIO, CONTADO A PARTIR DE LA ENTRADA EN VIGOR DE LA PRESENTE LEY, EXCLUSIVAMENTE EN MATERIA DE SEGURIDAD CIUDADANA Y DEL FENÓMENO EL NIÑO, AL AMPARO DE LOS PARÁMETROS ESTABLECIDOS EN LA PRESENTE LEY Y LA CONSTITUCIÓN POLÍTICA", "desGpar": "", "estadoId": 29, "desEstado": "Publicada en el Diario Oficial El Peruano", "publico": true}
-acumulados : []
-documentosAnexos : []
-estudioComisiones : [{"comisionId": 61, "comisionNombre": "Comisión de Constitución, Reglamento y Relaciones Exteriores", "subsecciones": [{"ecSubseccionId": 30, "ecSubseccionNombre": "Otros documentos", "ecOrden": 6, "adjuntos": [{"ecAdjuntoId": 218516, "codTipoParl": "S", "fecha": "2026-10-09T00:00:00", "nombreAdjunto": "OFICIO-0102-2026-2027-CCRYRREE-SENADO-09-10-2026-CJDH.pdf", "descripcion": "INVITACIÓN A LA PRESIDENTE DE LA COMISIÓN DE JUSTICIA Y DERECHOS HUMANOS - SENADO, PARA PARTICIPAR EN LA PRIMERA SESION NO ORDINARIA DEL VIERNES 09 DE OCTUBRE DE 2026", "enlace": null, "publico": null, "uuid": "84b46c9f-10ae-43c7-b629-6d8669a5e044"}, {"ecAdjuntoId": 218517, "codTipoParl": "S", "fecha": "2026-10-09T00:00:00", "nombreAdjunto": "OFICIO-0103-2026-2027-CCRYRREE-SENADO-09-10-2026-CASECMDSD.pdf", "descripcion": "INVITACIÓN A LA PRESIDENTE DE LA COMISIÓN EN ASUNTOS DE SALUD, EDUCACIÓN, CULTURA, MUJER Y DESARROLLO SOCIAL Y DIGITAL - SENADO, PARA PARTICIPAR EN LA PRIMERA SESION NO ORDINARIA DEL VIERNES 09 DE OCTUBRE DE 2026", "enlace": null, "publico": null, "uuid": "ccee2db2-b55c-4226-8208-7b5c05596829"}, {"ecAdjuntoId": 218518, "codTipoParl": "S", "fecha": "2026-10-09T00:00:00", "nombreAdjunto": "OFICIO-0104-2026-2027-CCRYRREE-SENADO-09-10-2026-CDNOI.pdf", "descripcion": "INVITACIÓN AL PRESIDENTE DE LA COMISIÓN DE DEFENSA NACIONAL Y ORDEN INTERNO - SENADO, PARA PARTICIPAR EN LA PRIMERA SESION NO ORDINARIA DEL VIERNES 09 DE OCTUBRE DE 2026", "enlace": null, "publico": null, "uuid": "2f636215-e8cd-4b12-a17d-8fed944dbe4d"}, {"ecAdjuntoId": 218519, "codTipoParl": "S", "fecha": "2026-10-09T00:00:00", "nombreAdjunto": "OFICIO-0105-2026-2027-CCRYRREE-SENADO-09-10-2026-CADPEMIT.pdf", "descripcion": "INVITACIÓN AL PRESIDENTE DE LA COMISIÓN EN ASUNTOS DE DESARROLLO PRODUCTIVO, ENERGÍA Y MINAS, INFRAESTRUCTURA Y TRABAJO - SENADO, PARA PARTICIPAR EN LA PRIMERA SESION NO ORDINARIA DEL VIERNES 09 DE OCTUBRE DE 2026", "enlace": null, "publico": null, "uuid": "63d145d6-9792-4b34-8582-e066547ffded"}, {"ecAdjuntoId": 218520, "codTipoParl": "S", "fecha": "2026-10-09T00:00:00", "nombreAdjunto": "OFICIO-0106-2026-2027-CCRYRREE-SENADO-09-10-2026-CEMADC.pdf", "descripcion": "INVITACIÓN AL PRESIDENTE DE LA COMISIÓN DE ECONOMÍA, MEDIO AMBIENTE Y DEFENSA DEL CONSUMIDOR - SENADO, PARA PARTICIPAR EN LA PRIMERA SESION NO ORDINARIA DEL VIERNES 09 DE OCTUBRE DE 2026", "enlace": null, "publico": null, "uuid": "cd9ff18c-57c2-46cd-9fe7-711becf9ca1f"}, {"ecAdjuntoId": 218521, "codTipoParl": "S", "fecha": "20
-subseccionesEstudioComision : [{"ecSubseccionId": 25, "codTipoParl": "S", "nombre": "Informe de admisibilidad", "descripcion": null, "orden": 1, "activo": true}, {"ecSubseccionId": 26, "codTipoParl": "S", "nombre": "Pedidos de opinión", "descripcion": null, "orden": 2, "activo": true}, {"ecSubseccionId": 27, "codTipoParl": "S", "nombre": "Respuestas de opinión", "descripcion": null, "orden": 3, "activo": true}, {"ecSubseccionId": 28, "codTipoParl": "S", "nombre": "Opiniones y pedidos ciudadanos sobre la propuesta legislativa", "descripcion": null, "orden": 4, "activo": true}, {"ecSubseccionId": 29, "codTipoParl": "S", "nombre": "Informes adicionales", "descripcion": null, "orden": 5, "activo": true}, {"ecSubseccionId": 30, "codTipoParl": "S", "nombre": "Otros documentos", "descripcion": null, "orden": 6, "activo": true}, {"ecSubseccionId": 31, "codTipoParl": "S", "nombre": "Predictamen", "descripcion": null, "orden": 7, "activo": true}, {"ecSubseccionId": 32, "codTipoParl": "S", "nombre": "Acta de la sesión", "descripcion": null, "orden": 8, "activo": true}]
-firmantes : []
-seguimiento ejemplo: {"fecha": "2026-10-07T00:00:00.000-05:00", "desEstado": "PRESENTADO", "desComisiones": null, "detalle": "PROPUESTA LEGISLATIVA REMITIDA POR LA CÁMARA DE DIPUTADOS - \n\nLEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA Y DEL FENÓMENO EL NIÑO", "observacion": "PROPUESTA LEGISLATIVA REMITIDA POR LA CÁMARA DE DIPUTADOS - \n\nLEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA Y DEL FENÓMENO EL NIÑO", "flagInicial": true, "pleyId": 21377, "codTipoParl": "S", "estadoId": 1, "idsComisiones": null, "archivos": [{"proyectoArchivoId": 415122, "seguimientoPleyId": 105670, "seccionId": null, "pleyId": 21377, "uuid": "7bd2eb95-ed2f-4e8d-a85e-a8f58608b8ab", "fecha": "2026-10-07", "nombreArchivo": "PLS 00013-2023-2031-S.pdf", "descripcion": "PLS 00013-2023-2031-S", "enlace": null, "publico": true, "activo": true}, {"proyectoArchivoId": 415123, "seguimientoPleyId": 105670, "seccionId": null, "pleyId": 21377, "uuid": null, "fecha": "2026-10-07", "nombreArchivo": null, "descripcion": "EXPEDIENTE DE LA PROPOSICIÓN LEGISLATIVA N° 00098-2026-2031-CD", "enlace": "https://wb2server.congreso.gob.pe/spley-portal/#/diputados/expediente/2026/98", "publico": true, "activo": true}], "seguimientoPleyId": 105670}
-
-=== EXPEDIENTE D 98 ['general', 'seguimientos', 'acumulados', 'documentosAnexos', 'estudioComisiones', 'subseccionesEstudioComision', 'firmantes']
-general: {"pleyId": 20911, "perParId": 2026, "proyectoLey": "00098-2026-2031-CD", "desPerParAbrev": "2026-2031", "indBicameral": true, "perParFecInicio": "2026-07-27T00:00:00", "perParFecFin": "2031-07-26T00:00:00", "desLegis": "Primera Legislatura Ordinaria 2026", "fecPresentacion": "2026-08-28", "desProponente": "PODER EJECUTIVO", "titulo": "PROPOSICIÓN LEGISLATIVA QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA; FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS; PROMOCIÓN DEL EMPLEO; DESARROLLO PRODUCTIVO; RÉGIMEN TRIBUTARIO; SIMPLIFICACIÓN ADMINISTRATIVA Y OTRAS MATERIAS", "sumilla": "PROPONE DELEGAR EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR, POR EL PLAZO DE CIENTO VEINTE (120) DÍAS CALENDARIO, EN MATERIA DE SEGURIDAD CIUDADANA; FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS; PROMOCIÓN DEL EMPLEO; DESARROLLO PRODUCTIVO; RÉGIMEN TRIBUTARIO; SIMPLIFICACIÓN ADMINISTRATIVA Y OTRAS MATERIAS.", "desGpar": "", "estadoId": 105, "desEstado": "Expediente de propuesta legislativa remitida al senado de la república", "publico": true}
-acumulados : []
-documentosAnexos : [{"documentoAnexoId": 24384, "pleyId": 20911, "fecha": "2026-10-07", "descripcion": "TRANSCIPCIÓN DE LA SESIÓN DEL PLENO DE LA CÁMARA DE DIPUTADOS DEL 6 DE OCTUBRE DE 2026.", "uuid": "abf32798-0f33-49b8-a9e9-a07d8360d6ad", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAnexoId": 24382, "pleyId": 20911, "fecha": "2026-10-07", "descripcion": "RETIRO DE FIRMA DEL DIPUTADO PIÑAN MAMANI, VOCERO DEL GP CÍVICO OBRAS DEL TEXTO SUSTITUTORIO.", "uuid": "e79ae377-e0e0-45c3-a0a0-e1a20b86ae50", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAnexoId": 24381, "pleyId": 20911, "fecha": "2026-10-07", "descripcion": "TEXTO SUSTITUTORIO DEL DICTAMEN EN MINORÍA DIPUTADOS ALEGRIA GARCÍA Y ABENSUR PINASCO- LEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA Y DEL FENÓMENO EL NIÑO  ", "uuid": "6ffa7289-c4a9-4501-961b-f2dfa96a97d3", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAnexoId": 24380, "pleyId": 20911, "fecha": "2026-10-06", "descripcion": "OFICIO RETIRO DE DCITAMEN - NUEVO TEXTO DEL DICTAMEN EN MINORÍA - LEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA, FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS, PROMOCIÓN DEL EMPLEO, OTRAS", "uuid": "facf965c-5994-4cc4-aef3-052d1223a2c8", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAnexoId": 24379, "pleyId": 20911, "fecha": "2026-10-06", "descripcion": "OFICIO - NUEVO TEXTO DEL DICTAMEN EN MINORÍA - LEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA, FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS, PROMOCIÓN DEL EMPLEO, OTRAS", "uuid": "3712141f-41cb-478b-9883-87592dca2e6a", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAnexoId": 24378, "pleyId": 20911, "fecha": "2026-10-06", "descripcion": "EN MINORÍA - FÓRMULA SUSTITUTORIA - NUEVO TEXTO DEL DICTAMEN EN MINORÍA - LEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA, FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS, PROMOCIÓN DEL EMPLEO, OTRAS", "uuid": "881f30c0-1da7-4344-a6fc-838858fc7e00", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAnexoId": 24377, "pleyId": 20911, "fecha": "2026-10-06", "descripcion": "LA DIPUTADA ROCHA GALLEGOS, SOLICITA RECONSIDERACIÓN A LA VOTACIÓN DEL DICTAMEN EN MAYORÍA", "uuid": "77c51784-0c73-4f50-a51f-299666689051", "enlace": null, "activo": true, "codTipoParl": "D"}, {"documentoAn
-estudioComisiones : [{"comisionId": 72, "comisionNombre": "Comisión Constitución, Reglamento y Relaciones Exteriores", "subsecciones": [{"ecSubseccionId": 33, "ecSubseccionNombre": "Citación", "ecOrden": 1, "adjuntos": [{"ecAdjuntoId": 217762, "codTipoParl": "D", "fecha": "2026-09-29T00:00:00", "nombreAdjunto": "3ra Sesión no ordinaria 29-30 U.  Citación.pdf", "descripcion": "Citación  miércoles 29-09-2026 hora: 16horas", "enlace": null, "publico": null, "uuid": "92f43e65-3f5b-4743-b7ec-91367958f3b2"}, {"ecAdjuntoId": 217766, "codTipoParl": "D", "fecha": "2026-09-30T00:00:00", "nombreAdjunto": "3ra Sesión no ordinaria 29-30 U.  Citación.pdf", "descripcion": "Citación continuación 3RA.Sesión No Ordinaria del 30 de setiembre 2026.", "enlace": null, "publico": null, "uuid": "7858f3c6-3b6e-4910-ae18-adc6b763156a"}, {"ecAdjuntoId": 217767, "codTipoParl": "D", "fecha": "2026-10-01T00:00:00", "nombreAdjunto": "3ra. Sesión No Ordinaria Citación 1.10.26.pdf", "descripcion": "Citación continuación 3ra.Sesión No Ordinaria del 01 de octubre 2026.", "enlace": null, "publico": null, "uuid": "f5dd6dcd-d361-441d-9bbd-2cbeed65390b"}]}, {"ecSubseccionId": 34, "ecSubseccionNombre": "Agenda", "ecOrden": 2, "adjuntos": [{"ecAdjuntoId": 217768, "codTipoParl": "D", "fecha": "2026-09-29T00:00:00", "nombreAdjunto": "S.N.O - 03- Agenda  (29-9-) (30-9) U.pdf", "descripcion": "Agenda 3ra.Sesión No Ordinaria del 29 de setiembre 2026.", "enlace": null, "publico": null, "uuid": "08e94e3c-4626-4877-9944-1001e8f55503"}, {"ecAdjuntoId": 217769, "codTipoParl": "D", "fecha": "2026-09-30T00:00:00", "nombreAdjunto": "S.N.O - 03- Agenda  (29-9-) (30-9) U.pdf", "descripcion": "Agenda continuación 3ra.Sesión No Ordinaria del 30 de setiembre 2026.", "enlace": null, "publico": null, "uuid": "eca28829-dcfa-449a-bea6-398c35afd895"}, {"ecAdjuntoId": 217771, "codTipoParl": "D", "fecha": "2026-10-01T00:00:00", "nombreAdjunto": "S.N.O - 03- Agenda  (29-9-) (30-9) (1-10).pdf", "descripcion": "Agenda continuación 3ra.Sesión No Ordinaria del 30 de setiembre 2026. ( reunión después del cuarto de intermedio)", "enlace": null, "publico": null, "uuid": "e2a65e7f-752e-4d79-96cf-918233907b74"}]}, {"ecSubseccionId": 35, "ecSubseccionNombre": "Acta", "ecOrden": 3, "adjuntos": [{"ecAdjuntoId": 217855, "codTipoParl": "D", "fecha": "2026-10-01T00:00:00", "nombreAdjunto": "S.N.O. 03  F.[R][R].pdf", "descripcion": "ACTA DE LA TERCERA SESIÓN NO ORDINARIA (Realizada en tres fechas:29-30 de setiembre y 1 de octubre ", "enlace": null, "publico
-subseccionesEstudioComision : [{"ecSubseccionId": 33, "codTipoParl": "D", "nombre": "Citación", "descripcion": null, "orden": 1, "activo": true}, {"ecSubseccionId": 34, "codTipoParl": "D", "nombre": "Agenda", "descripcion": "Agenda de la sesión en la que se considera la proposición.", "orden": 2, "activo": true}, {"ecSubseccionId": 35, "codTipoParl": "D", "nombre": "Acta", "descripcion": null, "orden": 3, "activo": true}, {"ecSubseccionId": 36, "codTipoParl": "D", "nombre": "Transcripción", "descripcion": null, "orden": 4, "activo": true}, {"ecSubseccionId": 37, "codTipoParl": "D", "nombre": "Opiniones solicitadas", "descripcion": null, "orden": 5, "activo": true}, {"ecSubseccionId": 38, "codTipoParl": "D", "nombre": "Opiniones recibidas", "descripcion": null, "orden": 6, "activo": true}, {"ecSubseccionId": 39, "codTipoParl": "D", "nombre": "Otros documentos", "descripcion": null, "orden": 7, "activo": true}]
-firmantes : []
-seguimiento ejemplo: {"fecha": "2026-08-28T00:00:00.000-05:00", "desEstado": "PRESENTADO", "desComisiones": null, "detalle": "PROPOSICIÓN LEGISLATIVA QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA; FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS; PROMOCIÓN DEL EMPLEO; DESARROLLO PRODUCTIVO; RÉGIMEN TRIBUTARIO; SIMPLIFICACIÓN ADMINISTRATIVA Y OTRAS MATERIAS", "observacion": "PROPOSICIÓN LEGISLATIVA QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA; FORTALECIMIENTO DE MICRO Y PEQUEÑAS EMPRESAS; PROMOCIÓN DEL EMPLEO; DESARROLLO PRODUCTIVO; RÉGIMEN TRIBUTARIO; SIMPLIFICACIÓN ADMINISTRATIVA Y OTRAS MATERIAS", "flagInicial": true, "pleyId": 20911, "codTipoParl": "D", "estadoId": 1, "idsComisiones": null, "archivos": [{"proyectoArchivoId": 413527, "seguimientoPleyId": 104720, "seccionId": null, "pleyId": 20911, "uuid": "0ced8c65-df12-451d-a0be-3223dc454030", "fecha": "2026-08-28", "nombreArchivo": "PL-00098-2026-2031-CD.pdf", "descripcion": "PL-00098-2026-2031-CD", "enlace": null, "publico": true, "activo": true}, {"proyectoArchivoId": 413529, "seguimientoPleyId": 104720, "seccionId": null, "pleyId": 20911, "uuid": "551de719-b39b-42a5-aa90-13dfaf892809", "fecha": "2026-08-28", "nombreArchivo": "EXPOSIÓN DE MOTIVOS PL FACULTADES.pdf", "descripcion": "EXPOSIÓN DE MOTIVOS PL FACULTADES", "enlace": null, "publico": true, "activo": true}, {"proyectoArchivoId": 413530, "seguimientoPleyId": 104720, "seccionId": null, "pleyId": 20
-
-ANALISIS LEY 32743:
-(272612, 'Ley', False, None, None, 4, None, None, False, None, None, None)
-(273367, 'Fe De Errata Ley', False, None, None, 4, None, None, False, None, None, None)
-
-LEYES desde julio sin relevancia:
-(datetime.date(2026, 7, 1), 'Ley', '32679', 'Ley que modifica las Leyes 32486 32509 32521 y 32522 a fin de viabilizar la implementación de las nuevas escal', False, None, None)
-(datetime.date(2026, 7, 2), 'Ley', '32685', 'Ley que promociona el fortalecimiento de la apicultura y de la polinización como actividades productivas estra', True, 5, 4)
-(datetime.date(2026, 7, 2), 'Ley', '32683', 'Ley que modifica la Ley 29973 Ley General de la Persona con Discapacidad respecto de las pensiones no contribu', False, None, None)
-(datetime.date(2026, 7, 2), 'Ley', '32682', 'Ley que declara de interés nacional el desarrollo económico social y productivo así como la mejora continua de', False, None, None)
-(datetime.date(2026, 7, 2), 'Ley', '32681', 'Ley que declara a la Institución Educativa Emblemática San Juan de Trujillo Cuna de Jóvenes Patriotas y de For', False, None, None)
-(datetime.date(2026, 7, 2), 'Ley', '32680', 'Ley que modifica la Ley 30220 Ley Universitaria para incorporar al jefe de práctica en la carrera docente univ', False, None, None)
-(datetime.date(2026, 7, 2), 'Ley', '32684', 'Ley que modifica el Código Penal Decreto Legislativo 635 el Código de Ejecución Penal Decreto Legislativo 654 ', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32693', 'Ley de saneamiento de un límite y dos tramos de algunos de los distritos de la provincia de Cotabambas del dep', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32692', 'Ley de saneamiento del límite entre los departamentos de Apurímac y Arequipa en el tramo comprendido desde el ', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32691', 'Ley de saneamiento de tres tramos de algunos distritos de la provincia de Palpa del departamento de Ica', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32688', 'Ley de saneamiento de un tramo y límites de la provincia de Trujillo y de algunos de sus distritos del departa', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32689', 'Ley de saneamiento de límites y tramos de algunos distritos de la provincia de Islay del departamento de Arequ', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32687', 'Ley de saneamiento de tres tramos del límite entre los departamentos de Huánuco y Pasco', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32686', 'Ley que declara Día Nacional de la Cumbia Peruana el 14 de marzo de cada año', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32690', 'Ley de saneamiento de trifinios límites y tramos de algunos distritos de la provincia de Chucuito del departam', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32696', 'Ley que establece medidas de continuidad priorización y coordinación interinstitucional para la ejecución del ', True, 8, 4)
-(datetime.date(2026, 7, 3), 'Ley', '32695', 'Ley que crea la Universidad Nacional de Bellas Artes del Marañón Nororiental (UNABAM) en la provincia de Jaén ', False, None, None)
-(datetime.date(2026, 7, 3), 'Ley', '32694', 'Ley de saneamiento de límites y tramos de la provincia de Ferreñafe y de algunos de sus distritos del departam', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32706', 'Ley que promueve el desarrollo del cabotaje y el fortalecimiento de la industria naval nacional', True, 7, 4)
-(datetime.date(2026, 7, 4), 'Ley', '32700', 'Ley que fortalece el sistema de irrigación en los departamentos de Cajamarca Lambayeque Amazonas La Libertad y', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32699', 'Ley que declara de interés nacional la salvaguardia y puesta en valor de la festividad de la Virgen del Carmen', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32705', 'Ley que promueve el cierre de la brecha digital en el departamento de Loreto y en zonas con altos de pobreza e', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32704', 'Ley que modifica la Ley 29973 Ley General de la Persona con Discapacidad para la implementación de espacios se', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32703', 'Ley que declara Día de la Canción Huanca el 5 de octubre de cada año en homenaje a Flor Pucarina ícono de la m', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32702', 'Ley que declara de interés nacional diversos proyectos de infraestructura ferroviaria en el sur del país', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32701', 'Ley que modifica el Decreto Legislativo 776 Ley de Tributación Municipal y la Ley 29973 Ley General de la Pers', False, 1, 4)
-(datetime.date(2026, 7, 4), 'Ley', '32698', 'Ley que crea la Universidad Nacional Alto Huallaga en el distrito de Tocache provincia de Tocache departamento', False, None, None)
-(datetime.date(2026, 7, 4), 'Ley', '32707', 'Ley marco para el desarrollo sostenible del turismo y del deporte náutico nacional', True, 6, 4)
-(datetime.date(2026, 7, 4), 'Ley', '32697', 'Ley que modifica la Ley 29973 Ley General de la Persona con Discapacidad para ampliar la protección de los der', False, None, None)
-(datetime.date(2026, 7, 5), 'Ley', '32709', 'Ley que crea la Universidad Nacional Intercultural de Tacna (UNITAC) en el distrito de Pocollay provincia de T', False, None, None)
-(datetime.date(2026, 7, 5), 'Ley', '32712', 'Ley que fomenta la colaboración entre los gobiernos regionales y los gobiernos locales a favor de la Policía N', False, None, None)
-(datetime.date(2026, 7, 5), 'Ley', '32713', 'Ley que declara de interés nacional y necesidad pública la conformación del Pacto por un Perú con Agua para To', False, None, None)
-(datetime.date(2026, 7, 5), 'Ley', '32708', 'Ley que modifica la Ley 30479 Ley de Mecenazgo Deportivo a fin de optimizar el financiamiento de los deportist', True, 6, 4)
-(datetime.date(2026, 7, 5), 'Ley', '32710', 'Ley de conversión de la Escuela de Educación Superior Pedagógica Pública Túpac Amaru de Tinta en Universidad N', False, None, None)
-(datetime.date(2026, 7, 5), 'Ley', '32711', 'Ley que modifica la Ley 32387 Ley que promueve la descentralización fiscal para incentivar el desarrollo de lo', False, None, None)
-(datetime.date(2026, 7, 6), 'Resolución Legislativa', '32714', 'Resolución Legislativa que concede pensión de gracia a Róger Alejandro Rumrrill García por su destacada labor ', False, None, None)
-(datetime.date(2026, 7, 6), 'Ley', '32715', 'Ley de saneamiento de límites y tramos de la provincia de Sechura y de sus distritos del departamento de Piura', False, None, None)
-(datetime.date(2026, 7, 6), 'Ley', '32717', 'Ley de saneamiento de límites y tramos de la provincia de Canas y de algunos de sus distritos del departamento', False, None, None)
-(datetime.date(2026, 7, 6), 'Ley', '32716', 'Ley que crea el Registro Nacional de Precedentes', False, None, None)
-(datetime.date(2026, 7, 7), 'Ley', '32718', 'Ley que autoriza una nueva escala remunerativa para los trabajadores del Instituto Peruano de Energía Nuclear ', False, None, None)
-(datetime.date(2026, 7, 8), 'Ley', '32721', 'Ley que garantiza el derecho al descanso sentado y alternancia de la postura en los centros de trabajo', True, 7, 4)
-(datetime.date(2026, 7, 8), 'Ley', '32720', 'Ley que declara de interés nacional declarar personaje ilustre del Perú a María Josefa Camila Del Carmen Álvar', False, None, None)
-(datetime.date(2026, 7, 8), 'Ley', '32719', 'Ley que modifica la Ley 31553 reasignación gradual y progresiva de los profesionales de la salud y personal té', False, None, None)
-(datetime.date(2026, 7, 10), 'Ley', '32722', 'Ley que prorroga la vigencia de los beneficios tributarios establecidos en la Ley 30001 Ley de Reinserción Eco', True, 3, 4)
-(datetime.date(2026, 7, 10), 'Ley', '32725', 'Ley que declara de interés nacional la promoción el desarrollo y la puesta en valor de las provincias del depa', False, None, None)
-(datetime.date(2026, 7, 10), 'Ley', '32724', 'Ley que modifica la Ley 29973 Ley General de la Persona con Discapacidad para garantizar el acceso idóneo opor', False, None, None)
-(datetime.date(2026, 7, 10), 'Ley', '32723', 'Ley que declara de interés nacional el fortalecimiento de las acciones orientadas a culminar la inscripción de', False, None, None)
-(datetime.date(2026, 7, 12), 'Resolución', '023-2025-2026-P-CR', 'Autorizan Transferencia Financiera a favor de la Contraloría General de la República', False, None, None)
-(datetime.date(2026, 7, 15), 'Resolución Legislativa', '32728', 'Resolución Legislativa que autoriza el ingreso y tránsito de una unidad naval y de personal militar extranjero', False, None, None)
-(datetime.date(2026, 7, 15), 'Resolución Legislativa', '32727', 'Resolución Legislativa que autoriza el ingreso y tránsito de una unidad naval y de personal militar extranjero', False, None, None)
-(datetime.date(2026, 7, 15), 'Ley', '32729', 'Ley de creación del distrito de Sangani en la provincia de Chanchamayo departamento de Junín', False, None, None)
-(datetime.date(2026, 7, 15), 'Resolución Legislativa', '32726', 'Resolución Legislativa que autoriza el ingreso de personal militar extranjero con armas de guerra al territori', False, None, None)
-(datetime.date(2026, 7, 16), 'Ley', '32731', 'Ley que declara de interés nacional la puesta en valor preservación difusión y reconocimiento como patrimonio ', False, None, None)
-(datetime.date(2026, 7, 16), 'Ley', '32730', 'Ley que fortalece la capacidad operativa y administrativa de la Superintendencia Nacional de Aduanas y de Admi', True, 6, 4)
-(datetime.date(2026, 7, 19), 'Ley', '32732', 'Ley que aprueba créditos suplementarios para el financiamiento de inversiones públicas orientadas al cierre de', False, None, None)
-(datetime.date(2026, 7, 21), 'Ley', '32735', 'Ley que modifica el Código Penal Militar Policial Decreto Legislativo 1094 y el nuevo Código Procesal Penal De', False, None, None)
-(datetime.date(2026, 7, 21), 'Ley', '32734', 'Ley que declara día no laborable el 10 de julio de cada año en la provincia de Tambopata departamento de Madre', False, None, None)
-(datetime.date(2026, 7, 21), 'Resolución Legislativa', '32733', 'Resolución Legislativa que autoriza el ingreso y tránsito de unidades navales aeronaves y de personal militar ', False, None, None)
-(datetime.date(2026, 7, 22), 'Ley', '32737', 'Ley que establece la conversión de plazas eventuales a plazas orgánicas del personal administrativo y personal', False, None, None)
-(datetime.date(2026, 7, 22), 'Ley', '32736', 'Ley que modifica el Decreto Legislativo 1174 Ley del Fondo de Aseguramiento en Salud de la Policía Nacional de', False, None, None)
-(datetime.date(2026, 7, 25), 'Ley', '32738', 'Ley que modifica la Ley 28181 Ley de transferencias de puestos establecimientos y/o servicios de mercados muni', False, None, None)
-(datetime.date(2026, 7, 25), 'Ley', '32739', 'Ley que autoriza una nueva escala remunerativa para los trabajadores del Instituto Nacional de Defensa de la C', False, None, None)
-(datetime.date(2026, 7, 26), 'Fe De Errata Ley', '32739', 'FE DE ERRATA', False, None, None)
-(datetime.date(2026, 8, 19), 'Resolución', '001-2026-2027-P-CR', 'Delegan en el oficial mayor del Senado y del Congreso de la República la facultad de expedir resoluciones de f', False, None, None)
-(datetime.date(2026, 9, 4), 'Separata Especial Proposiciones Legislativas', '00002-2026-2031-CR, N° 00003-2026-2031-CR y N° 00004-2026-2031-CR', 'Proposición Legislativa de Presupuesto del Sector Público para el Año Fiscal 2027 - Proposición Legislativa de', False, 3, 5)
-(datetime.date(2026, 9, 12), 'Resolución Legislativa', '32740', 'Resolución Legislativa que autoriza el ingreso de una unidad naval y de personal militar extranjero al territo', False, None, None)
-(datetime.date(2026, 9, 17), 'Resolución Legislativa', '32741', 'Resolución Legislativa que autoriza a la señora Presidenta de la República para salir del territorio nacional ', False, None, None)
-(datetime.date(2026, 9, 18), 'Resolución Legislativa 001-2026-2027-S', '', 'Resolución Legislativa del Senado que ratifica la designación del Presidente del Directorio del Banco Central ', False, None, None)
-(datetime.date(2026, 10, 9), 'Resolución Legislativa', '32742', 'Resolución Legislativa que autoriza a la señora Presidenta de la República para salir del territorio nacional ', False, None, None)
-(datetime.date(2026, 10, 22), 'Ley', '32743', 'Ley que delega en el Poder Ejecutivo la facultad de legislar en materias de seguridad ciudadana y del Fenómeno', False, None, 4)
-(datetime.date(2026, 10, 23), 'Resolución Legislativa', '002-2026-2027-S', 'Resolución Legislativa del Senado de la República que elige a tres miembros del Directorio del Banco Central d', False, None, 4)
-(datetime.date(2026, 10, 24), 'Fe De Errata Ley', '32743', 'FE DE ERRATA', False, None, 4)
-
-Seguimientos 'Publicada': [(7, 6)]
-   ('2026', 'S', '00013-2026-2031-S', datetime.date(2026, 10, 24), 'FE DE ERRATAS - LEY N° 32743')
-   ('2026', 'S', '00015-2026-2031-S', datetime.date(2026, 10, 23), 'RESOLUCIÓN LEGISLATIVA DEL SENADO N° 002-2026-2027-S - RESOLUCIÓN LEGISLATIVA DEL SENADO DE LA REPÚBLICA QUE ELIGE A TRE')
-   ('2026', 'S', '00013-2026-2031-S', datetime.date(2026, 10, 23), 'LEY N° 32743 - LEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIAS DE SEGURIDAD CIUDADANA Y DEL FEN')
-   ('2026', 'S', '00012-2026-2031-S', datetime.date(2026, 10, 9), 'RESOLUCIÓN LEGISLATIVA N° 32742 - RESOLUCIÓN LEGISLATIVA QUE AUTORIZA A LA SEÑORA PRESIDENTA DE LA REPÚBLICA PARA SALIR ')
-   ('2026', 'S', '00009-2026-2031-S', datetime.date(2026, 9, 18), 'RESOLUCIÓN LEGISLATIVA DEL SENADO N° 001-2026-2027-S - RESOLUCIÓN LEGISLATIVA DEL SENADO QUE RATIFICA LA DESIGNACIÓN DEL')
-   ('2026', 'S', '00008-2026-2031-S', datetime.date(2026, 9, 17), 'RESOLUCIÓN LEGISLATIVA N° 32741 - RESOLUCIÓN LEGISLATIVA QUE AUTORIZA A LA SEÑORA PRESIDENTA DE LA REPÚBLICA PARA SALIR ')
-   ('2026', 'S', '00007-2026-2031-S', datetime.date(2026, 9, 12), 'RESOLUCIÓN LEGISLATIVA N° 32740 - RESOLUCIÓN LEGISLATIVA QUE AUTORIZA EL INGRESO DE UNA UNIDAD NAVAL Y DE PERSONAL MILIT')
-
-Periodos y camaras: [('2021', 'C', 14864), ('2026', 'C', 6), ('2026', 'D', 677), ('2026', 'S', 17)]
-Estados con 'Publicad' en proyectos: [('2026', 6), ('2021', 3996)]
-Senado remitidas por Diputados: [(1,)]
-   ('00013-2026-2031-S', 'PROPUESTA LEGISLATIVA REMITIDA POR LA CÁMARA DE DIPUTADOS - \n\nLEY QUE DELEGA EN EL PODER EJECUTIVO LA FACULTAD DE LEGISLAR EN MATERIA DE SEGURIDAD CIUDADANA Y DEL FENÓMENO EL NIÑO', 'Cámara de Diputados', '')
-Diputados remitidas al Senado: [(5,)]
+Base de datos actualizada (Etapa 8).
+Proposiciones publicadas sin numero de ley: 3996
+  50 expedientes leidos
+  100 expedientes leidos
+  150 expedientes leidos
+  200 expedientes leidos
+  250 expedientes leidos
+  300 expedientes leidos
+  350 expedientes leidos
+  400 expedientes leidos
+  450 expedientes leidos
+  500 expedientes leidos
+  550 expedientes leidos
+  600 expedientes leidos
+  650 expedientes leidos
+  700 expedientes leidos
+  750 expedientes leidos
+  800 expedientes leidos
+  850 expedientes leidos
+  900 expedientes leidos
+  950 expedientes leidos
+  1000 expedientes leidos
+  1050 expedientes leidos
+  1100 expedientes leidos
+  1150 expedientes leidos
+  1200 expedientes leidos
+  1250 expedientes leidos
+  1300 expedientes leidos
+  1350 expedientes leidos
+  1400 expedientes leidos
+  1450 expedientes leidos
+  1500 expedientes leidos
+  1550 expedientes leidos
+  1600 expedientes leidos
+  1650 expedientes leidos
+  1700 expedientes leidos
+  1750 expedientes leidos
+  1800 expedientes leidos
+  1850 expedientes leidos
+  1900 expedientes leidos
+  1950 expedientes leidos
+  2000 expedientes leidos
+  2050 expedientes leidos
+  2100 expedientes leidos
+  2150 expedientes leidos
+  2200 expedientes leidos
+  2250 expedientes leidos
+  2300 expedientes leidos
+  2350 expedientes leidos
+  2400 expedientes leidos
+  2450 expedientes leidos
+  2500 expedientes leidos
+  2550 expedientes leidos
+  2600 expedientes leidos
+  2650 expedientes leidos
+  2700 expedientes leidos
+  2750 expedientes leidos
+  2800 expedientes leidos
+  2850 expedientes leidos
+  2900 expedientes leidos
+  2950 expedientes leidos
+  3000 expedientes leidos
+  3050 expedientes leidos
+  3100 expedientes leidos
+  3150 expedientes leidos
+  3200 expedientes leidos
+  3250 expedientes leidos
+  3300 expedientes leidos
+  3350 expedientes leidos
+  3400 expedientes leidos
+  3450 expedientes leidos
+  3500 expedientes leidos
+  3550 expedientes leidos
+  3600 expedientes leidos
+  3650 expedientes leidos
+  3700 expedientes leidos
+  3750 expedientes leidos
+  3800 expedientes leidos
+  3850 expedientes leidos
+  3900 expedientes leidos
+  3950 expedientes leidos
+Numeros de ley hallados: 4001 (expedientes leidos: 3996); camaras enlazadas: 1; enlaces a normas actualizados: 3777; estados copiados: 2; leyes copiadas: 1
+Proposiciones convertidas en ley: 4002 (3778 con la norma hallada en El Peruano)
