@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: "capturas | capturas2 | capturas3 | capturas4 | capturas5 | capturas6 | capturas7"
+        description: "capturas | capturas2 | capturas3 | capturas4 | capturas5 | capturas6 | capturas7 | capturas8"
         default: "capturas"
 
 jobs:
