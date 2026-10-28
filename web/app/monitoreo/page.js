@@ -1,5 +1,6 @@
 import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados, finDeMes, nombreMes } from "../../lib/monitoreo";
 import { urlProyecto } from "../../lib/resumenes";
+import { estadoProyecto } from "../../lib/leyes";
 import { leerPeriodo } from "../../lib/periodo";
 import { contar } from "./Graficos";
 import { Balance, Evolucion, Puntajes, Sectores, Comites, Matriz, Principales } from "./Tablero";
@@ -67,7 +68,7 @@ export default async function ResumenEjecutivo({ searchParams }) {
   const enlaceDoc = (x) => (x.origen === "N" ? x.url_detalle : urlProyecto(x));
   // De donde viene: normas = entidad que la emitio; proyectos = camara y quien lo propuso
   const origenDe = (x) => (x.origen === "N" ? x.entidad || "" : origenProyecto(x));
-  const estadoDe = (x) => (x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : x.estado || "");
+  const estadoDe = (x) => (x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : estadoProyecto(x));
 
   return (
     <>

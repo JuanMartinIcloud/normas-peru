@@ -1,4 +1,5 @@
 import { consultar, leerFiltros, construirWhere, prepararBusqueda, ordenNormas } from "../../../../lib/db";
+import { colsLey, estadoProyecto } from "../../../../lib/leyes";
 import { fragmentos, claveProyecto } from "../../../../lib/textos";
 import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../../../lib/proyectos";
 import { urlProyecto } from "../../../../lib/resumenes";
@@ -111,7 +112,7 @@ export async function POST(request) {
       pedidos.push(
         consultar(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                  titulo, sumilla, proponente, estado
+                  titulo, sumilla, proponente, estado, ${colsLey("proyectos_ley")}
            FROM proyectos_ley ${where} ORDER BY ${ordenProyectos(fp, ordP)} LIMIT ${LIMITE}`,
           ordP
         ),
@@ -168,7 +169,7 @@ export async function POST(request) {
     lineas.push("", `PROYECTOS DE LEY (${proyectos.length} de ${tp.n}):`);
     for (const p of proyectos) {
       lineas.push(
-        `[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${p.estado || "-"} | ${corta(p.titulo, 400)}` +
+        `[P${p.id}] ${p.numero} | ${p.fecha || ""} | ${p.proponente || ""} | estado: ${estadoProyecto(p) || "-"} | ${corta(p.titulo, 400)}` +
           (p.sumilla ? ` | sumilla: ${corta(p.sumilla, 400)}` : "") +
           (fragP[claveProyecto(p)] ? ` | pasaje del texto: ${limpiarFrag(fragP[claveProyecto(p)])}` : "")
       );

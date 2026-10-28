@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { colsLey, estadoProyecto } from "./leyes";
 import { consultar, leerFiltros, construirWhere, prepararBusqueda, ordenNormas } from "./db";
 import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "./proyectos";
 import { urlProyecto } from "./resumenes";
@@ -107,14 +108,14 @@ export async function ejecutar(b, desde, hasta) {
        ORDER BY ${ordenNormas(fn, pn)} LIMIT 60`, pn),
     consultar(`SELECT count(*)::int AS n FROM normas ${wn.where}`, wn.params),
     consultar(
-      `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha, titulo, estado
+      `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha, titulo, estado, ${colsLey("proyectos_ley")}
        FROM proyectos_ley ${wp.where} ORDER BY ${ordenProyectos(fp, pp)} LIMIT 60`, pp),
     consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
   ]);
   const normas = ns.map((n) => ({
     nombre: [n.tipo, n.numero].filter(Boolean).join(" N° "), entidad: n.entidad, fecha: n.fecha, sumilla: n.sumilla, url: n.url_detalle,
   }));
-  const proyectos = ps.map((p) => ({ nombre: `Proyecto ${p.numero}`, fecha: p.fecha, titulo: p.titulo, estado: p.estado, url: urlProyecto(p) }));
+  const proyectos = ps.map((p) => ({ nombre: `Proyecto ${p.numero}`, fecha: p.fecha, titulo: p.titulo, estado: estadoProyecto(p), url: urlProyecto(p) }));
   let resumen = null;
   if (b.con_resumen && (normas.length || proyectos.length)) {
     try {

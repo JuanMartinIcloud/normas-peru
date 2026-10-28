@@ -6,6 +6,7 @@ import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../lib/
 import FiltrarResultados from "../buscar/FiltrarResultados";
 import BotonResumir from "../BotonResumir";
 import Marcar from "../Marcar";
+import { colsLey, enlacesLey, estadoProyecto, recorrido } from "../../lib/leyes";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +34,16 @@ async function cargar(f) {
   const [resumen, periodos, estados, rubros, proponentes, filas, total] = await Promise.all([
     consultar(`SELECT count(*)::int AS total, min(fecha_presentacion)::text AS primera, max(fecha_presentacion)::text AS ultima FROM proyectos_ley`),
     consultar(`SELECT periodo AS valor, count(*)::int AS n FROM proyectos_ley GROUP BY 1 ORDER BY 1 DESC`),
-    consultar(`SELECT estado AS valor, count(*)::int AS n FROM proyectos_ley WHERE estado IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
+    consultar(
+      `SELECT '__ley' AS valor, 'Convertidas en ley' AS etiqueta, count(*)::int AS n FROM proyectos_ley WHERE ley_numero IS NOT NULL
+       UNION ALL
+       (SELECT estado, estado, count(*)::int FROM proyectos_ley WHERE estado IS NOT NULL GROUP BY 1 ORDER BY 3 DESC)`
+    ),
     consultar(`SELECT rubro AS valor, count(*)::int AS n FROM proyectos_ley WHERE rubro IS NOT NULL GROUP BY 1 ORDER BY 2 DESC`),
     consultar(`SELECT proponente AS valor, count(*)::int AS n FROM proyectos_ley WHERE proponente IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 30`),
     consultar(
-      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro
+      `SELECT id, periodo, camara, numero, num_pley, url, fecha_presentacion::text AS fecha, titulo, sumilla, autor, proponente, estado, rubro,
+              ${colsLey("proyectos_ley")}
        FROM proyectos_ley ${where} ORDER BY ${orden} LIMIT ${POR_PAGINA} OFFSET ${offset}`,
       pLista
     ),
@@ -58,7 +64,7 @@ function Opciones({ lista }) {
       <option value="">Todos</option>
       {lista.map((o) => (
         <option key={o.valor} value={o.valor}>
-          {o.valor} ({o.n.toLocaleString("es-PE")})
+          {o.etiqueta || o.valor} ({o.n.toLocaleString("es-PE")})
         </option>
       ))}
     </>
@@ -212,9 +218,10 @@ export default async function Proyectos({ searchParams }) {
               {n.sumilla && <p className="entidad">{n.sumilla}</p>}
               <Fragmento texto={frags[claveProyecto(n)]} />
               {n.autor && <p className="entidad">Autores: {n.autor}</p>}
+              {recorrido(n) && <p className="entidad">{recorrido(n)}</p>}
               <div className="etiquetas">
                 <Marcar tipo="P" id={String(n.id)} etiqueta={`Proyecto ${n.numero}`} />
-                {n.estado && <span className="etq">{n.estado}</span>}
+                {estadoProyecto(n) && <span className={n.ley_numero ? "etq ley" : "etq"}>{estadoProyecto(n)}</span>}
                 {n.rubro && <span className="etq gris">{n.rubro}</span>}
                 <span className="etq gris">Periodo {n.periodo}</span>
                 <span className="enlaces">
@@ -225,6 +232,12 @@ export default async function Proyectos({ searchParams }) {
                       <a href={urlProyecto(n)} target="_blank" rel="noopener noreferrer">Ver expediente</a>
                     </>
                   )}
+                  {enlacesLey(n).map((e) => (
+                    <span key={e.url}>
+                      {" · "}
+                      <a href={e.url} target="_blank" rel="noopener noreferrer">{e.texto}</a>
+                    </span>
+                  ))}
                 </span>
               </div>
             </article>

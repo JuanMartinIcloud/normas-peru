@@ -1,4 +1,5 @@
 import { consultar } from "../../../../lib/db";
+import { colsLey, estadoProyecto } from "../../../../lib/leyes";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, partePDF, ErrorIA } from "../../../../lib/gemini";
 import { pdfNorma, documentoProyecto } from "../../../../lib/documentos";
@@ -101,7 +102,7 @@ export async function POST(request) {
       idsP.length
         ? consultar(
             `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-                    titulo, proponente, autor, estado, sumilla
+                    titulo, proponente, autor, estado, sumilla, ${colsLey("proyectos_ley")}
              FROM proyectos_ley WHERE id = ANY($1::bigint[])`,
             [idsP]
           )
@@ -159,7 +160,7 @@ export async function POST(request) {
       const cabecera =
         d.t === "N"
           ? `DOCUMENTO D${i + 1} — NORMA LEGAL: ${[f.tipo, f.numero].filter(Boolean).join(" N° ")} | ${f.entidad || ""} | publicada ${f.fecha}\nSumilla: ${limpiaTexto(f.sumilla)}`
-          : `DOCUMENTO D${i + 1} — PROYECTO DE LEY ${f.numero} | presentado ${f.fecha || ""} | ${f.proponente || ""} | autores: ${limpiaTexto(f.autor) || "-"} | estado: ${f.estado || "-"}\nTítulo: ${limpiaTexto(f.titulo)}${l.sumilla ? `\nSumilla: ${limpiaTexto(l.sumilla)}` : ""}`;
+          : `DOCUMENTO D${i + 1} — PROYECTO DE LEY ${f.numero} | presentado ${f.fecha || ""} | ${f.proponente || ""} | autores: ${limpiaTexto(f.autor) || "-"} | estado: ${estadoProyecto(f) || "-"}\nTítulo: ${limpiaTexto(f.titulo)}${l.sumilla ? `\nSumilla: ${limpiaTexto(l.sumilla)}` : ""}`;
       partes.push({ text: cabecera });
       let lectura = "solo sumilla";
       if (l.texto) {

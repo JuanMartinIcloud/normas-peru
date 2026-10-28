@@ -7,6 +7,7 @@ import { usuarioActual } from "../../../../lib/auth";
 import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados } from "../../../../lib/monitoreo";
 import { leerPeriodo } from "../../../../lib/periodo";
 import { urlProyecto } from "../../../../lib/resumenes";
+import { estadoProyecto } from "../../../../lib/leyes";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -50,7 +51,7 @@ async function documentos(sp) {
       tipo: x.origen === "N" ? "Norma legal" : "Proyecto de ley",
       origen: x.origen === "N" ? x.entidad || ""
         : origenProyecto(x),
-      estado: x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : x.estado || "",
+      estado: x.origen === "N" ? `Publicada en El Peruano (${x.fecha})` : estadoProyecto(x),
       puntaje: x.puntaje ? `${x.puntaje}/10` : "",
       sector: x.sector || "",
       calificacion: x.calificacion || "",

@@ -1,5 +1,6 @@
 import { consultar } from "../../../lib/db";
 import { urlProyecto } from "../../../lib/resumenes";
+import { colsLey, estadoProyecto } from "../../../lib/leyes";
 import Marcar from "../../Marcar";
 
 export const metadata = { title: "Proyectos similares · Normas Legales del Perú" };
@@ -16,7 +17,7 @@ const GENERICAS = `ley leyes proyecto proposicion proposición legislativa legis
 async function buscarSimilares(id) {
   const [base] = await consultar(
     `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-            titulo, proponente, estado
+            titulo, proponente, estado, ${colsLey("proyectos_ley")}
      FROM proyectos_ley WHERE id = $1`,
     [id]
   );
@@ -31,6 +32,7 @@ async function buscarSimilares(id) {
      ),
      c AS (
        SELECT p.id, p.numero, p.periodo, p.camara, p.num_pley, p.url, p.fecha_presentacion, p.titulo, p.proponente, p.estado,
+              ${colsLey("p")},
               (SELECT count(*) FROM unnest(tsvector_to_array(to_tsvector('spanish', coalesce(p.titulo,'')))) w
                 WHERE w = ANY(b.lx)) AS comunes,
               cardinality(b.lx) AS total
@@ -39,7 +41,8 @@ async function buscarSimilares(id) {
          AND to_tsvector('spanish', coalesce(p.titulo,'')) @@ array_to_string(ARRAY(SELECT quote_literal(x) FROM unnest(b.lx) x), ' | ')::tsquery
      )
      SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-            titulo, proponente, estado, comunes::float / total AS parecido
+            titulo, proponente, estado, ley_tipo, ley_numero, ley_fecha, ley_docs, enlace_numero, enlace_camara, enlace_estado,
+            comunes::float / total AS parecido
      FROM c
      WHERE comunes >= LEAST(total, GREATEST(2, LEAST(4, CEIL(total * 0.35))))
      ORDER BY comunes DESC, fecha_presentacion DESC NULLS LAST
@@ -60,7 +63,7 @@ function Tarjeta({ p, extra }) {
       <p className="sumilla">{p.titulo}</p>
       <div className="etiquetas">
         <Marcar tipo="P" id={p.id} etiqueta={`Proyecto ${p.numero}`} />
-        {p.estado && <span className="etq">{p.estado}</span>}
+        {estadoProyecto(p) && <span className={p.ley_numero ? "etq ley" : "etq"}>{estadoProyecto(p)}</span>}
         {extra}
         <span className="enlaces">
           <a href={`/proyectos/similares?id=${p.id}`}>Similares</a>

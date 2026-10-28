@@ -1,4 +1,5 @@
 import { consultar } from "./db";
+import { colsLey } from "./leyes";
 
 // Datos de los reportes del monitoreo empresarial (tabla "analisis" + normas / proyectos / seguimiento)
 
@@ -123,10 +124,11 @@ export async function avanceNormas(desde, hasta) {
 }
 
 const COLS_P = `p.id AS proyecto_id, p.numero, p.camara, p.periodo, p.num_pley, p.url, p.titulo, p.sumilla AS sumilla_p,
-  p.proponente, p.autor, p.estado, p.fecha_presentacion::text AS fecha_presentacion`;
+  p.proponente, p.autor, p.estado, p.fecha_presentacion::text AS fecha_presentacion, ${colsLey("p")}`;
 
 const COND_DICTAMEN = "s.estado ILIKE '%dictamen%'";
 const COND_AUTOGRAFA = "s.estado ILIKE '%aut_grafa%'";
+const COND_PUBLICADA = "s.estado ILIKE 'publicad%'";
 const COND_REMITIDO_SENADO = "(s.estado ILIKE '%remitid%senado%' OR s.estado ILIKE '%senado de la rep%')";
 
 // Proyectos con analisis (o sin el: pendientes / no relevantes) para una lista de condiciones SQL
@@ -176,6 +178,10 @@ export async function reporteCongreso(f, desde, hasta) {
     autografas: `SELECT DISTINCT ON (s.proyecto_id) s.proyecto_id AS pid, s.comisiones, coalesce(s.detalle, s.estado) AS detalle,
           (s.fecha AT TIME ZONE 'America/Lima')::date::text AS cuando
         FROM seguimientos s WHERE ${COND_AUTOGRAFA} AND ${dia} ORDER BY s.proyecto_id, s.fecha DESC`,
+    // Proposiciones convertidas en ley ese dia (y fe de erratas de esas leyes)
+    publicadas: `SELECT DISTINCT ON (s.proyecto_id) s.proyecto_id AS pid, NULL::text AS comisiones, coalesce(s.detalle, s.estado) AS detalle,
+          (s.fecha AT TIME ZONE 'America/Lima')::date::text AS cuando
+        FROM seguimientos s WHERE ${COND_PUBLICADA} AND ${dia} ORDER BY s.proyecto_id, s.fecha DESC`,
   };
   const salida = {};
   await Promise.all(
@@ -195,7 +201,7 @@ export async function proyectosAnalizados(f, desde, hasta) {
   const base = `SELECT p.id AS pid FROM proyectos_ley p WHERE p.fecha_presentacion BETWEEN $1 AND $2
                 UNION SELECT s.proyecto_id FROM seguimientos s
                 WHERE (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN $1 AND $2
-                  AND (${COND_DICTAMEN} OR ${COND_AUTOGRAFA} OR ${COND_REMITIDO_SENADO})`;
+                  AND (${COND_DICTAMEN} OR ${COND_AUTOGRAFA} OR ${COND_REMITIDO_SENADO} OR ${COND_PUBLICADA})`;
   return proyectosCon(f, base, [desde, hasta]);
 }
 

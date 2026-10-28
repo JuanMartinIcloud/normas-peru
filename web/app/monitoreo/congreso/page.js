@@ -2,6 +2,7 @@ import { leerFiltrosMonitoreo, reporteCongreso, opcionesFiltros, ayerLima, fecha
 import { urlProyecto } from "../../../lib/resumenes";
 import Filtros from "../Filtros";
 import Tarjeta from "../Tarjeta";
+import { enlacesLey, estadoProyecto, recorrido } from "../../../lib/leyes";
 
 export const metadata = { title: "Congreso · Monitoreo empresarial" };
 
@@ -28,12 +29,14 @@ function Seccion({ titulo, datos, vacio, mostrarMovimiento }) {
               subtitulo={[CAMARA[p.camara], p.proponente].filter((x, i, l) => x && l.indexOf(x) === i).join(" · ")}
               fecha={p.mov_fecha || p.fecha_presentacion}
               descripcion={p.titulo}
-              movimiento={
+              movimiento={[
                 mostrarMovimiento
                   ? [p.mov_comisiones && `Comisión: ${p.mov_comisiones}`, p.mov_detalle].filter(Boolean).join(" · ")
-                  : `Estado actual: ${p.estado || "—"}`
-              }
-              enlaces={[{ texto: "Expediente", url: urlProyecto(p) }]}
+                  : `Estado actual: ${estadoProyecto(p) || "—"}`,
+                mostrarMovimiento && p.ley_numero ? estadoProyecto(p) : "",
+                recorrido(p),
+              ].filter(Boolean).join(" · ")}
+              enlaces={[{ texto: "Expediente", url: urlProyecto(p) }, ...enlacesLey(p)]}
             />
           ))}
         </div>
@@ -60,7 +63,7 @@ export default async function CongresoMonitoreo({ searchParams }) {
     <>
       <h1>Reporte del Congreso · {fechaLarga(fecha)}</h1>
       <p className="sub">
-        Proposiciones legislativas ingresadas, dictámenes de comisiones y autógrafas del día, con su análisis de impacto
+        Proposiciones legislativas ingresadas, dictámenes de comisiones, autógrafas y leyes publicadas del día, con su análisis de impacto
         empresarial. El reporte de cada día está listo a las 7:00 a. m. del día siguiente.
       </p>
       <Filtros accion="/monitoreo/congreso" f={f} sectores={opciones.sectores} periodo="dia" />
@@ -78,6 +81,8 @@ export default async function CongresoMonitoreo({ searchParams }) {
           <Seccion titulo="Dictámenes emitidos por las comisiones" datos={r.senado_dictamenes} vacio="No hubo dictámenes en el Senado este día." mostrarMovimiento />
           <h2 className="seccion">Sección 3 · Autógrafas de ley</h2>
           <Seccion titulo="Autógrafas" datos={r.autografas} vacio="No hubo autógrafas este día." mostrarMovimiento />
+          <h2 className="seccion">Sección 4 · Leyes publicadas</h2>
+          <Seccion titulo="Proposiciones convertidas en ley" datos={r.publicadas} vacio="No se publicaron leyes de proposiciones este día." mostrarMovimiento />
         </>
       )}
     </>

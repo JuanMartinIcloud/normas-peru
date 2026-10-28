@@ -2,6 +2,7 @@ import { usuarioActual } from "../../../../lib/auth";
 import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados, reporteCongreso, finDeMes, ayerLima } from "../../../../lib/monitoreo";
 import { leerPeriodo } from "../../../../lib/periodo";
 import { urlProyecto } from "../../../../lib/resumenes";
+import { estadoProyecto, recorrido } from "../../../../lib/leyes";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -23,7 +24,7 @@ function filaNorma(n, seccion = "Normas legales") {
 }
 function filaProyecto(p, seccion) {
   return [seccion, "Proyecto de ley", p.numero, p.mov_fecha || p.fecha_presentacion, p.proponente, p.titulo,
-    [p.mov_comisiones, p.mov_detalle].filter(Boolean).join(" · "), p.sector, p.calificacion, p.impacto, p.puntaje, p.comites, p.resumen,
+    [p.mov_comisiones, p.mov_detalle, p.ley_numero && estadoProyecto(p), recorrido(p)].filter(Boolean).join(" · "), p.sector, p.calificacion, p.impacto, p.puntaje, p.comites, p.resumen,
     p.cambios, p.comentario, acciones(p.acciones), p.accion_directorio, urlProyecto(p)];
 }
 
@@ -40,7 +41,7 @@ export async function GET(request) {
     const secciones = [
       ["diputados_ingresadas", "Diputados · Proposiciones ingresadas"], ["diputados_dictamenes", "Diputados · Dictámenes"],
       ["senado_ingresadas", "Senado · Proposiciones ingresadas"], ["senado_dictamenes", "Senado · Dictámenes"],
-      ["autografas", "Autógrafas de ley"],
+      ["autografas", "Autógrafas de ley"], ["publicadas", "Leyes publicadas"],
     ];
     for (const [k, t] of secciones) for (const p of r[k].items) filas.push(filaProyecto(p, t));
     nombre = `congreso-${fecha}`;

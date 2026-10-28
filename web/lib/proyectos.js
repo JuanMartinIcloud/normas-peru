@@ -30,7 +30,9 @@ export function whereProyectos(f) {
     return `$${params.length}`;
   };
   if (f.periodo) cond.push(`periodo = ${p(f.periodo)}`);
-  if (f.estado) cond.push(`estado = ${p(f.estado)}`);
+  // "__ley": proposiciones ya convertidas en ley (publicadas en El Peruano)
+  if (f.estado === "__ley") cond.push("ley_numero IS NOT NULL");
+  else if (f.estado) cond.push(`estado = ${p(f.estado)}`);
   if (f.rubro) cond.push(`rubro = ${p(f.rubro)}`);
   if (f.proponente) cond.push(`proponente = ${p(f.proponente)}`);
   if (f.desde) cond.push(`fecha_presentacion >= ${p(f.desde)}`);

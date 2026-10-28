@@ -5,6 +5,7 @@ import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../lib/
 import { urlProyecto } from "../../lib/resumenes";
 import BotonResumir from "../BotonResumir";
 import Marcar from "../Marcar";
+import { colsLey, estadoProyecto } from "../../lib/leyes";
 import BotonAmpliar from "./BotonAmpliar";
 import FormBuscar from "./FormBuscar";
 import FiltrarResultados from "./FiltrarResultados";
@@ -47,7 +48,7 @@ async function buscarTodo(fn, fp, tiempos = []) {
     ).then((x) => (marca("lista normas"), x)),
     consultar(
       `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
-              titulo, sumilla, proponente, estado, count(*) OVER ()::int AS total
+              titulo, sumilla, proponente, estado, ${colsLey("proyectos_ley")}, count(*) OVER ()::int AS total
        FROM proyectos_ley ${wp.where} ORDER BY ${ordP} LIMIT ${MOSTRAR}`,
       pp
     ).then((x) => (marca("lista proyectos"), x)),
@@ -246,7 +247,7 @@ export default async function Buscar({ searchParams }) {
                   <Fragmento texto={fragP[claveProyecto(p)]} />
                   <div className="etiquetas">
                     <Marcar tipo="P" id={p.id} etiqueta={`Proyecto ${p.numero}`} />
-                    {p.estado && <span className="etq">{p.estado}</span>}
+                    {estadoProyecto(p) && <span className={p.ley_numero ? "etq ley" : "etq"}>{estadoProyecto(p)}</span>}
                     <span className="enlaces">
                       <a href={`/proyectos/similares?id=${p.id}`}>Similares</a>
                       {urlProyecto(p) && (

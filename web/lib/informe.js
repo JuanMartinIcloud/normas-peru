@@ -1,6 +1,7 @@
 import { consultar } from "./db";
 import { leerFiltrosMonitoreo, normasAnalizadas, reporteCongreso, fechaLarga } from "./monitoreo";
 import { urlProyecto } from "./resumenes";
+import { estadoProyecto, recorrido } from "./leyes";
 
 // Informe diario: normas del dia + movimientos del Congreso del dia (lo que queda tras quitar items)
 
@@ -20,6 +21,7 @@ const SECCIONES = [
   ["senado_ingresadas", "Senado · Proposiciones legislativas ingresadas"],
   ["senado_dictamenes", "Senado · Dictámenes de comisiones"],
   ["autografas", "Autógrafas de ley"],
+  ["publicadas", "Leyes publicadas (proposiciones convertidas en ley)"],
 ];
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -55,7 +57,7 @@ export function htmlInforme(d, comite = null) {
     total += items.length;
     cuerpo += `<h3 style="font-size:15px">${esc(t)} (${items.length})</h3>`;
     cuerpo += items.length
-      ? items.map((p) => bloque(`Proposición ${p.numero} · ${p.proponente || ""}`, p.titulo, urlProyecto(p), p, [p.mov_comisiones && `Comisión: ${p.mov_comisiones}`, p.mov_detalle].filter(Boolean).join(" · "))).join("")
+      ? items.map((p) => bloque(`Proposición ${p.numero} · ${p.proponente || ""}`, p.titulo, urlProyecto(p), p, [p.mov_comisiones && `Comisión: ${p.mov_comisiones}`, p.mov_detalle, p.ley_numero && estadoProyecto(p), recorrido(p)].filter(Boolean).join(" · "))).join("")
       : `<p style="color:#666">Sin movimientos con impacto empresarial.</p>`;
   }
   const titulo = `Informe de monitoreo empresarial · ${fechaLarga(d.fecha)}${comite ? ` · Comité ${comite}` : ""}`;

@@ -3,6 +3,7 @@ import { leerPeriodo } from "../../../lib/periodo";
 import { urlProyecto } from "../../../lib/resumenes";
 import Filtros from "../Filtros";
 import Tarjeta from "../Tarjeta";
+import { enlacesLey, estadoProyecto, recorrido } from "../../../lib/leyes";
 
 export const metadata = { title: "Impacto · Monitoreo empresarial" };
 
@@ -101,7 +102,10 @@ export default async function Impacto({ searchParams }) {
             subtitulo={x.origen === "Norma legal" ? x.entidad : x.proponente}
             fecha={x.origen === "Norma legal" ? x.fecha : x.fecha_presentacion}
             descripcion={x.origen === "Norma legal" ? x.sumilla : x.titulo}
-            enlaces={[{ texto: x.origen === "Norma legal" ? "Ver en El Peruano" : "Expediente", url: x.origen === "Norma legal" ? x.url_detalle : urlProyecto(x) }]}
+            movimiento={x.origen === "Norma legal" ? "" : [`Estado: ${estadoProyecto(x) || "—"}`, recorrido(x)].filter(Boolean).join(" · ")}
+            enlaces={x.origen === "Norma legal"
+              ? [{ texto: "Ver en El Peruano", url: x.url_detalle }]
+              : [{ texto: "Expediente", url: urlProyecto(x) }, ...enlacesLey(x)]}
           />
         ))}
       </div>
