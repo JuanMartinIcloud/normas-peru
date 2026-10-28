@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "diario | historico | rango"
+        description: "diario | historico | rango | leyes (revision de leyes descartadas)"
         default: "diario"
       fechas:
         description: "Para 'rango': desde hasta (AAAA-MM-DD AAAA-MM-DD)"
@@ -59,6 +59,8 @@ jobs:
             bash src/reintentar.sh python src/monitoreo.py diario --max-minutos 150 > salida.log 2>&1; codigo=$?
             # Despues del dia, un mes mas hacia atras (uno por dia)
             [ $codigo -eq 0 ] && { bash src/reintentar.sh python src/monitoreo.py historico --max-minutos 150 >> salida.log 2>&1; codigo=$?; }
+          elif [ "$MODO" = "leyes" ]; then
+            bash src/reintentar.sh python src/revisar_leyes.py --max-minutos 300 > salida.log 2>&1; codigo=$?
           else
             bash src/reintentar.sh python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
           fi
