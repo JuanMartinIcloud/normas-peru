@@ -366,6 +366,8 @@ def extraer(datos, ocr=True) -> str:
 def principal():
     if not config.DATABASE_URL:
         raise SystemExit("Falta DATABASE_URL")
+    if cupos.principal_en_emergencia():
+        raise SystemExit(0)
     return psycopg2.connect(config.DATABASE_URL)
 
 

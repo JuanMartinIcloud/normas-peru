@@ -18,8 +18,10 @@ jobs:
       - name: Consultar la base
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
         run: python src/informe.py
       - name: Detalle de proyectos de ley
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
         run: python src/informe.py proyectos

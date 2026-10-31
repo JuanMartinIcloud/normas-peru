@@ -1,5 +1,8 @@
 """Ejecuta en la web las busquedas guardadas que tocan hoy (lo lanza el programador una vez al dia)."""
 import os, time, psycopg2, requests
+import cupos
+if cupos.principal_en_emergencia():
+    raise SystemExit(0)
 c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
 cur.execute("SELECT valor FROM configuracion WHERE clave = 'clave_tareas'")
 fila = cur.fetchone(); c.close()

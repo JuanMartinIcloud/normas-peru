@@ -553,7 +553,11 @@ def main():
     hoy = hoy_lima()
     if a.modo == "diario":
         inicio_mes = hoy.replace(day=1)
-        rango(inicio_mes, hoy + timedelta(days=1), reloj)
+        # Los primeros dias del mes tambien revisa el mes anterior: completa lo que haya quedado pendiente
+        # (por ejemplo, si las tareas se detuvieron a fin de mes por el cupo de transferencia). Solo
+        # analiza lo que falta, asi que si no falta nada no gasta.
+        desde = (inicio_mes - timedelta(days=1)).replace(day=1) if hoy.day <= 5 else inicio_mes
+        rango(desde, hoy + timedelta(days=1), reloj)
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "historico":

@@ -9,6 +9,8 @@ import os
 
 import psycopg2
 
+import cupos
+
 SIN_TILDE = "translate(word, 'áéíóúüàèìòù', 'aeiouuaeiou')"
 
 SQL_TABLA = """
@@ -23,6 +25,8 @@ CREATE INDEX IF NOT EXISTS vocabulario_trgm ON vocabulario USING gin (sin_tilde 
 
 
 def main():
+    if cupos.principal_en_emergencia():
+        return
     c = psycopg2.connect(os.environ["DATABASE_URL"], connect_timeout=60)
     cur = c.cursor()
     cur.execute(SQL_TABLA)

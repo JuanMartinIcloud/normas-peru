@@ -7,6 +7,8 @@ Regla: ninguna base debe pasar de 4 GB en el mes (se deja 1 GB libre).
 - Base principal que llega a 4 GB: se detienen las tareas que no son indispensables (lectura de
   escaneados, analisis de meses anteriores, revision diaria completa de proyectos); la web y la
   carga diaria de normas, proyectos y reportes siguen funcionando.
+- Base principal que llega a 4,6 GB (emergencia): se detienen todas las tareas automaticas que la leen;
+  solo queda la web. Al renovarse el cupo todo sigue y se pone al dia solo.
 La medicion usa la API de Neon (secreto NEON_API_KEY). Sin ese secreto no hay medicion y nada se detiene.
 """
 import os
@@ -17,6 +19,9 @@ import psycopg2
 import requests
 
 TOPE_BYTES = 4 * 10 ** 9           # 4 GB de los 5 GB gratuitos (Neon cuenta GB de 1000 millones de bytes)
+# Emergencia: la base principal llego a 4,6 GB. Se detienen TODAS las tareas automaticas que la leen
+# (tambien las diarias) y los 0,4 GB que quedan se reservan para la web, hasta que se renueve el cupo.
+EMERGENCIA_BYTES = int(4.6 * 10 ** 9)
 API = "https://console.neon.tech/api/v2"
 SQL = """CREATE TABLE IF NOT EXISTS cupos (
     host        TEXT PRIMARY KEY,           -- servidor de la base (de su cadena de conexion)
@@ -85,6 +90,16 @@ def principal_agotada() -> bool:
     if url and agotada(url):
         print("La base principal llego a 4 GB de transferencia este mes: esta tarea no indispensable "
               "se detiene hasta que se renueve el cupo.")
+        return True
+    return False
+
+
+def principal_en_emergencia() -> bool:
+    url = os.getenv("DATABASE_URL") or os.getenv("TEXTOS_URL_4", "")
+    if url and medidos().get(host(url), 0) >= EMERGENCIA_BYTES:
+        print("::warning title=Cupo de la base principal::La base principal llego a 4,6 GB de transferencia este mes. "
+              "Las tareas automaticas se detienen hasta que se renueve el cupo (el dia 1 a las 7:00 p. m. del dia anterior, "
+              "hora de Lima); lo que queda se reserva para la web. Lo pendiente se completa solo despues.")
         return True
     return False
 

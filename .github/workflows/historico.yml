@@ -33,6 +33,7 @@ jobs:
       - name: Descargar tanda
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           ELPERUANO_ENDPOINT: ${{ vars.ELPERUANO_ENDPOINT }}
           ELPERUANO_METODO: ${{ vars.ELPERUANO_METODO }}
           ELPERUANO_PARAM_DESDE: ${{ vars.ELPERUANO_PARAM_DESDE }}

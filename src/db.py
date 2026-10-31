@@ -5,6 +5,7 @@ import psycopg2
 from psycopg2.extras import execute_values
 
 import config
+import cupos
 
 _ESQUEMA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "schema.sql")
 # Cada etapa: (marca en schema.sql, consulta que dice si ya esta aplicada)
@@ -38,6 +39,8 @@ _ETAPAS = [
 def conectar():
     if not config.DATABASE_URL:
         raise SystemExit("Falta la variable de entorno DATABASE_URL (cadena de conexion de Neon).")
+    if cupos.principal_en_emergencia():
+        raise SystemExit(0)
     conn = psycopg2.connect(config.DATABASE_URL)
     asegurar_esquema(conn)
     return conn

@@ -28,4 +28,5 @@ jobs:
       - name: Sumillas de proyectos y textos de normas
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
         run: python src/textos.py --max-minutos 50 --dias "${{ github.event.inputs.dias || '60' }}"
