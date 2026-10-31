@@ -24,12 +24,10 @@ def nivel(fraccion):
 
 
 def revisar_espacio():
-    bases = [("principal A (TEXTOS_URL_4)", os.getenv("TEXTOS_URL_4", "")),
-             ("principal B (TEXTOS_URL_11)", os.getenv("TEXTOS_URL_11", ""))]
-    for i in (1, 2, 3, 5, 6, 7, 8, 9, 10, 12):
-        if i == 1 and os.getenv("TEXTOS_URL_12", "").strip():
-            continue   # la base 1 ya se copio a la 12 y el sistema no la usa (no crece mas)
-        bases.append((f"texto {i}", os.getenv(f"TEXTOS_URL_{i}", "")))
+    import principal
+    activa = principal.activa()
+    bases = [(f"principal {n}" + (" (en uso)" if n == activa else ""), principal.url_de(n)) for n in principal.principales()]
+    bases += [(f"texto {i}", url) for i, url in principal.bases_texto()]
     peor = 0.0
     for nombre, url in bases:
         if not url.strip():

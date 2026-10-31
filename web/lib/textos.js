@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { basesTexto } from "./bases";
 import { unstable_noStore as sinCache } from "next/cache";
 
 // Busqueda en el TEXTO COMPLETO de normas y proyectos.
@@ -13,17 +14,8 @@ export function claveProyecto(p) {
   return `${p.periodo}|${p.camara}|${p.numero}`;
 }
 
-function bases() {
-  const lista = [];
-  for (let i = 1; i <= 12; i++) {
-    if (i === 4 || i === 11) continue; // TEXTOS_URL_4 y TEXTOS_URL_11: bases principales A y B (ver lib/db.js)
-    // La base 1 se lleno y quedo lenta; su contenido completo se copio a la base 12.
-    // Cuando la base 12 esta configurada, la base 1 ya no se consulta.
-    if (i === 1 && (process.env.TEXTOS_URL_12 || "").trim()) continue;
-    const url = (process.env[`TEXTOS_URL_${i}`] || "").trim();
-    if (url) lista.push({ numero: i, url });
-  }
-  return lista;
+async function bases() {
+  return basesTexto();
 }
 
 function enBase(url, texto, params) {
@@ -67,7 +59,7 @@ const LIMITE_MS = 6000;
 async function enTodas(sql, params, ms = LIMITE_MS) {
   let parcial = false;
   const respuestas = await Promise.all(
-    bases().map((b) =>
+    (await bases()).map((b) =>
       enBaseLimitada(b.url, sql, params, ms).catch((e) => {
         if (tablaFaltante(e)) return [];
         if (excedioTiempo(e)) {
@@ -86,7 +78,7 @@ async function enTodas(sql, params, ms = LIMITE_MS) {
 // Claves de los documentos cuyo texto completo contiene lo buscado
 export async function clavesPorTexto(tipo, terminos) {
   const lista = (terminos || []).filter(Boolean);
-  if (!lista.length || !bases().length) return [];
+  if (!lista.length || !(await bases()).length) return [];
   const filas = await enTodas(
     `SELECT clave FROM documentos
      WHERE tipo = $1 AND to_tsvector('spanish', texto) @@ (${consultaTs(lista, 2)})
@@ -102,7 +94,7 @@ export async function clavesPorTexto(tipo, terminos) {
 // (dentro de cada grupo basta uno de sus terminos). Sirve para los filtros sucesivos.
 export async function clavesPorGrupos(tipo, grupos) {
   const validos = (grupos || []).map((g) => (g || []).filter(Boolean)).filter((g) => g.length);
-  if (!validos.length || !bases().length) return [];
+  if (!validos.length || !(await bases()).length) return [];
   const params = [tipo];
   const partes = validos.map(
     (g) =>
@@ -131,7 +123,7 @@ export async function fragmentos(tipo, claves, terminos) {
   const lista = (terminos || []).filter(Boolean);
   const salida = {};
   const ks = (claves || []).filter(Boolean);
-  if (!lista.length || !ks.length || !bases().length) return salida;
+  if (!lista.length || !ks.length || !(await bases()).length) return salida;
   const filas = await enTodas(
     `SELECT clave,
             ts_headline('spanish', left(texto, 25000), (${consultaTs(lista, 3)}),
@@ -146,7 +138,7 @@ export async function fragmentos(tipo, claves, terminos) {
 
 // Texto completo guardado de un documento (o "" si no esta o es escaneado sin texto)
 export async function textoCompleto(tipo, clave) {
-  if (!clave || !bases().length) return "";
+  if (!clave || !(await bases()).length) return "";
   const filas = await enTodas(`SELECT estado, texto FROM documentos WHERE tipo = $1 AND clave = $2`, [tipo, clave]);
   const ok = filas.find((f) => f.estado === "ok" && f.texto);
   return ok ? ok.texto : "";
@@ -155,7 +147,7 @@ export async function textoCompleto(tipo, clave) {
 // Estado de cada base de texto y del avance (para /api/estado)
 export async function estadoBases() {
   const salida = { bases: [], avance: [] };
-  for (const b of bases()) {
+  for (const b of await bases()) {
     try {
       const [t] = await enBase(b.url, `SELECT pg_size_pretty(pg_database_size(current_database())) AS tamano`, []);
       let documentos = {};

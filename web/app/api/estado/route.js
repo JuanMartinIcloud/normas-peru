@@ -9,7 +9,7 @@ export async function GET() {
   const estado = { hoy: hoyLima(), ayer: ayerLima() };
   try {
     const activaN = await principalActiva();
-    estado.principal = { activa: activaN === 11 ? "B (normas-textos-11)" : "A (normas-textos-4)", configuradas: configuracionPrincipal() };
+    estado.principal = { activa: activaN, configuradas: configuracionPrincipal() };
     const [n] = await consultar(`SELECT count(*)::int AS total, max(fecha)::text AS ultima FROM normas`);
     estado.normas = n;
     const [p] = await consultar(`SELECT count(*)::int AS total, max(fecha_presentacion)::text AS ultimo FROM proyectos_ley`);

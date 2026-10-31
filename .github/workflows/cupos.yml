@@ -2,7 +2,7 @@ name: Cupos de Neon
 
 # Mide cada hora cuanto ha transferido cada base en el mes. Si una base llega a 4 GB (de los 5 GB
 # gratuitos), el sistema deja de agregarle datos y detiene las tareas no indispensables que la leen.
-# Si la base principal activa llega a 3,5 GB, la copia a la otra base principal y pasa a usar esa.
+# Rota la base principal entre varias copias (cada 2 GB) y crea bases nuevas en Neon cuando hacen falta.
 on:
   schedule:
     - cron: "23 * * * *"
@@ -42,10 +42,36 @@ jobs:
           TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
           TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: bash src/reintentar.sh python src/cupos.py
-      - name: Cambiar de base principal si la activa se acerca al limite
+      - name: Bases automaticas (registro y bases nuevas de texto si hacen falta)
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
           TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
+        run: python src/bases_auto.py
+      - name: Rotar la base principal si la activa gasto su parte del cupo
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
+          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: python src/cambiar_principal.py

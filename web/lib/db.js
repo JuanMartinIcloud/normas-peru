@@ -1,55 +1,51 @@
-import { neon } from "@neondatabase/serverless";
+import { ejecutar, urlBase, urlControl } from "./bases";
 import { unstable_noStore as sinCache } from "next/cache";
 import { clavesPorTexto, clavesPorGrupos } from "./textos";
 
-// Base principal: hay dos copias y se usa una a la vez (ver src/principal.py):
-//   A = TEXTOS_URL_4 (normas-textos-4)   B = TEXTOS_URL_11 (normas-textos-11)
-// Cada una tiene su propio cupo mensual de transferencia en Neon. Cuando la activa se acerca al limite,
-// el sistema copia todo a la otra y anota cual se usa en la base de control (TEXTOS_URL_2, tabla "principal").
+// Base principal: hay varias copias (4, 9, 10, 11 y las que el sistema cree solo) y se usa una a la vez
+// (ver src/principal.py y lib/bases.js). Cada una tiene su propio cupo mensual de transferencia en Neon;
+// el sistema rota entre ellas y anota cual se usa en la base de control (tabla "principal").
 // La web lee esa anotacion (como mucho una vez por minuto) y se conecta a la base activa.
-// DATABASE_URL queda solo como respaldo de la A (la base original de ese nombre se elimino el 24/10/2026).
+// DATABASE_URL queda solo como respaldo de la 4 (la base original de ese nombre se elimino el 24/10/2026).
 const URL_A = (process.env.TEXTOS_URL_4 || process.env.DATABASE_URL || "").trim();
-const URL_B = (process.env.TEXTOS_URL_11 || "").trim();
-const URL_CONTROL = (process.env.TEXTOS_URL_2 || "").trim();
-let activa = { t: 0, numero: 0 };
+let activa = { t: 0, numero: 0, url: "" };
 
-function ejecutar(url, texto, params) {
-  // cache: "no-store" impide que Next.js guarde respuestas viejas de la base:
-  // sin esto, la pagina podia mostrar cifras de hace dias en lugar de las actuales.
-  const sql = neon(url, { fetchOptions: { cache: "no-store" } });
-  // Versiones nuevas del paquete usan sql.query(texto, params);
-  // las 0.x aceptan sql(texto, params) directamente.
-  if (typeof sql.query === "function") return sql.query(texto, params);
-  return sql(texto, params);
+// Numero de la base principal activa
+export async function principalActiva() {
+  return (await resolverActiva()).numero;
 }
 
-// Numero de la base principal activa (4 = A, 11 = B)
-export async function principalActiva() {
-  if (activa.numero && Date.now() - activa.t < 60000) return activa.numero;
+async function resolverActiva() {
+  if (activa.url && Date.now() - activa.t < 60000) return activa;
   let numero = 4;
-  if (URL_CONTROL && URL_B) {
+  let url = URL_A;
+  if (urlControl()) {
     try {
-      const [r] = await ejecutar(URL_CONTROL, "SELECT activa FROM principal WHERE id = 1", []);
-      if (r && Number(r.activa) === 11) numero = 11;
+      const [r] = await ejecutar(urlControl(), "SELECT activa FROM principal WHERE id = 1", []);
+      if (r && Number(r.activa) !== 4) {
+        const otra = await urlBase(Number(r.activa));
+        if (otra) {
+          numero = Number(r.activa);
+          url = otra;
+        }
+      }
     } catch (e) {
       // Sin la anotacion (o si la base de control no responde): se sigue con la ultima conocida
-      if (activa.numero) numero = activa.numero;
+      if (activa.url) return { ...activa, t: Date.now() };
     }
   }
-  activa = { t: Date.now(), numero };
-  return numero;
+  activa = { t: Date.now(), numero, url };
+  return activa;
 }
 
 export function configuracionPrincipal() {
-  return { a: Boolean(URL_A), b: Boolean(URL_B), control: Boolean(URL_CONTROL) };
+  return { base4: Boolean(URL_A), control: Boolean(urlControl()) };
 }
 
 export async function consultar(texto, params = []) {
   sinCache(); // cada consulta se hace en el momento, nunca se reutiliza una respuesta guardada
-  if (!URL_A && !URL_B) {
-    throw new Error("Falta la variable TEXTOS_URL_4 en Vercel (Settings > Environment Variables).");
-  }
-  const url = (await principalActiva()) === 11 && URL_B ? URL_B : URL_A;
+  const { url } = await resolverActiva();
+  if (!url) throw new Error("Falta la variable TEXTOS_URL_4 en Vercel (Settings > Environment Variables).");
   return ejecutar(url, texto, params);
 }
 

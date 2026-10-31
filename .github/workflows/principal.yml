@@ -1,8 +1,7 @@
 name: Cambiar base principal
 
-# Copia la base principal activa a la otra (A = normas-textos-4, B = normas-textos-11) y pasa el
-# sistema a usar la otra. Normalmente lo hace solo "Cupos de Neon" cuando la activa llega a 3,5 GB
-# de transferencia en el mes; este flujo es para hacerlo a mano.
+# Copia la base principal activa a la que menos transferencia gasto este mes y pasa el sistema a usarla.
+# Normalmente lo hace solo "Cupos de Neon" (ver src/cambiar_principal.py); este flujo es para hacerlo a mano.
 on:
   workflow_dispatch:
 
@@ -29,6 +28,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
           TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
+          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
+          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
+          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
+          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
+          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
           TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: python src/cambiar_principal.py --forzar

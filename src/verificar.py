@@ -90,10 +90,8 @@ for anio in sorted(por_anio):
 # 3) Cobertura del texto completo
 estado = {}
 dup = 0
-for i in (1, 2, 3, 5, 6, 7, 8, 9, 10, 12):   # 4 y 11: bases principales A y B
-    url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
-    if not url:
-        continue
+import principal as _reg  # noqa: E402
+for i, url in _reg.bases_texto():
     c = psycopg2.connect(url, connect_timeout=60); cur = c.cursor()
     cur.execute("SELECT tipo, clave, estado FROM documentos")
     for tipo, clave, est in cur.fetchall():

@@ -39,10 +39,9 @@ def host(url: str) -> str:
 
 
 def bases_del_sistema():
-    salida = [("principal A", os.getenv("TEXTOS_URL_4", "")), ("principal B", os.getenv("TEXTOS_URL_11", ""))]
-    for i in range(2, 13):
-        if i not in (4, 11) and os.getenv(f"TEXTOS_URL_{i}", "").strip():
-            salida.append((f"texto {i}", os.environ[f"TEXTOS_URL_{i}"]))
+    import principal
+    salida = [(f"principal {n}", principal.url_de(n)) for n in principal.principales()]
+    salida += [(f"texto {i}", url) for i, url in principal.bases_texto()]
     return [(n, u.strip()) for n, u in salida if u.strip()]
 
 

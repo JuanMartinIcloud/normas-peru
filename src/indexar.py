@@ -32,7 +32,7 @@ from pypdf import PdfReader
 
 import config
 import cupos
-import principal
+import principal as registro
 import ocr as ocr_mod
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
@@ -92,16 +92,11 @@ class Bases:
     def __init__(self):
         self.urls = []
         control = ""
-        for i in range(1, 13):
-            url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
-            if i == 1 and os.getenv("TEXTOS_URL_12", "").strip():
-                continue   # base 1 retirada (copiada a la 12)
-            if i in principal.CANDIDATAS:
-                continue   # bases principales A (4) y B (11): no guardan textos
-            if url:
-                self.urls.append(url)
-                if i == CONTROL:
-                    control = url
+        # Bases de texto: secretos TEXTOS_URL_<n> que no son principales + las creadas automaticamente
+        for i, url in registro.bases_texto():
+            self.urls.append(url)
+            if i == CONTROL:
+                control = url
         if not self.urls:
             raise SystemExit("Faltan los secretos TEXTOS_URL_1, TEXTOS_URL_2... (bases de texto)")
         for url in self.urls:
@@ -369,7 +364,7 @@ def extraer(datos, ocr=True) -> str:
 def principal():
     if not config.DATABASE_URL:
         raise SystemExit("Falta DATABASE_URL")
-    if cupos.principal_en_emergencia() or principal.copiando():
+    if cupos.principal_en_emergencia() or registro.copiando():
         raise SystemExit(0)
     return psycopg2.connect(config.DATABASE_URL)
 

@@ -198,8 +198,8 @@ class Reloj:
 # --------------------------------------------------------------------------- textos completos
 
 def _bases_texto():
-    return [os.environ[k] for k in sorted(os.environ) if k.startswith("TEXTOS_URL_") and k not in ("TEXTOS_URL_4", "TEXTOS_URL_11")
-            and os.environ[k].strip()]
+    import principal
+    return [url for _, url in principal.bases_texto()]
 
 
 def textos(tipo, claves):
