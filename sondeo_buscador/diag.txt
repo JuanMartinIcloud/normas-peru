@@ -1,4 +1,10 @@
-('00098-2026-2031-CD', 'Para seguimiento', 8, 'Alto', 'texto completo', 'La Ley N° 32743 delega en el Poder Ejecutivo la facultad de legislar en materia de seguridad ciudadana y del Fenómeno El Niño por un plazo de noventa días calendario. La norma autoriza al Ejecutivo a emitir decretos legislativos para modificar diversos cuerpos normativos sobre control migratorio, telecomunicaciones, armas de fuego, régimen penitenciario, responsabilidad penal, criminalidad organizada y ciberdelincuencia. Asimismo, incluye disposiciones para optimizar la respuesta ante desastres y simplificar trámites administrativos y de transformación digital.') 
-
-('00013-2026-2031-S', 'Para seguimiento', 8, 'Alto', 'texto completo', 'Se delega en el Poder Ejecutivo la facultad de legislar mediante decretos legislativos por el plazo de noventa días calendario. La delegación comprende exclusivamente materias de seguridad ciudadana y de prevención, atención, respuesta y reactivación ante el Fenómeno El Niño. Incluye modificaciones a diversos decretos legislativos, códigos y leyes para fortalecer el control migratorio, las telecomunicaciones, el sistema penitenciario y la lucha contra la criminalidad organizada.') 
-
+name normas-textos-4
+data_transfer_bytes 4656255748
+consumption_period_start 2026-10-01T00:00:00Z
+consumption_period_end 2026-11-01T00:00:00Z
+compute_time_seconds 129637
+active_time_seconds 472107
+synthetic_storage_size 0
+GB 4.656255748
+daily 403 {"code":"","message":"This endpoint is not available. It is included with Scale plans and above."}
+hourly 406 {"request_id":"8867c4a0-27a8-4581-a8d5-adb34404f9d4","code":"","message":"specified date-time range start is outside the boundaries of the specified granularity; start:\"2026-10-20 00:00:00 +0000 UTC\""}
