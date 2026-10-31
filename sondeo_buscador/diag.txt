@@ -1,20 +1,33 @@
-proyectos: 18
-normas-textos-12       tiny-firefly-10069383        transf= 0.37 GB  tam=  474.4 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-11       bold-truth-25005404          transf= 0.00 GB  tam=   31.8 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-10       delicate-hill-14504793       transf= 0.00 GB  tam=   31.8 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-9        frosty-moon-50891139         transf= 0.00 GB  tam=   31.8 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-8        shy-bonus-96281774           transf= 0.02 GB  tam=  147.3 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-7        autumn-shadow-36964286       transf= 0.06 GB  tam=  449.5 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-6        royal-river-02571089         transf= 0.06 GB  tam=  448.6 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-5        hidden-frog-42034021         transf= 0.07 GB  tam=  472.5 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-4        patient-sea-69646257         transf= 4.66 GB  tam=  331.9 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-3        curly-scene-84890205         transf= 0.10 GB  tam=  483.1 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-normas-textos-2        fancy-hat-66269858           transf= 0.34 GB  tam=  451.1 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-ERH-Bermeo             restless-sound-74649913      transf= 0.00 GB  tam=   33.0 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-ERH-JMSR               super-sky-39575062           transf= 0.00 GB  tam=   33.3 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
-presupuestos-barra61-jmsr orange-credit-84157749       transf= 0.00 GB  tam=   31.3 MB  ramas=1 region=aws-us-east-1 pg=17 logical=False quota=None
-expedientes-jmsr       wispy-hill-21222799          transf= 0.00 GB  tam=   31.6 MB  ramas=1 region=aws-us-east-2 pg=17 logical=False quota=None
-matriz-riesgos-jmsr    shiny-snow-82372805          transf= 0.00 GB  tam=   32.5 MB  ramas=1 region=aws-us-east-1 pg=17 logical=False quota=None
-liquidacion-beneficios holy-frog-75170344           transf= 0.00 GB  tam=   32.8 MB  ramas=1 region=aws-sa-east-1 pg=17 logical=False quota=None
-contratos-erh          quiet-brook-50440781         transf= 0.00 GB  tam=   32.0 MB  ramas=1 region=aws-us-east-1 pg=17 logical=False quota=None
-plan: free max_autoscaling: 0 projects_limit: 0 branches_limit: 0
+
+== PRINCIPAL A (4)
+   ('normas', Decimal('242.5569280000000000'), Decimal('170.5000960000000000'), 247286)
+   ('proyectos_ley', Decimal('30.3923200000000000'), Decimal('19.6034560000000000'), 15616)
+   ('vocabulario', Decimal('15.2125440000000000'), Decimal('6.1276160000000000'), 37748)
+   ('analisis', Decimal('7.2007680000000000'), Decimal('5.6442880000000000'), 11324)
+   ('seguimientos', Decimal('2.5149440000000000'), Decimal('1.8841600000000000'), 5696)
+   ('descargas', Decimal('0.47513600000000000000'), Decimal('0.26214400000000000000'), 4040)
+   ('resumenes', Decimal('0.20480000000000000000'), Decimal('0.00819200000000000000'), -1)
+   ('consultas_ia', Decimal('0.16384000000000000000'), Decimal('0.01638400000000000000'), -1)
+   ('busqueda_ejecuciones', Decimal('0.15564800000000000000'), Decimal('0.01638400000000000000'), -1)
+   ('usuarios', Decimal('0.04915200000000000000'), Decimal('0.00819200000000000000'), 2)
+   ('busquedas_guardadas', Decimal('0.03276800000000000000'), Decimal('0.00819200000000000000'), -1)
+   ('informes', Decimal('0.03276800000000000000'), Decimal('0.00819200000000000000'), -1)
+   ('configuracion', Decimal('0.03276800000000000000'), Decimal('0.00819200000000000000'), -1)
+   ('textos', Decimal('0.03276800000000000000'), Decimal('0E-24'), -1)
+  total MB (Decimal('307.9127040000000000'), 'PostgreSQL 18.6 (4e5fd08) on aarch64-unknown-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit')
+  ext [('plpgsql',), ('pg_trgm',), ('pg_stat_statements',)]
+  seq ['normas_id_seq', 'proyectos_ley_id_seq', 'consultas_ia_id_seq', 'analisis_id_seq', 'usuarios_id_seq', 'busquedas_guardadas_id_seq', 'busqueda_ejecuciones_id_seq']
+
+== BASE 11
+   ('documentos', Decimal('0.03276800000000000000'), Decimal('0E-24'), 0)
+   ('avance', Decimal('0.01638400000000000000'), Decimal('0E-24'), -1)
+  total MB (Decimal('7.7987840000000000'), 'PostgreSQL 18.6 (4e5fd08) on aarch64-unknown-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit')
+  ext [('plpgsql',)]
+  seq []
+
+== BASE 10
+   ('documentos', Decimal('0.03276800000000000000'), Decimal('0E-24'), 0)
+   ('avance', Decimal('0.01638400000000000000'), Decimal('0E-24'), -1)
+  total MB (Decimal('7.7987840000000000'), 'PostgreSQL 18.6 (4e5fd08) on aarch64-unknown-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit')
+  ext [('plpgsql',)]
+  seq []
