@@ -102,6 +102,11 @@ def revisar_textos():
 
 
 def main():
+    import sys
+    if len(sys.argv) == 3 and sys.argv[1] == "--crear" and sys.argv[2] in ("texto", "principal"):
+        registrar_fijas()
+        crear(sys.argv[2])
+        return
     if not principal.control_url():
         raise SystemExit("Falta el secreto TEXTOS_URL_2 (base de control).")
     registrar_fijas()
