@@ -29,6 +29,8 @@ import principal
 CAMBIO_BYTES = int(3.5 * 10 ** 9)
 URGENTE_BYTES = int(4.3 * 10 ** 9)
 OTRA_MAXIMO = int(1.0 * 10 ** 9)
+COPIA_BYTES = int(0.35 * 10 ** 9)    # lo que gasta copiar la base (sus datos pesan unos 0,25 GB; con margen)
+LIMITE_SEGURO = int(4.8 * 10 ** 9)   # la copia nunca debe dejar la base activa por encima de esto
 IMAGEN = "postgres:18"
 
 
@@ -140,6 +142,10 @@ def main():
         if b_otra >= OTRA_MAXIMO:
             print(f"::warning title=Base principal::La activa llego a {b_act / 1e9:.2f} GB pero la otra tambien gasto "
                   f"{b_otra / 1e9:.2f} GB este mes: no se cambia. El freno de 4 GB y la emergencia de 4,6 GB siguen.")
+            return
+        if b_act + COPIA_BYTES > LIMITE_SEGURO:
+            print(f"::warning title=Base principal::La activa ya va en {b_act / 1e9:.2f} GB: copiarla ahora la llevaria "
+                  "cerca del limite de 5 GB. No se copia; sigue la emergencia (solo la web) hasta que se renueve el cupo.")
             return
         hora = (datetime.now(timezone.utc) - timedelta(hours=5)).hour
         if b_act < URGENTE_BYTES and not 0 <= hora < 6:
