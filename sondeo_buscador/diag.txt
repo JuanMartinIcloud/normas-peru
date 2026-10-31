@@ -1,10 +1,20 @@
-name normas-textos-4
-data_transfer_bytes 4656255748
-consumption_period_start 2026-10-01T00:00:00Z
-consumption_period_end 2026-11-01T00:00:00Z
-compute_time_seconds 129637
-active_time_seconds 472107
-synthetic_storage_size 0
-GB 4.656255748
-daily 403 {"code":"","message":"This endpoint is not available. It is included with Scale plans and above."}
-hourly 406 {"request_id":"8867c4a0-27a8-4581-a8d5-adb34404f9d4","code":"","message":"specified date-time range start is outside the boundaries of the specified granularity; start:\"2026-10-20 00:00:00 +0000 UTC\""}
+proyectos: 18
+normas-textos-12       tiny-firefly-10069383        transf= 0.37 GB  tam=  474.4 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-11       bold-truth-25005404          transf= 0.00 GB  tam=   31.8 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-10       delicate-hill-14504793       transf= 0.00 GB  tam=   31.8 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-9        frosty-moon-50891139         transf= 0.00 GB  tam=   31.8 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-8        shy-bonus-96281774           transf= 0.02 GB  tam=  147.3 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-7        autumn-shadow-36964286       transf= 0.06 GB  tam=  449.5 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-6        royal-river-02571089         transf= 0.06 GB  tam=  448.6 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-5        hidden-frog-42034021         transf= 0.07 GB  tam=  472.5 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-4        patient-sea-69646257         transf= 4.66 GB  tam=  331.9 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-3        curly-scene-84890205         transf= 0.10 GB  tam=  483.1 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+normas-textos-2        fancy-hat-66269858           transf= 0.34 GB  tam=  451.1 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+ERH-Bermeo             restless-sound-74649913      transf= 0.00 GB  tam=   33.0 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+ERH-JMSR               super-sky-39575062           transf= 0.00 GB  tam=   33.3 MB  ramas=1 region=aws-us-east-1 pg=18 logical=False quota=None
+presupuestos-barra61-jmsr orange-credit-84157749       transf= 0.00 GB  tam=   31.3 MB  ramas=1 region=aws-us-east-1 pg=17 logical=False quota=None
+expedientes-jmsr       wispy-hill-21222799          transf= 0.00 GB  tam=   31.6 MB  ramas=1 region=aws-us-east-2 pg=17 logical=False quota=None
+matriz-riesgos-jmsr    shiny-snow-82372805          transf= 0.00 GB  tam=   32.5 MB  ramas=1 region=aws-us-east-1 pg=17 logical=False quota=None
+liquidacion-beneficios holy-frog-75170344           transf= 0.00 GB  tam=   32.8 MB  ramas=1 region=aws-sa-east-1 pg=17 logical=False quota=None
+contratos-erh          quiet-brook-50440781         transf= 0.00 GB  tam=   32.0 MB  ramas=1 region=aws-us-east-1 pg=17 logical=False quota=None
+plan: free max_autoscaling: 0 projects_limit: 0 branches_limit: 0
