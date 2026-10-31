@@ -1,0 +1,34 @@
+name: Cambiar base principal
+
+# Copia la base principal activa a la otra (A = normas-textos-4, B = normas-textos-11) y pasa el
+# sistema a usar la otra. Normalmente lo hace solo "Cupos de Neon" cuando la activa llega a 3,5 GB
+# de transferencia en el mes; este flujo es para hacerlo a mano.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cupos
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  cambiar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: bash src/reintentar.sh pip install requests psycopg2-binary
+      - name: Copiar y cambiar
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
+        run: python src/cambiar_principal.py --forzar

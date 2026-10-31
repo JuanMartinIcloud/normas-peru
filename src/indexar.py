@@ -32,6 +32,7 @@ from pypdf import PdfReader
 
 import config
 import cupos
+import principal
 import ocr as ocr_mod
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
@@ -95,6 +96,8 @@ class Bases:
             url = os.getenv(f"TEXTOS_URL_{i}", "").strip()
             if i == 1 and os.getenv("TEXTOS_URL_12", "").strip():
                 continue   # base 1 retirada (copiada a la 12)
+            if i in principal.CANDIDATAS:
+                continue   # bases principales A (4) y B (11): no guardan textos
             if url:
                 self.urls.append(url)
                 if i == CONTROL:
@@ -366,7 +369,7 @@ def extraer(datos, ocr=True) -> str:
 def principal():
     if not config.DATABASE_URL:
         raise SystemExit("Falta DATABASE_URL")
-    if cupos.principal_en_emergencia():
+    if cupos.principal_en_emergencia() or principal.copiando():
         raise SystemExit(0)
     return psycopg2.connect(config.DATABASE_URL)
 

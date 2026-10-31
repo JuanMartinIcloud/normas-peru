@@ -22,4 +22,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           SOLO_FINAL: "1"
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: python src/${{ github.event.inputs.script || 'prueba_monitoreo' }}.py

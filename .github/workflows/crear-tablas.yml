@@ -18,6 +18,8 @@ jobs:
       - name: Ejecutar schema.sql en Neon
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: |
           python - <<'PY'
           import os, psycopg2

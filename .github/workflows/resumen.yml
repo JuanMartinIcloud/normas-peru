@@ -41,6 +41,7 @@ jobs:
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: |
           set +e
           bash src/reintentar.sh python src/resumen.py ${{ github.event.inputs.fecha }} ${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }} > salida.log 2>&1

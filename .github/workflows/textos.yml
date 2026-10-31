@@ -29,4 +29,5 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: python src/textos.py --max-minutos 50 --dias "${{ github.event.inputs.dias || '60' }}"

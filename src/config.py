@@ -16,4 +16,8 @@ USER_AGENT = os.getenv(
     "USER_AGENT", "Mozilla/5.0 (compatible; normas-peru-research/0.1; uso academico)"
 )
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")  # cadena de conexion de Neon
+# Cadena de conexion de la base principal ACTIVA (A o B, ver src/principal.py)
+if os.getenv("DATABASE_URL", "").strip() or os.getenv("TEXTOS_URL_4", "").strip():
+    import principal as _principal
+    _principal.aplicar()
+DATABASE_URL = os.getenv("DATABASE_URL", "")

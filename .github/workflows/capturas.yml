@@ -24,6 +24,8 @@ jobs:
       - name: Tomar capturas
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: python src/${{ github.event.inputs.script || 'capturas' }}.py
       - name: Guardar cifradas
         if: always()

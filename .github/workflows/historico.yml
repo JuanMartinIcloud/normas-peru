@@ -38,6 +38,7 @@ jobs:
           ELPERUANO_METODO: ${{ vars.ELPERUANO_METODO }}
           ELPERUANO_PARAM_DESDE: ${{ vars.ELPERUANO_PARAM_DESDE }}
           ELPERUANO_PARAM_HASTA: ${{ vars.ELPERUANO_PARAM_HASTA }}
+          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: >
           python src/backfill.py
           --desde "${{ github.event.inputs.desde || '2019-01-01' }}"

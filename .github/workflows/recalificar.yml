@@ -19,6 +19,7 @@ env:
   DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
+  TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
 
 jobs:
   recalificar:

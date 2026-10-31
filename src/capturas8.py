@@ -11,6 +11,8 @@ import secrets
 import psycopg2
 from playwright.sync_api import sync_playwright
 
+import config  # noqa: F401  (base principal activa)
+
 BASE = "https://normas-peru.vercel.app"
 SALIDA = "capturas"
 os.makedirs(SALIDA, exist_ok=True)
