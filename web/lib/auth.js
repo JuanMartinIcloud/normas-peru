@@ -111,10 +111,13 @@ export async function crearUsuario({ usuario, nombre, clave, rol = "editor" }) {
 }
 
 // Crea la cookie de sesion (en rutas de API o acciones del servidor)
+// La firma usa la clave secreta del sistema y la contraseña cifrada del usuario: si el administrador le
+// cambia la contraseña (o la desactiva), sus sesiones abiertas dejan de valer de inmediato.
 export async function iniciarSesion(u) {
   const exp = Date.now() + DURACION_DIAS * 86400000;
   const datos = `${u.id}.${exp}`;
-  const token = `${datos}.${firmar(datos, await secreto())}`;
+  const [f] = await consultar(`SELECT clave_hash FROM usuarios WHERE id = $1`, [Number(u.id)]);
+  const token = `${datos}.${firmar(datos, `${await secreto()}|${f.clave_hash}`)}`;
   (await cookies()).set(COOKIE, token, {
     httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: DURACION_DIAS * 86400,
   });
@@ -131,10 +134,13 @@ export const usuarioActual = cache(async () => {
   if (partes.length !== 3) return null;
   const [id, exp, firma] = partes;
   if (!/^\d+$/.test(id) || Number(exp) < Date.now()) return null;
-  const esperada = firmar(`${id}.${exp}`, await secreto());
-  if (esperada.length !== firma.length || !timingSafeEqual(Buffer.from(esperada), Buffer.from(firma))) return null;
-  const filas = await consultar(`SELECT id, usuario, nombre, rol FROM usuarios WHERE id = $1 AND activo`, [Number(id)]);
-  return filas[0] || null;
+  if (!/^[0-9a-f]{64}$/.test(firma)) return null;
+  const filas = await consultar(`SELECT id, usuario, nombre, rol, clave_hash FROM usuarios WHERE id = $1 AND activo`, [Number(id)]);
+  if (!filas.length) return null;
+  const { clave_hash, ...u } = filas[0];
+  const esperada = firmar(`${id}.${exp}`, `${await secreto()}|${clave_hash}`);
+  if (!timingSafeEqual(Buffer.from(esperada), Buffer.from(firma))) return null;
+  return u;
 });
 
 // Exige sesion iniciada en una pagina: sin usuario valido lleva a "Ingresar" ANTES de cualquier consulta.
