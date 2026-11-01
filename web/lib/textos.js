@@ -1,9 +1,9 @@
 import { neon } from "@neondatabase/serverless";
 import { basesTexto } from "./bases";
-import { unstable_noStore as sinCache } from "next/cache";
+import { unstable_cache, unstable_noStore as sinCache } from "next/cache";
 
 // Busqueda en el TEXTO COMPLETO de normas y proyectos.
-// El texto esta en las bases de texto (variables TEXTOS_URL_1 a TEXTOS_URL_12), tabla "documentos".
+// El texto esta en las bases de texto (ver lib/bases.js), tabla "documentos".
 // Cada documento se identifica con una clave estable:
 //   normas    -> hash_unico
 //   proyectos -> "periodo|camara|numero"
@@ -37,6 +37,19 @@ async function enBaseLimitada(url, texto, params, ms) {
   return filas;
 }
 
+// La misma busqueda en una base de texto no se repite durante 30 minutos (los textos nuevos se
+// agregan una vez al dia). Un error o un tiempo agotado no se guarda: se vuelve a intentar.
+// (la clave del resultado guardado lleva el numero de la base, nunca su cadena de conexion)
+const enBaseGuardada = unstable_cache(
+  async (numero, texto, params, ms) => {
+    const b = basesTexto().find((x) => x.numero === numero);
+    if (!b) return [];
+    return enBaseLimitada(b.url, texto, params, ms);
+  },
+  ["texto-completo-v1"],
+  { revalidate: 1800, tags: ["datos"] }
+);
+
 function excedioTiempo(e) {
   return /57014|statement timeout|canceling statement/i.test(`${e && e.code} ${e && e.message}`);
 }
@@ -60,7 +73,7 @@ async function enTodas(sql, params, ms = LIMITE_MS) {
   let parcial = false;
   const respuestas = await Promise.all(
     (await bases()).map((b) =>
-      enBaseLimitada(b.url, sql, params, ms).catch((e) => {
+      enBaseGuardada(b.numero, sql, params, ms).catch((e) => {
         if (tablaFaltante(e)) return [];
         if (excedioTiempo(e)) {
           parcial = true;
@@ -159,7 +172,7 @@ export async function estadoBases() {
         documentos = "tabla aun no creada";
       }
       salida.bases.push({ base: b.numero, tamano: t.tamano, documentos });
-      // El avance de la indexacion esta en la base de texto 2 (la 1 se lleno)
+      // El avance de la indexacion esta en la base de control (texto 2)
       if (b.numero === 2) {
         try {
           salida.avance = await enBase(
@@ -173,7 +186,8 @@ export async function estadoBases() {
         }
       }
     } catch (e) {
-      salida.bases.push({ base: b.numero, error: String(e.message || e) });
+      console.error(e);
+      salida.bases.push({ base: b.numero, error: "no se pudo consultar" });
     }
   }
   return salida;

@@ -1,15 +1,17 @@
-import { consultar, hoyLima, principalActiva, configuracionPrincipal } from "../../../lib/db";
+import { usuarioActual } from "../../../lib/auth";
+import { mensajeError } from "../../../lib/errores";
+import { consultar, hoyLima } from "../../../lib/db";
 import { cargarResumen, ayerLima } from "../../../lib/resumenes";
 import { estadoBases } from "../../../lib/textos";
 
 export const dynamic = "force-dynamic";
 
-// Estado del sistema en formato JSON, para revisar rapidamente que todo este al dia
+// Estado del sistema en formato JSON, para revisar rapidamente que todo este al dia (solo con sesion iniciada).
+// Se consulta a pedido (nadie la llama automaticamente).
 export async function GET() {
+  if (!(await usuarioActual())) return Response.json({ error: "Ingresa con tu usuario." }, { status: 401 });
   const estado = { hoy: hoyLima(), ayer: ayerLima() };
   try {
-    const activaN = await principalActiva();
-    estado.principal = { activa: activaN, configuradas: configuracionPrincipal() };
     const [n] = await consultar(`SELECT count(*)::int AS total, max(fecha)::text AS ultima FROM normas`);
     estado.normas = n;
     const [p] = await consultar(`SELECT count(*)::int AS total, max(fecha_presentacion)::text AS ultimo FROM proyectos_ley`);
@@ -29,17 +31,17 @@ export async function GET() {
       );
       estado.busqueda = b;
     } catch (e) {
-      estado.busqueda = { error: String(e.message || e) };
+      estado.busqueda = { error: mensajeError(e) };
     }
     try {
       estado.textos = await estadoBases();
     } catch (e) {
-      estado.textos = { error: String(e.message || e) };
+      estado.textos = { error: mensajeError(e) };
     }
     const ultimo = await cargarResumen();
     estado.portada = ultimo ? { fecha: ultimo.fecha, referencias: Object.keys(ultimo.referencias).length } : null;
   } catch (e) {
-    estado.error = String(e.message || e);
+    estado.error = mensajeError(e);
   }
   return Response.json(estado, { headers: { "Cache-Control": "no-store" } });
 }

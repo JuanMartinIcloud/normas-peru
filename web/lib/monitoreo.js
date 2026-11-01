@@ -1,4 +1,5 @@
-import { consultar } from "./db";
+import { consultar, consultarGuardado } from "./db";
+import { renovar } from "./bases";
 import { colsLey } from "./leyes";
 
 // Datos de los reportes del monitoreo empresarial (tabla "analisis" + normas / proyectos / seguimiento)
@@ -100,25 +101,25 @@ export async function normasAnalizadas(f, desde, hasta) {
   c.push(`n.fecha BETWEEN ${p(desde)} AND ${p(hasta)}`);
   if (f.tipoNorma) c.push(`translate(lower(n.tipo), 'áéíóúü', 'aeiouu') = translate(lower(${p(f.tipoNorma)}), 'áéíóúü', 'aeiouu')`);
   if (f.entidad) c.push(`n.entidad ILIKE ${p(`%${f.entidad}%`)}`);
-  return consultar(
+  return consultarGuardado(
     `SELECT ${COLS_A}, n.fecha::text AS fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.url_detalle, n.url_pdf
      FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo = 'N'
      WHERE ${c.join(" AND ")}
      ORDER BY a.puntaje DESC NULLS LAST, CASE a.impacto WHEN 'Alto' THEN 0 WHEN 'Moderado' THEN 1 ELSE 2 END, n.fecha DESC, n.id DESC
      LIMIT 1500`,
-    params
+    params, "monitoreo"
   );
 }
 
 // Cuantas normas del periodo faltan analizar y cuantas se descartaron por no ser relevantes
 export async function avanceNormas(desde, hasta) {
-  const [r] = await consultar(
+  const [r] = await consultarGuardado(
     `SELECT count(*)::int AS total,
             count(a.id)::int AS revisadas,
             count(*) FILTER (WHERE a.relevante)::int AS relevantes
      FROM normas n LEFT JOIN analisis a ON a.tipo = 'N' AND a.ref_id = n.id
      WHERE n.fecha BETWEEN $1 AND $2`,
-    [desde, hasta]
+    [desde, hasta], "monitoreo"
   );
   return r;
 }
@@ -136,23 +137,23 @@ async function proyectosCon(f, base, paramsBase, extraSel = "") {
   const { params, p } = armar();
   for (const x of paramsBase) p(x);
   const ca = condAnalisis(f, p, "(coalesce(p.titulo,'') || ' ' || coalesce(p.sumilla,''))");
-  return consultar(
+  return consultarGuardado(
     `SELECT ${COLS_P}${extraSel}, ${COLS_A}
      FROM (${base}) b JOIN proyectos_ley p ON p.id = b.pid
      LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = p.id
      WHERE ${ca.join(" AND ")}
      ORDER BY a.puntaje DESC NULLS LAST, CASE a.impacto WHEN 'Alto' THEN 0 WHEN 'Moderado' THEN 1 ELSE 2 END, p.numero`,
-    params
+    params, "monitoreo"
   );
 }
 
 async function conteo(base, params) {
-  const [r] = await consultar(
+  const [r] = await consultarGuardado(
     `SELECT count(DISTINCT b.pid)::int AS total,
             count(DISTINCT b.pid) FILTER (WHERE a.id IS NULL)::int AS pendientes,
             count(DISTINCT b.pid) FILTER (WHERE a.relevante)::int AS relevantes
      FROM (${base}) b LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = b.pid`,
-    params
+    params, "monitoreo"
   );
   return r;
 }
@@ -196,24 +197,49 @@ export async function reporteCongreso(f, desde, hasta) {
   return salida;
 }
 
-// Proyectos analizados de un periodo (para el modulo de impacto y el resumen)
-export async function proyectosAnalizados(f, desde, hasta) {
-  const base = `SELECT p.id AS pid FROM proyectos_ley p WHERE p.fecha_presentacion BETWEEN $1 AND $2
+// Proyectos de un periodo: presentados en el periodo o con un movimiento importante en el periodo
+const BASE_PROYECTOS_PERIODO = `SELECT p.id AS pid FROM proyectos_ley p WHERE p.fecha_presentacion BETWEEN $1 AND $2
                 UNION SELECT s.proyecto_id FROM seguimientos s
                 WHERE (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN $1 AND $2
                   AND (${COND_DICTAMEN} OR ${COND_AUTOGRAFA} OR ${COND_REMITIDO_SENADO} OR ${COND_PUBLICADA})`;
-  return proyectosCon(f, base, [desde, hasta]);
+
+// Proyectos analizados de un periodo (para el modulo de impacto y el resumen)
+export async function proyectosAnalizados(f, desde, hasta) {
+  return proyectosCon(f, BASE_PROYECTOS_PERIODO, [desde, hasta]);
+}
+
+// Solo las cifras de un periodo (para comparar con el mes anterior): la base devuelve unas pocas filas
+// de conteo en lugar de todos los documentos analizados.
+export async function cifrasPeriodo(desde, hasta) {
+  const filas = await consultarGuardado(
+    `SELECT origen, calificacion, impacto, count(*)::int AS n FROM (
+       SELECT 'N' AS origen, a.calificacion, a.impacto
+       FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo = 'N'
+       WHERE a.relevante AND NOT a.excluido AND n.fecha BETWEEN $1 AND $2
+       UNION ALL
+       SELECT 'P', a.calificacion, a.impacto
+       FROM (${BASE_PROYECTOS_PERIODO}) b JOIN analisis a ON a.tipo = 'P' AND a.ref_id = b.pid
+       WHERE a.relevante AND NOT a.excluido
+     ) x GROUP BY 1, 2, 3`,
+    [desde, hasta], "monitoreo"
+  );
+  const suma = (cond) => filas.filter(cond).reduce((t, r) => t + r.n, 0);
+  return {
+    normas: suma((r) => r.origen === "N"),
+    proyectos: suma((r) => r.origen === "P"),
+    cuenta: (campo, valor) => suma((r) => r[campo] === valor),
+  };
 }
 
 // Opciones para los filtros (sectores y tipos de norma presentes)
 export async function opcionesFiltros(desde, hasta) {
   const [sectores, tipos] = await Promise.all([
-    consultar(`SELECT DISTINCT sector AS v FROM analisis WHERE relevante AND sector IS NOT NULL ORDER BY 1`),
-    consultar(
+    consultarGuardado(`SELECT DISTINCT sector AS v FROM analisis WHERE relevante AND sector IS NOT NULL ORDER BY 1`, [], "monitoreo"),
+    consultarGuardado(
       `SELECT max(n.tipo) AS v FROM analisis a JOIN normas n ON n.id = a.ref_id AND a.tipo = 'N'
        WHERE a.relevante AND n.fecha BETWEEN $1 AND $2
        GROUP BY translate(lower(n.tipo), 'áéíóúü', 'aeiouu') ORDER BY 1`,
-      [desde, hasta]
+      [desde, hasta], "monitoreo"
     ),
   ]);
   return { sectores: sectores.map((r) => r.v), tipos: tipos.map((r) => r.v) };
@@ -227,4 +253,5 @@ export async function marcarExcluido(id, excluir, usuario) {
      WHERE id = $1`,
     [Number(id), Boolean(excluir), usuario]
   );
+  renovar("monitoreo");
 }

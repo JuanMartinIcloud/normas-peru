@@ -1,3 +1,4 @@
+import { mensajeError } from "../../../../lib/errores";
 import { usuarioActual } from "../../../../lib/auth";
 import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados } from "../../../../lib/monitoreo";
 import { generarJSON, ErrorIA } from "../../../../lib/gemini";
@@ -69,6 +70,6 @@ export async function POST(request) {
     return Response.json({ ...limpio, cantidad: items.length, guardado: false });
   } catch (e) {
     const estado = e instanceof ErrorIA ? e.estado : 500;
-    return Response.json({ error: String(e.message || e) }, { status: estado });
+    return Response.json({ error: mensajeError(e) }, { status: estado });
   }
 }

@@ -1,4 +1,4 @@
-import { consultar, hoyLima } from "./db";
+import { consultarGuardado, hoyLima } from "./db";
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const PORTAL = "https://wb2server.congreso.gob.pe/spley-portal/#";
@@ -55,12 +55,12 @@ export async function cargarResumen(fecha = "") {
   let filas;
   try {
     filas = FECHA.test(fecha)
-      ? await consultar(
+      ? await consultarGuardado(
           `SELECT fecha::text AS fecha, datos, modelo, n_normas, n_proyectos, n_cambios, creado_en
            FROM resumenes WHERE fecha = $1`,
           [fecha]
         )
-      : await consultar(
+      : await consultarGuardado(
           `SELECT fecha::text AS fecha, datos, modelo, n_normas, n_proyectos, n_cambios, creado_en
            FROM resumenes WHERE fecha <= $1 ORDER BY fecha DESC LIMIT 1`,
           [hoyLima()]
@@ -77,13 +77,13 @@ export async function cargarResumen(fecha = "") {
 
   const [listaNormas, listaProyectos] = await Promise.all([
     normas.length
-      ? consultar(
+      ? consultarGuardado(
           `SELECT id::text AS id, tipo, numero, url_detalle, url_pdf FROM normas WHERE id = ANY($1::bigint[])`,
           [normas]
         )
       : [],
     proyectos.length
-      ? consultar(
+      ? consultarGuardado(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url FROM proyectos_ley WHERE id = ANY($1::bigint[])`,
           [proyectos]
         )
@@ -106,7 +106,7 @@ export async function cargarResumen(fecha = "") {
 // Fechas que tienen resumen, de la mas reciente a la mas antigua
 export async function fechasConResumen(limite = 90) {
   try {
-    return await consultar(
+    return await consultarGuardado(
       `SELECT fecha::text AS fecha, n_normas, n_proyectos FROM resumenes ORDER BY fecha DESC LIMIT ${Number(limite) || 90}`
     );
   } catch (e) {

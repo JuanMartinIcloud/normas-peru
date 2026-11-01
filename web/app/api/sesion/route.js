@@ -1,8 +1,12 @@
-import { verificarUsuario, iniciarSesion, cerrarSesion, hayUsuarios, crearUsuario } from "../../../lib/auth";
+import { headers } from "next/headers";
+import { mensajeError } from "../../../lib/errores";
+import { verificarUsuario, iniciarSesion, cerrarSesion, bloqueado, anotarFallo, limpiarFallos } from "../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
-// POST { accion: "ingresar" | "salir" | "primer_admin", usuario, clave, nombre }
+// POST { accion: "ingresar" | "salir", usuario, clave }
+// Limite de intentos: tras 10 contraseñas equivocadas en 15 minutos (desde la misma conexion o para el
+// mismo usuario) se rechazan los intentos hasta que pasen los 15 minutos.
 export async function POST(request) {
   let c;
   try {
@@ -15,16 +19,22 @@ export async function POST(request) {
       cerrarSesion();
       return Response.json({ ok: true });
     }
-    if (c.accion === "primer_admin") {
-      // Solo funciona mientras no exista ningun usuario
-      if (await hayUsuarios()) return Response.json({ error: "Ya existe un administrador." }, { status: 403 });
-      await crearUsuario({ usuario: c.usuario, nombre: c.nombre, clave: c.clave, rol: "admin" });
+    if (c.accion !== "ingresar") return Response.json({ error: "Pedido inválido" }, { status: 400 });
+    const usuario = String(c.usuario || "").trim().toLowerCase().slice(0, 60);
+    const ip = (headers().get("x-forwarded-for") || "").split(",")[0].trim().slice(0, 60) || "desconocida";
+    const claves = [`ip:${ip}`, `usuario:${usuario}`];
+    if (await bloqueado(claves)) {
+      return Response.json({ error: "Demasiados intentos fallidos. Espera 15 minutos e intenta de nuevo." }, { status: 429 });
     }
-    const u = await verificarUsuario(c.usuario, c.clave);
-    if (!u) return Response.json({ error: "Usuario o contraseña incorrectos." }, { status: 401 });
+    const u = await verificarUsuario(usuario, String(c.clave || "").slice(0, 200));
+    if (!u) {
+      await anotarFallo(claves);
+      return Response.json({ error: "Usuario o contraseña incorrectos." }, { status: 401 });
+    }
+    await limpiarFallos(claves);
     await iniciarSesion(u);
     return Response.json({ ok: true });
   } catch (e) {
-    return Response.json({ error: String(e.message || e) }, { status: 400 });
+    return Response.json({ error: mensajeError(e) }, { status: 400 });
   }
 }

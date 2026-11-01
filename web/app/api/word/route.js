@@ -1,3 +1,4 @@
+import { usuarioActual } from "../../../lib/auth";
 import { Document, Packer, Paragraph, HeadingLevel, TextRun, AlignmentType } from "docx";
 
 export const dynamic = "force-dynamic";
@@ -6,6 +7,7 @@ const texto = (v, max = 20000) => String(v || "").slice(0, max);
 
 // Convierte un texto generado por la IA en un archivo de Word (.docx)
 export async function POST(request) {
+  if (!(await usuarioActual())) return new Response("Ingresa con tu usuario.", { status: 401 });
   let d;
   try {
     d = await request.json();

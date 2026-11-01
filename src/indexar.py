@@ -38,7 +38,7 @@ import ocr as ocr_mod
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
-LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "400"))   # espacio que se usa de cada base de texto (ver README)
+LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "900"))   # MB que se llenan de cada base de texto (Neon gratis: 1024 MB por base)
 # Base de texto que guarda la tabla "avance" (base de control)
 CONTROL = registro.CONTROL
 PAUSA = {"normas": 1.0, "proyectos": 1.0}
@@ -92,13 +92,15 @@ class Bases:
 
     def __init__(self):
         self.urls = []
+        self.numero = {}              # url -> numero de la base (TEXTOS_URL_<numero>)
         control = ""
         for i, url in registro.bases_texto():
             self.urls.append(url)
+            self.numero[url] = i
             if i == CONTROL:
                 control = url
         if not self.urls:
-            raise SystemExit("Faltan los secretos TEXTOS_URL_1, TEXTOS_URL_2... (bases de texto)")
+            raise SystemExit("Faltan los secretos TEXTOS_URL_2, TEXTOS_URL_3... (bases de texto)")
         for url in self.urls:
             def preparar(cur):
                 cur.execute("SELECT pg_advisory_xact_lock(724502)")
@@ -144,7 +146,8 @@ class Bases:
         """Base con espacio libre. Se revisa primero la que se esta usando; las demas solo si esa se lleno."""
         if self.actual and not cupos.agotada(self.actual) and self.tamano_mb(self.actual) < LIMITE_MB:
             return self.actual
-        for n, url in enumerate(self.urls, start=1):
+        for url in self.urls:
+            n = self.numero[url]
             if cupos.agotada(url):
                 continue   # llego a 4 GB de transferencia este mes: no se le agrega nada mas
             mb = self.tamano_mb(url)

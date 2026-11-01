@@ -4,6 +4,7 @@ import { consultar, leerFiltros, construirWhere, prepararBusqueda, ordenNormas }
 import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "./proyectos";
 import { urlProyecto } from "./resumenes";
 import { generarJSON } from "./gemini";
+import { mensajeError } from "./errores";
 
 // Busquedas guardadas: una pregunta (interpretada por la IA en terminos) + filtros, que se ejecuta
 // sola con la frecuencia elegida y guarda cada resultado con un resumen de IA.
@@ -135,7 +136,7 @@ entre el ${desde} y el ${hasta}. Español claro. Usa solo los datos recibidos y 
       });
       resumen = { panorama: String(datos.panorama || ""), puntos: (datos.puntos || []).map(String) };
     } catch (e) {
-      resumen = { error: String(e.message || e) };
+      resumen = { error: mensajeError(e) };
     }
   }
   const [fila] = await consultar(

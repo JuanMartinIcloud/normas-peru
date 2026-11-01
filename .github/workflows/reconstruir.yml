@@ -3,14 +3,14 @@ name: Reconstruir la base principal
 # Llena una base principal nueva desde las fuentes oficiales: crea las tablas, descarga todas las
 # normas de El Peruano desde 2015 (en 4 tramos a la vez), los proyectos del Congreso y los
 # resumenes de la ultima semana. Se puede volver a ejecutar: continua donde quedo.
+# Solo se lanza a mano (por ejemplo, si hubiera que reemplazar la base principal). Una parte que falle
+# queda marcada en rojo; al volver a ejecutarla continua donde quedo.
 on:
   workflow_dispatch:
 
 jobs:
   tablas:
     runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
-    continue-on-error: true
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +36,6 @@ jobs:
   normas:
     needs: tablas
     runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
-    continue-on-error: true
     timeout-minutes: 300
     strategy:
       fail-fast: false
@@ -66,8 +64,6 @@ jobs:
   proyectos:
     needs: tablas
     runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
-    continue-on-error: true
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -86,8 +82,6 @@ jobs:
     needs: [normas, proyectos]
     if: always() && needs.proyectos.result == 'success'
     runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
-    continue-on-error: true
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4

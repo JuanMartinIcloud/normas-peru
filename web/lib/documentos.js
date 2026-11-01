@@ -1,4 +1,5 @@
 import { createCipheriv } from "node:crypto";
+import { Aviso } from "./errores";
 
 // Obtiene el PDF oficial de una norma (El Peruano) y el de un proyecto de ley (Congreso)
 
@@ -47,10 +48,10 @@ export async function pdfNorma(norma) {
   if (!codigo || !/^\d{8}$/.test(fecha)) return null;
   const ref = Buffer.from(`${codigo}${fecha}`).toString("base64");
   const r = await pedir(`${EPDOC}?Referencias=${encodeURIComponent(ref)}`, { headers: { "User-Agent": AGENTE } }, 90);
-  if (!r.ok) throw new Error(`El Peruano respondió HTTP ${r.status}`);
+  if (!r.ok) throw new Aviso(`El Peruano respondió HTTP ${r.status}`);
   const pdf = Buffer.from(await r.arrayBuffer());
-  if (pdf.subarray(0, 4).toString("latin1") !== "%PDF") throw new Error("El Peruano no devolvió un PDF");
-  if (pdf.length > MAX_PDF) throw new Error("El PDF de la norma es demasiado grande (más de 45 MB)");
+  if (pdf.subarray(0, 4).toString("latin1") !== "%PDF") throw new Aviso("El Peruano no devolvió un PDF");
+  if (pdf.length > MAX_PDF) throw new Aviso("El PDF de la norma es demasiado grande (más de 45 MB)");
   return { pdf, nombre: `${[norma.tipo, norma.numero].filter(Boolean).join(" ")}.pdf` };
 }
 
@@ -99,16 +100,16 @@ function elegirArchivo(expediente, numPley) {
 export async function documentoProyecto(p) {
   const url = `${API_CONGRESO}/expediente/${cifrar(p.periodo)}/${cifrar(p.num_pley)}?codTipoParl=${encodeURIComponent(p.camara || "C")}`;
   const r = await pedir(url, { headers: CABECERAS_CONGRESO });
-  if (!r.ok) throw new Error(`El Congreso respondió HTTP ${r.status}`);
+  if (!r.ok) throw new Aviso(`El Congreso respondió HTTP ${r.status}`);
   const exp = ((await r.json()) || {}).data || {};
   const sumilla = (exp.general && exp.general.sumilla) || "";
   const archivo = elegirArchivo(exp, p.num_pley);
   if (!archivo) return { pdf: null, nombre: "", sumilla };
   const codigo = Buffer.from(String(archivo.proyectoArchivoId)).toString("base64");
   const rp = await pedir(`${API_CONGRESO}/archivo/${codigo}/pdf`, { headers: CABECERAS_CONGRESO }, 90);
-  if (!rp.ok) throw new Error(`No se pudo descargar el PDF del proyecto (HTTP ${rp.status})`);
+  if (!rp.ok) throw new Aviso(`No se pudo descargar el PDF del proyecto (HTTP ${rp.status})`);
   const pdf = Buffer.from(await rp.arrayBuffer());
-  if (pdf.subarray(0, 4).toString("latin1") !== "%PDF") throw new Error("El Congreso no devolvió un PDF válido");
-  if (pdf.length > MAX_PDF) throw new Error("El PDF del proyecto es demasiado grande (más de 45 MB)");
+  if (pdf.subarray(0, 4).toString("latin1") !== "%PDF") throw new Aviso("El Congreso no devolvió un PDF válido");
+  if (pdf.length > MAX_PDF) throw new Aviso("El PDF del proyecto es demasiado grande (más de 45 MB)");
   return { pdf, nombre: archivo.nombreArchivo || `${p.numero}.pdf`, sumilla };
 }

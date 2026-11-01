@@ -1,8 +1,10 @@
-import { consultar, leerFiltros, construirWhere, hoyLima, prepararBusqueda } from "../../../lib/db";
+import { usuarioActual } from "../../../lib/auth";
+import { mensajeError } from "../../../lib/errores";
+import { consultarGuardado, leerFiltros, construirWhere, hoyLima, prepararBusqueda } from "../../../lib/db";
 
 export const dynamic = "force-dynamic";
 
-const LIMITE = 50000;
+const LIMITE = 5000; // maximo de filas por descarga (las mas recientes)
 const COLUMNAS = ["fecha", "tipo", "numero", "entidad", "sector", "rubro", "sumilla", "url_pdf", "url_detalle", "extraordinaria"];
 
 function celda(v) {
@@ -12,15 +14,15 @@ function celda(v) {
 }
 
 export async function GET(request) {
+  if (!(await usuarioActual())) return new Response("Ingresa con tu usuario para descargar.", { status: 401 });
   const url = new URL(request.url);
   const sp = Object.fromEntries(url.searchParams.entries());
   if (sp.fecha === "hoy") sp.fecha = hoyLima();
-  const f = leerFiltros(sp);
-  await prepararBusqueda(f, "N");
-  const { where, params } = construirWhere(f);
-
   try {
-    const filas = await consultar(
+    const f = leerFiltros(sp);
+    await prepararBusqueda(f, "N");
+    const { where, params } = construirWhere(f);
+    const filas = await consultarGuardado(
       `SELECT fecha::text AS fecha, tipo, numero, entidad, sector, rubro, sumilla, url_pdf, url_detalle, extraordinaria
        FROM normas ${where} ORDER BY fecha DESC, id DESC LIMIT ${LIMITE}`,
       params
@@ -40,6 +42,6 @@ export async function GET(request) {
       },
     });
   } catch (e) {
-    return new Response(`Error: ${e.message}`, { status: 500 });
+    return new Response(mensajeError(e), { status: 500 });
   }
 }

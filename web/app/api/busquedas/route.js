@@ -1,3 +1,4 @@
+import { Aviso, mensajeError } from "../../../lib/errores";
 import { usuarioActual } from "../../../lib/auth";
 import { consultar } from "../../../lib/db";
 import { asegurarTablas, ejecutar, periodoDe, FRECUENCIAS, claveTareas } from "../../../lib/busquedas";
@@ -25,8 +26,8 @@ export async function POST(request) {
       const pregunta = String(c.pregunta || "").trim().slice(0, 300);
       const q = String(c.q || "").trim().slice(0, 200);
       const terminos = lista(c.terminos);
-      if (!nombre) throw new Error("Ponle un nombre a la búsqueda.");
-      if (!q && !terminos.length) throw new Error("La búsqueda no tiene términos.");
+      if (!nombre) throw new Aviso("Ponle un nombre a la búsqueda.");
+      if (!q && !terminos.length) throw new Aviso("La búsqueda no tiene términos.");
       const [f] = await consultar(
         `INSERT INTO busquedas_guardadas (nombre, pregunta, q, terminos, refinar, frecuencia, con_resumen, destinatarios, creado_por)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
@@ -37,7 +38,7 @@ export async function POST(request) {
       return Response.json({ ok: true, id: f.id });
     }
     const id = Number(c.id);
-    if (!id) throw new Error("Falta la búsqueda.");
+    if (!id) throw new Aviso("Falta la búsqueda.");
     if (c.accion === "editar") {
       await consultar(
         `UPDATE busquedas_guardadas SET nombre = $2, frecuencia = $3, destinatarios = $4, con_resumen = $5 WHERE id = $1`,
@@ -49,15 +50,15 @@ export async function POST(request) {
       await consultar(`DELETE FROM busquedas_guardadas WHERE id = $1`, [id]);
     } else if (c.accion === "ejecutar") {
       const [b] = await consultar(`SELECT * FROM busquedas_guardadas WHERE id = $1`, [id]);
-      if (!b) throw new Error("La búsqueda no existe.");
+      if (!b) throw new Aviso("La búsqueda no existe.");
       const per = periodoDe(b.frecuencia, undefined, true);
       const r = await ejecutar(b, per.desde, per.hasta);
       return Response.json({ ok: true, total_normas: r.total_normas, total_proyectos: r.total_proyectos });
     } else {
-      throw new Error("Acción desconocida.");
+      throw new Aviso("Acción desconocida.");
     }
     return Response.json({ ok: true });
   } catch (e) {
-    return Response.json({ error: String(e.message || e) }, { status: 400 });
+    return Response.json({ error: mensajeError(e) }, { status: 400 });
   }
 }

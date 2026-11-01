@@ -1,9 +1,14 @@
 import { createHmac, randomBytes, scrypt as _scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
+import { cache } from "react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { volverSeguro } from "./volver";
 import { consultar } from "./db";
+import { Aviso } from "./errores";
 
-// Acceso con usuario y contraseña para el modulo de monitoreo.
+// Acceso con usuario y contraseña (todo el sitio lo exige).
 // - Las contraseñas se guardan cifradas (scrypt con sal), nunca en texto plano.
 // - La sesion es una cookie firmada con una clave secreta que se genera sola y se guarda en la base.
 
@@ -43,9 +48,44 @@ function firmar(datos, clave) {
   return createHmac("sha256", clave).update(datos).digest("hex");
 }
 
-export async function hayUsuarios() {
-  const [f] = await consultar(`SELECT count(*)::int AS n FROM usuarios`);
-  return f.n > 0;
+// Intentos fallidos de ingreso (limite: MAX_FALLOS en VENTANA_MIN minutos, por conexion y por usuario)
+const MAX_FALLOS = 10;
+const VENTANA_MIN = 15;
+let tablaIntentos = false;
+async function asegurarIntentos() {
+  if (tablaIntentos) return;
+  await consultar(`CREATE TABLE IF NOT EXISTS intentos_ingreso (
+    clave  TEXT PRIMARY KEY,
+    fallos INT NOT NULL DEFAULT 0,
+    desde  TIMESTAMPTZ NOT NULL DEFAULT now())`);
+  tablaIntentos = true;
+}
+
+export async function bloqueado(claves) {
+  await asegurarIntentos();
+  const f = await consultar(
+    `SELECT 1 FROM intentos_ingreso
+     WHERE clave = ANY($1::text[]) AND fallos >= $2 AND desde > now() - make_interval(mins => $3::int) LIMIT 1`,
+    [claves, MAX_FALLOS, VENTANA_MIN]
+  );
+  return f.length > 0;
+}
+
+export async function anotarFallo(claves) {
+  await asegurarIntentos();
+  await consultar(
+    `INSERT INTO intentos_ingreso (clave, fallos, desde) SELECT unnest($1::text[]), 1, now()
+     ON CONFLICT (clave) DO UPDATE SET
+       fallos = CASE WHEN intentos_ingreso.desde > now() - make_interval(mins => $2::int) THEN intentos_ingreso.fallos + 1 ELSE 1 END,
+       desde  = CASE WHEN intentos_ingreso.desde > now() - make_interval(mins => $2::int) THEN intentos_ingreso.desde ELSE now() END`,
+    [claves, VENTANA_MIN]
+  );
+}
+
+// Tras un ingreso correcto: se borran sus intentos fallidos y los de hace mas de un dia
+export async function limpiarFallos(claves) {
+  await asegurarIntentos();
+  await consultar(`DELETE FROM intentos_ingreso WHERE clave = ANY($1::text[]) OR desde < now() - interval '1 day'`, [claves]);
 }
 
 // Devuelve el usuario si la contraseña es correcta
@@ -61,8 +101,8 @@ export async function verificarUsuario(usuario, clave) {
 
 export async function crearUsuario({ usuario, nombre, clave, rol = "editor" }) {
   const u = String(usuario || "").trim().toLowerCase();
-  if (!/^[a-z0-9._@-]{3,60}$/.test(u)) throw new Error("El usuario debe tener de 3 a 60 letras, números, punto, guion o @.");
-  if (String(clave || "").length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
+  if (!/^[a-z0-9._@-]{3,60}$/.test(u)) throw new Aviso("El usuario debe tener de 3 a 60 letras, números, punto, guion o @.");
+  if (String(clave || "").length < 8) throw new Aviso("La contraseña debe tener al menos 8 caracteres.");
   const hash = await cifrarClave(clave);
   await consultar(
     `INSERT INTO usuarios (usuario, nombre, clave_hash, rol) VALUES ($1, $2, $3, $4)`,
@@ -84,8 +124,8 @@ export function cerrarSesion() {
   cookies().set(COOKIE, "", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 0 });
 }
 
-// Usuario de la sesion actual, o null
-export async function usuarioActual() {
+// Usuario de la sesion actual, o null (se consulta una sola vez por pagina, aunque varias partes lo pidan)
+export const usuarioActual = cache(async () => {
   const token = cookies().get(COOKIE)?.value || "";
   const partes = token.split(".");
   if (partes.length !== 3) return null;
@@ -95,4 +135,13 @@ export async function usuarioActual() {
   if (esperada.length !== firma.length || !timingSafeEqual(Buffer.from(esperada), Buffer.from(firma))) return null;
   const filas = await consultar(`SELECT id, usuario, nombre, rol FROM usuarios WHERE id = $1 AND activo`, [Number(id)]);
   return filas[0] || null;
+});
+
+// Exige sesion iniciada en una pagina: sin usuario valido lleva a "Ingresar" ANTES de cualquier consulta.
+// (Cada pagina la llama en su primera linea: en Next las paginas se arman al mismo tiempo que su
+// "layout", asi que la revision del layout sola no impediria que la pagina consulte la base.)
+export async function exigirUsuario() {
+  const u = await usuarioActual();
+  if (!u) redirect(`/ingresar?volver=${encodeURIComponent(volverSeguro(headers().get("x-ruta")))}`);
+  return u;
 }

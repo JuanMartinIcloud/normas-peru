@@ -1,61 +1,56 @@
 import { neon } from "@neondatabase/serverless";
+import { unstable_cache, revalidateTag } from "next/cache";
 
-// Registro de las bases del sistema (ver src/principal.py):
-// - Principales: TEXTOS_URL_4, 9, 10 y 11, mas las que el sistema cree solo. Se usa una a la vez.
-// - De texto: los demas TEXTOS_URL_<n> (la 1 retirada), mas las que el sistema cree solo.
-// - Control: TEXTOS_URL_2. Tabla "principal" (cual se usa) y "bases_extra" (conexion de cada base,
-//   incluidas las creadas automaticamente en Neon).
+// Bases de datos del sistema (todas en Neon, plan gratuito; ver src/bases.py):
+// - Principal: TEXTOS_URL_4 (normas, proyectos, analisis, usuarios).
+// - De texto: TEXTOS_URL_2, 3, 5 a 12 (texto completo de normas y proyectos, tabla "documentos").
+//   La 1 se retiro: su contenido se copio a la 12.
 
-export const FIJAS_PRINCIPALES = [4, 9, 10, 11];
-const URL_CONTROL = (process.env.TEXTOS_URL_2 || "").trim();
-let reg = { t: 0, filas: null };
+export const URL_PRINCIPAL = (process.env.TEXTOS_URL_4 || process.env.DATABASE_URL || "").trim();
 
 export function ejecutar(url, texto, params = []) {
-  // cache: "no-store" impide que Next.js guarde respuestas viejas de la base
   const sql = neon(url, { fetchOptions: { cache: "no-store" } });
   // Versiones nuevas del paquete usan sql.query(texto, params); las 0.x aceptan sql(texto, params)
   if (typeof sql.query === "function") return sql.query(texto, params);
   return sql(texto, params);
 }
 
-export function urlEntorno(n) {
-  return (process.env[`TEXTOS_URL_${n}`] || "").trim();
-}
-
-// Filas de bases_extra: [{ numero, rol, url }] (como mucho una lectura cada 5 minutos)
-export async function registro() {
-  if (reg.filas && Date.now() - reg.t < 300000) return reg.filas;
-  if (!URL_CONTROL) return [];
-  try {
-    const filas = await ejecutar(URL_CONTROL, "SELECT numero, rol, url FROM bases_extra", []);
-    reg = { t: Date.now(), filas: filas.map((f) => ({ numero: Number(f.numero), rol: f.rol, url: f.url })) };
-  } catch (e) {
-    if (!reg.filas) reg = { t: Date.now(), filas: [] };
-  }
-  return reg.filas;
-}
-
-export async function urlBase(n) {
-  const e = urlEntorno(n);
-  if (e) return e;
-  const r = (await registro()).find((f) => f.numero === Number(n));
-  return r ? r.url : "";
-}
-
 // Bases de texto: [{ numero, url }]
-export async function basesTexto() {
+export function basesTexto() {
   const lista = [];
   for (let i = 1; i <= 12; i++) {
-    if (FIJAS_PRINCIPALES.includes(i)) continue;
-    // La base 1 se lleno y quedo lenta; su contenido completo se copio a la base 12.
-    if (i === 1 && urlEntorno(12)) continue;
-    const url = urlEntorno(i);
+    if (i === 4) continue; // la 4 es la principal
+    if (i === 1 && (process.env.TEXTOS_URL_12 || "").trim()) continue; // la 1 se copio a la 12
+    const url = (process.env[`TEXTOS_URL_${i}`] || "").trim();
     if (url) lista.push({ numero: i, url });
   }
-  for (const r of await registro()) if (r.rol === "texto" && r.url) lista.push({ numero: r.numero, url: r.url });
   return lista;
 }
 
-export function urlControl() {
-  return URL_CONTROL;
+// Resultados guardados: una misma consulta no vuelve a pedirse a la base mientras su resultado este vigente.
+// Las normas y proyectos se cargan una vez al dia (de madrugada), asi que un resultado sirve por un buen rato.
+// - "catalogos": listas de años, sectores, rubros, tipos, estados... (6 horas)
+// - "datos": listas y conteos de normas, proyectos y resumenes; texto completo (30 minutos)
+// - "monitoreo": reportes del monitoreo (30 minutos; se renuevan al momento cuando alguien quita o
+//   devuelve un item, o cambia el informe)
+const VIGENCIA = { catalogos: 6 * 3600, datos: 1800, monitoreo: 1800 };
+const guardadas = Object.fromEntries(
+  Object.entries(VIGENCIA).map(([tipo, segundos]) => [
+    tipo,
+    // La clave del resultado guardado es la consulta y sus parametros (nunca la cadena de conexion)
+    unstable_cache(async (texto, params) => ejecutar(URL_PRINCIPAL, texto, params), [`consulta-${tipo}-v1`], {
+      revalidate: segundos,
+      tags: [tipo],
+    }),
+  ])
+);
+
+// Consulta de solo lectura a la base principal, con su resultado guardado segun el tipo
+export function ejecutarGuardado(texto, params = [], tipo = "datos") {
+  return (guardadas[tipo] || guardadas.datos)(texto, params);
+}
+
+// Descarta los resultados guardados de un tipo (por ejemplo, tras quitar un item del monitoreo)
+export function renovar(tipo) {
+  revalidateTag(tipo);
 }

@@ -1,4 +1,5 @@
 // Cliente de la API de Google Gemini para la web (capa gratuita).
+import { Aviso } from "./errores";
 // Usa las variables de entorno de Vercel: GEMINI_API_KEY (obligatoria) y GEMINI_MODELOS (opcional).
 
 const API = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta";
@@ -8,7 +9,7 @@ const MODELOS_POR_DEFECTO = "gemini-flash-latest,gemini-3.5-flash-lite,gemini-3.
 // (al final, por si ya no queda cupo en ninguno, dos de los que usa de dia el analisis de meses anteriores)
 const RESERVA = ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-3.6-flash", "gemma-4-31b-it"];
 
-export class ErrorIA extends Error {
+export class ErrorIA extends Aviso {
   constructor(mensaje, estado = 502) {
     super(mensaje);
     this.estado = estado;

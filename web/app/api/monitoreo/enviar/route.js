@@ -1,3 +1,4 @@
+import { Aviso, mensajeError } from "../../../../lib/errores";
 import { usuarioActual } from "../../../../lib/auth";
 import { consultar } from "../../../../lib/db";
 import { datosInforme, htmlInforme } from "../../../../lib/informe";
@@ -16,7 +17,7 @@ export async function POST(request) {
   const quien = u.nombre || u.usuario;
   try {
     if (c.accion === "destinatarios") {
-      if (u.rol !== "admin") throw new Error("Solo el administrador cambia los destinatarios.");
+      if (u.rol !== "admin") throw new Aviso("Solo el administrador cambia los destinatarios.");
       const comites = {};
       for (const k of COMITES) {
         const l = listaCorreos(c.comites?.[k]);
@@ -25,7 +26,7 @@ export async function POST(request) {
       await guardarDestinatarios({ general: listaCorreos(c.general), comites });
       return Response.json({ ok: true });
     }
-    if (!fecha) throw new Error("Falta la fecha del informe.");
+    if (!fecha) throw new Aviso("Falta la fecha del informe.");
     if (c.accion === "aprobar" || c.accion === "reabrir") {
       const aprobar = c.accion === "aprobar";
       await consultar(
@@ -37,9 +38,9 @@ export async function POST(request) {
       return Response.json({ ok: true });
     }
     if (c.accion === "enviar") {
-      if (!correoConfigurado()) throw new Error("El correo todavía no está configurado.");
+      if (!correoConfigurado()) throw new Aviso("El correo todavía no está configurado.");
       const [inf] = await consultar(`SELECT estado FROM informes WHERE fecha = $1`, [fecha]);
-      if (!inf || inf.estado === "borrador") throw new Error("Primero aprueba el informe.");
+      if (!inf || inf.estado === "borrador") throw new Aviso("Primero aprueba el informe.");
       const dest = await leerDestinatarios();
       const d = await datosInforme(fecha);
       const enviados = [];
@@ -54,12 +55,12 @@ export async function POST(request) {
         await enviarCorreo({ para: correos, asunto: x.titulo, html: x.html });
         enviados.push(`${comite} (${correos.length})`);
       }
-      if (!enviados.length) throw new Error("No hay destinatarios con contenido para este informe.");
+      if (!enviados.length) throw new Aviso("No hay destinatarios con contenido para este informe.");
       await consultar(`UPDATE informes SET estado = 'enviado', enviado_en = now(), actualizado = now() WHERE fecha = $1`, [fecha]);
       return Response.json({ ok: true, enviados });
     }
-    throw new Error("Acción desconocida.");
+    throw new Aviso("Acción desconocida.");
   } catch (e) {
-    return Response.json({ error: String(e.message || e) }, { status: 400 });
+    return Response.json({ error: mensajeError(e) }, { status: 400 });
   }
 }

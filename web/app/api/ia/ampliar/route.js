@@ -1,3 +1,5 @@
+import { usuarioActual } from "../../../../lib/auth";
+import { mensajeError } from "../../../../lib/errores";
 import { generarJSON, ErrorIA } from "../../../../lib/gemini";
 import { claveDe, buscarGuardada, guardarConsulta } from "../../../../lib/consultasIA";
 
@@ -21,6 +23,7 @@ las sumillas. Cada expresión de 1 a 5 palabras, en español, sin comillas ni op
 No repitas la búsqueda original. Responde solo con el JSON pedido.`;
 
 export async function POST(request) {
+  if (!(await usuarioActual())) return Response.json({ error: "Ingresa con tu usuario.", ingresar: true }, { status: 401 });
   let cuerpo;
   try {
     cuerpo = await request.json();
@@ -56,6 +59,6 @@ export async function POST(request) {
     return Response.json({ ...resultado, guardado: false });
   } catch (e) {
     const estado = e instanceof ErrorIA ? e.estado : 500;
-    return Response.json({ error: String(e.message || e) }, { status: estado });
+    return Response.json({ error: mensajeError(e) }, { status: estado });
   }
 }

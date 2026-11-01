@@ -1,4 +1,6 @@
-import { consultar, leerFiltros, construirWhere, prepararBusqueda, ordenNormas } from "../../../../lib/db";
+import { usuarioActual } from "../../../../lib/auth";
+import { mensajeError } from "../../../../lib/errores";
+import { consultarGuardado, leerFiltros, construirWhere, prepararBusqueda, ordenNormas } from "../../../../lib/db";
 import { colsLey, estadoProyecto } from "../../../../lib/leyes";
 import { fragmentos, claveProyecto } from "../../../../lib/textos";
 import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "../../../../lib/proyectos";
@@ -69,6 +71,7 @@ function limpiarGrupo(g, validas) {
 }
 
 export async function POST(request) {
+  if (!(await usuarioActual())) return Response.json({ error: "Ingresa con tu usuario.", ingresar: true }, { status: 401 });
   const inicio = Date.now();
   let cuerpo;
   try {
@@ -98,25 +101,25 @@ export async function POST(request) {
       const { where, params } = construirWhere(fn);
       const ordN = [...params];
       pedidos.push(
-        consultar(
+        consultarGuardado(
           `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
            FROM normas ${where} ORDER BY ${ordenNormas(fn, ordN)} LIMIT ${LIMITE}`,
           ordN
         ),
-        consultar(`SELECT count(*)::int AS n FROM normas ${where}`, params)
+        consultarGuardado(`SELECT count(*)::int AS n FROM normas ${where}`, params)
       );
     } else pedidos.push([], [{ n: 0 }]);
     if (ambito !== "normas") {
       const { where, params } = whereProyectos(fp);
       const ordP = [...params];
       pedidos.push(
-        consultar(
+        consultarGuardado(
           `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
                   titulo, sumilla, proponente, estado, ${colsLey("proyectos_ley")}
            FROM proyectos_ley ${where} ORDER BY ${ordenProyectos(fp, ordP)} LIMIT ${LIMITE}`,
           ordP
         ),
-        consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${where}`, params)
+        consultarGuardado(`SELECT count(*)::int AS n FROM proyectos_ley ${where}`, params)
       );
     } else pedidos.push([], [{ n: 0 }]);
     const [normas, [tn], proyectos, [tp]] = await Promise.all(pedidos);
@@ -192,6 +195,6 @@ export async function POST(request) {
     return Response.json({ ...resultado, referencias, totales, modelo, guardado: false });
   } catch (e) {
     const estado = e instanceof ErrorIA ? e.estado : 500;
-    return Response.json({ error: String(e.message || e) }, { status: estado });
+    return Response.json({ error: mensajeError(e) }, { status: estado });
   }
 }

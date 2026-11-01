@@ -1,52 +1,21 @@
-import { ejecutar, urlBase, urlControl } from "./bases";
 import { unstable_noStore as sinCache } from "next/cache";
+import { ejecutar, ejecutarGuardado, URL_PRINCIPAL } from "./bases";
 import { clavesPorTexto, clavesPorGrupos } from "./textos";
+import { Aviso } from "./errores";
 
-// Base principal: hay varias copias (4, 9, 10, 11 y las que el sistema cree solo) y se usa una a la vez
-// (ver src/principal.py y lib/bases.js). Cada una tiene su propio cupo mensual de transferencia en Neon;
-// el sistema rota entre ellas y anota cual se usa en la base de control (tabla "principal").
-// La web lee esa anotacion (como mucho una vez por minuto) y se conecta a la base activa.
-// DATABASE_URL queda solo como respaldo de la 4 (la base original de ese nombre se elimino el 24/10/2026).
-const URL_A = (process.env.TEXTOS_URL_4 || process.env.DATABASE_URL || "").trim();
-let activa = { t: 0, numero: 0, url: "" };
-
-// Numero de la base principal activa
-export async function principalActiva() {
-  return (await resolverActiva()).numero;
-}
-
-async function resolverActiva() {
-  if (activa.url && Date.now() - activa.t < 60000) return activa;
-  let numero = 4;
-  let url = URL_A;
-  if (urlControl()) {
-    try {
-      const [r] = await ejecutar(urlControl(), "SELECT activa FROM principal WHERE id = 1", []);
-      if (r && Number(r.activa) !== 4) {
-        const otra = await urlBase(Number(r.activa));
-        if (otra) {
-          numero = Number(r.activa);
-          url = otra;
-        }
-      }
-    } catch (e) {
-      // Sin la anotacion (o si la base de control no responde): se sigue con la ultima conocida
-      if (activa.url) return { ...activa, t: Date.now() };
-    }
-  }
-  activa = { t: Date.now(), numero, url };
-  return activa;
-}
-
-export function configuracionPrincipal() {
-  return { base4: Boolean(URL_A), control: Boolean(urlControl()) };
-}
-
+// Consulta a la base principal, en el momento (para escribir o leer datos que deben estar al dia:
+// usuarios, sesiones, busquedas guardadas, estado del informe)
 export async function consultar(texto, params = []) {
-  sinCache(); // cada consulta se hace en el momento, nunca se reutiliza una respuesta guardada
-  const { url } = await resolverActiva();
-  if (!url) throw new Error("Falta la variable TEXTOS_URL_4 en Vercel (Settings > Environment Variables).");
-  return ejecutar(url, texto, params);
+  sinCache();
+  if (!URL_PRINCIPAL) throw new Aviso("Falta la variable TEXTOS_URL_4 en Vercel.");
+  return ejecutar(URL_PRINCIPAL, texto, params);
+}
+
+// Consulta de solo lectura cuyo resultado se guarda un tiempo (ver VIGENCIA en lib/bases.js).
+// tipo: "catalogos" | "datos" | "monitoreo"
+export async function consultarGuardado(texto, params = [], tipo = "datos") {
+  if (!URL_PRINCIPAL) throw new Aviso("Falta la variable TEXTOS_URL_4 en Vercel.");
+  return ejecutarGuardado(texto, params, tipo);
 }
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -68,7 +37,7 @@ export function leerTerminos(valor) {
 // Lee y limpia los filtros que vienen en la direccion de la pagina
 export function leerFiltros(sp = {}) {
   const v = (k) => (typeof sp[k] === "string" ? sp[k].trim() : "");
-  const pagina = Math.max(1, parseInt(v("p"), 10) || 1);
+  const pagina = Math.min(100, Math.max(1, parseInt(v("p"), 10) || 1)); // hasta la pagina 100
   return {
     q: v("q").slice(0, 200),
     fecha: FECHA.test(v("fecha")) ? v("fecha") : "",
@@ -200,7 +169,8 @@ export async function prepararBusqueda(f, tipo) {
     f.clavesTexto = [];
     f.clavesRefinar = [];
     f.clavesTodas = [];
-    f.avisoTexto = String(e.message || e);
+    console.error(e);
+    f.avisoTexto = "error";
   }
   return f;
 }

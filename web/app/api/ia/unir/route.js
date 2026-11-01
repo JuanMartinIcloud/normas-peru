@@ -1,4 +1,6 @@
-import { consultar } from "../../../../lib/db";
+import { usuarioActual } from "../../../../lib/auth";
+import { Aviso, mensajeError } from "../../../../lib/errores";
+import { consultarGuardado } from "../../../../lib/db";
 import { colsLey, estadoProyecto } from "../../../../lib/leyes";
 import { urlProyecto } from "../../../../lib/resumenes";
 import { generarJSON, partePDF, ErrorIA } from "../../../../lib/gemini";
@@ -68,6 +70,7 @@ Las normas legales que también se reciban sirven solo como contexto.`,
 const limpiaTexto = (v) => String(v || "").trim();
 
 export async function POST(request) {
+  if (!(await usuarioActual())) return Response.json({ error: "Ingresa con tu usuario.", ingresar: true }, { status: 401 });
   const inicio = Date.now();
   let cuerpo;
   try {
@@ -93,14 +96,14 @@ export async function POST(request) {
     const idsP = items.filter((x) => x.t === "P").map((x) => x.id);
     const [normas, proyectos] = await Promise.all([
       idsN.length
-        ? consultar(
+        ? consultarGuardado(
             `SELECT id::text AS id, fecha::text AS fecha, tipo, numero, entidad, sumilla, url_detalle, url_pdf, hash_unico
              FROM normas WHERE id = ANY($1::bigint[])`,
             [idsN]
           )
         : [],
       idsP.length
-        ? consultar(
+        ? consultarGuardado(
             `SELECT id::text AS id, numero, periodo, camara, num_pley, url, fecha_presentacion::text AS fecha,
                     titulo, proponente, autor, estado, sumilla, ${colsLey("proyectos_ley")}
              FROM proyectos_ley WHERE id = ANY($1::bigint[])`,
@@ -139,7 +142,9 @@ export async function POST(request) {
           if (doc.pdf) return { pdf: doc.pdf, nombre: doc.nombre, sumilla: doc.sumilla };
           return { sumilla: doc.sumilla, aviso: "El Congreso no tiene el PDF; se usaron el título y la sumilla." };
         } catch (e) {
-          return { aviso: `No se pudo leer el texto completo (${e.message}); se usó la sumilla o el título.` };
+          const motivo = e instanceof Aviso ? ` (${e.message})` : "";
+          if (!motivo) console.error(e);
+          return { aviso: `No se pudo leer el texto completo${motivo}; se usó la sumilla o el título.` };
         }
       })
     );
@@ -206,6 +211,6 @@ export async function POST(request) {
     return Response.json({ ...resultado, modelo, guardado: false });
   } catch (e) {
     const estado = e instanceof ErrorIA ? e.estado : 500;
-    return Response.json({ error: String(e.message || e) }, { status: estado });
+    return Response.json({ error: mensajeError(e) }, { status: estado });
   }
 }

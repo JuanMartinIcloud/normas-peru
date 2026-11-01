@@ -1,3 +1,5 @@
+import { usuarioActual } from "../../../../lib/auth";
+import { mensajeError } from "../../../../lib/errores";
 import { consultar } from "../../../../lib/db";
 import { pdfNorma, documentoProyecto } from "../../../../lib/documentos";
 
@@ -6,6 +8,8 @@ export const maxDuration = 120;
 
 // Revisa que la IA y la lectura de documentos completos funcionen desde Vercel (no gasta cupo de IA)
 export async function GET() {
+  const u = await usuarioActual();
+  if (!u || u.rol !== "admin") return Response.json({ error: "Solo el administrador puede hacer esto." }, { status: 403 });
   const r = { clave_gemini: Boolean((process.env.GEMINI_API_KEY || "").trim()) };
   try {
     const [n] = await consultar(
@@ -20,7 +24,7 @@ export async function GET() {
       segundos: (Date.now() - inicio) / 1000,
     };
   } catch (e) {
-    r.el_peruano = { error: String(e.message || e) };
+    r.el_peruano = { error: mensajeError(e) };
   }
   try {
     const [p] = await consultar(
@@ -30,7 +34,7 @@ export async function GET() {
     const doc = await documentoProyecto(p);
     r.congreso = { proyecto: p.numero, archivo: doc.nombre, bytes: doc.pdf ? doc.pdf.length : 0, segundos: (Date.now() - inicio) / 1000 };
   } catch (e) {
-    r.congreso = { error: String(e.message || e) };
+    r.congreso = { error: mensajeError(e) };
   }
   return Response.json(r, { headers: { "Cache-Control": "no-store" } });
 }

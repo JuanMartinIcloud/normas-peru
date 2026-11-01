@@ -17,7 +17,7 @@ export function leerFiltrosProyectos(sp = {}) {
     refinar: leerTerminos(sp.y),
     pregunta: v("pregunta").slice(0, 300),
     orden: v("orden") === "r" ? "r" : "",
-    pagina: Math.max(1, parseInt(v("p"), 10) || 1),
+    pagina: Math.min(100, Math.max(1, parseInt(v("p"), 10) || 1)), // hasta la pagina 100
   };
 }
 

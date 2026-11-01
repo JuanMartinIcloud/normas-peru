@@ -1,81 +1,85 @@
-# Normas legales del Perú → Neon
+# Normas legales del Perú
 
-Descarga las normas legales de El Peruano, las clasifica por sector y rubro y las guarda en Neon (PostgreSQL).
-Etapa 1: normas de El Peruano. Etapa 2: proyectos de ley del Congreso (todas las cámaras y proponentes). Etapa 3: resumen diario con IA.
+Sistema interno que descarga a diario las normas legales de El Peruano y los proyectos de ley del Congreso,
+los guarda en bases de datos de Neon, los resume y analiza con IA (Gemini) y los muestra en una web privada
+(Vercel). Todo funciona con planes gratuitos.
 
-## Estado
+## Partes
 
-- **Listo:** esquema SQL, clasificador por reglas, cliente de descarga, carga diaria y carga histórica con punto de control, flujos de GitHub Actions.
-- **Pendiente de confirmar:** el endpoint exacto de El Peruano. Su página carga el listado por JavaScript y no pude verlo desde mi entorno. Por eso el scraper es configurable y hay un sondeo que lo descubre.
-- **No probado contra la fuente real.** La primera ejecución puede requerir ajustes en `src/config.py`.
+| Parte | Dónde | Qué hace |
+|---|---|---|
+| Tareas automáticas | GitHub Actions (`.github/workflows/`, código en `src/`) | Descargan, clasifican, resumen, analizan e indexan |
+| Base principal | Neon, secreto `TEXTOS_URL_4` | Normas, proyectos, seguimiento, análisis, resúmenes, usuarios |
+| Bases de texto | Neon, secretos `TEXTOS_URL_2`, `3`, `5` a `12` | Texto completo de normas y proyectos (tabla `documentos`). La 1 está retirada. La 2 es además la base de control (cupos y avance de la indexación) |
+| Web | Vercel, carpeta `web/` (Next.js) | Buscador, proyectos, resúmenes, monitoreo empresarial. Exige usuario y contraseña |
 
-## Puesta en marcha
+## Tareas automáticas
 
-1. **Neon:** crea un proyecto gratis en neon.tech, copia la cadena de conexión y ejecuta `psql "$DATABASE_URL" -f schema.sql`.
-2. **GitHub:** sube esta carpeta a un repositorio. Los repos públicos tienen más minutos de Actions que los privados (revisa los límites vigentes).
-3. En *Settings → Secrets and variables → Actions* agrega el secreto `DATABASE_URL`.
-4. **Sondeo:** ejecuta el flujo *Sondeo de la fuente*, o en tu computadora `python src/probe.py`. Descarga los artefactos y busca el endpoint (otra vía: Chrome → F12 → Network → Fetch/XHR → pulsa *Buscar* en la página de Normas y copia la URL y los parámetros).
-5. Carga en *Variables* de Actions: `ELPERUANO_ENDPOINT`, `ELPERUANO_METODO`, `ELPERUANO_PARAM_DESDE`, `ELPERUANO_PARAM_HASTA`. Si el JSON usa otros nombres de campo, ajusta `CAMPOS` en `src/config.py`.
-6. **Prueba sin escribir en la base:** `python src/run_dia.py 2026-10-09 --sin-bd`
-7. Si se ve bien, activa los flujos:
-   - *Descarga diaria*: corre sola cada noche.
-   - *Carga histórica*: tandas de hasta ~5,5 horas que se reanudan solas. Cambia `desde` para ir más atrás de 2019.
+El flujo **Programador de tareas** (`programador.yml`, cada 30 minutos) es el único que lanza las tareas
+diarias, a su hora de Lima, y repite una tarea que falló (cada 30 minutos, hasta 6 veces en el día). Los
+demás flujos no tienen horario propio.
 
-## Cómo funciona el histórico
+| Hora (Lima) | Flujo | Qué hace |
+|---|---|---|
+| 22:40 | `diario.yml` | Normas del día (y del anterior, por ediciones extraordinarias) |
+| 23:30 | `historico.yml` | Días pendientes del archivo histórico de El Peruano |
+| 01:20 | `congreso.yml` | Proyectos de ley, su seguimiento y las leyes publicadas |
+| 02:20 | `monitoreo.yml` | Análisis con IA de lo nuevo para el monitoreo empresarial |
+| 03:20 | `resumen.yml` | Resumen diario con IA |
+| 04:00 | `indexar.yml` | Texto completo de lo nuevo (solo lo que aún no está guardado) |
+| 05:00 | `busquedas.yml` | Búsquedas guardadas que tocan ese día |
+| 05:30 | `ocr.yml` | Lectura de documentos escaneados, si hay pendientes |
+| 06:00 | `vigilar.yml` | Alarma de consumo de Neon (espacio, cómputo y transferencia) |
+| 15:00 | `recalificar.yml` | Recalificación pendiente del monitoreo, si hay |
+| lunes 06:10 | `vocabulario.yml` | Vocabulario del corrector de búsquedas |
 
-`backfill.py` va del día más reciente hacia atrás y anota cada día en la tabla `descargas`. Si se corta, la siguiente tanda continúa donde quedó. Los días con error se reintentan.
+Otros flujos:
 
-## Almacenamiento
+- **Cupos de Neon** (`cupos.yml`, cada hora): mide con la API de Neon cuántos datos salió de cada base en
+  el mes (sin despertar las bases). Ver «Límites de Neon».
+- **Diagnóstico** (`diagnostico.yml`, a mano): mediciones de solo lectura.
+- **Reconstruir la base principal** (`reconstruir.yml`, a mano): llena una base principal nueva desde las
+  fuentes oficiales.
 
-Neon gratis tiene poco espacio (revisa el límite vigente). Aquí solo se guardan metadatos y enlaces al PDF. Si luego quieres guardar PDFs o textos completos, la columna `texto_r2_key` está reservada para Cloudflare R2.
+Las tablas se crean y actualizan solas la primera vez que corre cualquier tarea (`asegurar_esquema` en
+`src/db.py`, a partir de `schema.sql`).
 
-## Alcance y límites
+## Límites de Neon (plan gratuito, por base)
 
-- "Todo desde el inicio" depende de lo que El Peruano publique en línea. Lo anterior a su archivo digital puede estar solo en SPIJ (MINJUS), que habrá que evaluar aparte y revisando sus términos de uso.
-- Respeta los términos de uso de cada sitio. La pausa entre solicitudes está en `PAUSA_SEGUNDOS` (1,5 s por defecto).
-- La clasificación es por reglas (entidad y palabras clave). Lo que no calza queda como `Otros` o `Sin clasificar`, y se puede refinar después, con IA si quieres.
+- Espacio: 1 GB. Las bases de texto se llenan hasta 900 MB y la indexación pasa sola a la siguiente.
+- Transferencia: 5 GB al mes (datos que salen de la base). Se renueva el día 1 a las 00:00 hora universal
+  (7:00 p. m. del día anterior en Lima).
+  - Base principal en 4 GB: se detienen las tareas no indispensables.
+  - Base principal en 4,6 GB: se detienen todas las tareas automáticas; lo que queda es para la web.
+    Lo pendiente se completa solo cuando se renueva el cupo.
+  - Base de texto en 4 GB: no se le agrega nada más ese mes.
+- Cómputo: 100 horas al mes.
 
-## Resumen diario con IA (Gemini)
+La web guarda el resultado de cada consulta un tiempo (listas y conteos 30 minutos; años, sectores y otros
+catálogos 6 horas): una misma consulta no se vuelve a pedir a la base mientras su resultado esté vigente.
 
-Cada madrugada el flujo *Resumen diario con IA* (`.github/workflows/resumen.yml`, `src/resumen.py`):
+## Web
 
-1. Vuelve a descargar las normas de ayer (recoge ediciones extraordinarias tardías) y actualiza los proyectos del Congreso.
-2. Envía a Gemini las sumillas de las normas de ayer, los proyectos de ley nuevos y los que cambiaron de estado.
-3. Guarda el resultado en la tabla `resumenes`; la portada de la web lo muestra y `/resumenes` guarda el historial.
+- Todo el sitio exige usuario y contraseña. Las cuentas las crea el administrador en *Monitoreo → Usuarios*.
+- Tras 10 contraseñas equivocadas en 15 minutos se bloquean los intentos por 15 minutos.
+- Robots y buscadores no tienen acceso (respuesta 403 y `robots.txt` que lo prohíbe todo).
+- Descargas en Excel: hasta 5.000 filas. Listados: hasta la página 100.
 
-Se ejecuta a las 3:17, 5:17 y 7:17 a. m. (Lima). Los dos últimos son respaldos por si GitHub se retrasa: si el resumen ya existe, terminan sin hacer nada. Si falta algún día de la última semana, lo completa.
+Variables de entorno en Vercel: `TEXTOS_URL_2` a `TEXTOS_URL_12` (las mismas cadenas de las bases),
+`GEMINI_API_KEY` (y opcional `GEMINI_MODELOS`), y para el correo `CORREO_SERVIDOR`, `CORREO_USUARIO`,
+`CORREO_CLAVE`.
 
-Requiere el secreto `GEMINI_API_KEY` (clave gratuita de Google AI Studio) en *Settings → Secrets and variables → Actions*. Opcional: la variable `GEMINI_MODELOS` para cambiar los modelos (por defecto `gemini-flash-latest,gemini-3.5-flash-lite,gemini-2.5-flash`).
+## Secretos de GitHub Actions
 
-La base se actualiza sola la primera vez que corre cualquier script (`asegurar_esquema` en `src/db.py`).
+`TEXTOS_URL_2` a `TEXTOS_URL_12`, `GEMINI_API_KEY`, `NEON_API_KEY` (clave de la cuenta de Neon, para medir
+cupos y consumo). Variable opcional: `GEMINI_MODELOS`.
 
-## Consultas con IA desde la web
+Las cadenas de conexión y las claves solo van en los secretos de GitHub y en las variables de Vercel; nunca
+en el código ni en mensajes.
 
-- **Buscar en todo** (`/buscar`): una sola búsqueda en normas y proyectos de ley.
-- **Resumir con IA**: botón en `/buscar`, en la portada (con filtros) y en `/proyectos`. Resume hasta 150 resultados por grupo a partir de sumillas y títulos (`/api/ia/resumir`).
-- **Seleccionar documentos**: casilla en cada norma o proyecto (hasta 6, se guardan en el navegador). La barra inferior permite **Unir en un texto** o **Proponer proyecto unificado** (`/unir`, `/api/ia/unir`). La IA lee el texto completo de cada norma (página de El Peruano) y el PDF de cada proyecto (portal del Congreso).
-- **Similares** (`/proyectos/similares?id=`): proyectos cuyo título trata lo mismo.
-- **Descargar en Word** (`/api/word`).
-- Las respuestas de la IA se guardan en la tabla `consultas_ia` (se crea sola) para no gastar cupo en consultas repetidas.
-- `/api/ia/diagnostico` comprueba, sin gastar cupo, que Vercel tenga la clave y pueda leer El Peruano y el Congreso.
+## Agregar una base de texto
 
-Requiere la variable `GEMINI_API_KEY` también en Vercel (*Settings → Environment Variables*).
-
-## Búsqueda dentro del contenido
-
-- El flujo *Textos completos para el buscador* (`src/textos.py`, cada 4 horas) guarda la **sumilla extensa** de cada proyecto (expediente del Congreso) y, para las normas de los últimos 60 días en adelante, lee el **PDF oficial** (`epdoc2.elperuano.pe`) y guarda sus 200 palabras más repetidas en `normas.texto_tsv`. No guarda el texto, para no llenar la base gratuita.
-- `busquedas.elperuano.pe` dejó de responder a consultas automáticas (página "URL cannot be found"); no se usa.
-- En `/buscar`, el botón **Ampliar la búsqueda con IA** (`/api/ia/ampliar`) agrega sinónimos y leyes relacionadas al término buscado.
-
-## Siguientes etapas
-
-1. Descarga de PDFs a R2 y resúmenes basados en el texto completo de cada norma.
-
-## Web (Vercel)
-
-La carpeta `web/` es una página Next.js que lee la base de Neon: atajo "Hoy", año, rubro, sector, tipo, fechas, buscador y descarga CSV para Excel.
-
-1. En Vercel: *Add New > Project*, importar este repositorio.
-2. En *Root Directory* elegir `web`.
-3. En *Environment Variables* agregar `DATABASE_URL` con la misma cadena de Neon.
-4. *Deploy*.
+1. Crear un proyecto gratuito en Neon y copiar su cadena de conexión.
+2. Agregarla como secreto `TEXTOS_URL_<número siguiente>` en GitHub y como variable con el mismo nombre en
+   Vercel; agregar ese secreto a los flujos que usan las bases de texto (`indexar.yml`, `ocr.yml`,
+   `monitoreo.yml`, `cupos.yml`, `vigilar.yml`) y subir el número máximo en `src/bases.py` y `web/lib/bases.js` si pasa de 12.

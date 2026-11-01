@@ -1,6 +1,6 @@
 """Alarma de consumo: revisa cada dia que ninguna base de Neon se acerque a sus limites gratuitos.
 
-- Espacio de cada base (limite 512 MB por proyecto gratuito): con las cadenas de conexion.
+- Espacio de cada base (limite 1024 MB por proyecto gratuito): con las cadenas de conexion.
 - Horas de computo (100 CU-hora al mes por proyecto) y transferencia (5 GB al mes): con la API de
   Neon, si existe el secreto NEON_API_KEY (clave de solo lectura de la cuenta de Neon).
 
@@ -17,7 +17,7 @@ import bases
 
 LIMITE_CU_HORAS = 100
 LIMITE_TRANSFER_GB = 5
-LIMITE_ESPACIO_MB = 512
+LIMITE_ESPACIO_MB = 1024
 AVISO, ALARMA = 0.70, 0.85
 
 
@@ -41,8 +41,8 @@ def revisar_espacio():
             print(f"::warning title=Base {nombre}::No respondio: {str(e)[:200]}")
             continue
         f = mb / LIMITE_ESPACIO_MB
-        # Las bases de texto se llenan a proposito hasta ~85% (el indexador para ahi y pasa a la siguiente);
-        # solo preocupa si alguna sigue creciendo por encima del 93%. La principal alarma desde el 85%.
+        # Las bases de texto se llenan a proposito hasta 900 MB (~88%; el indexador para ahi y pasa a la
+        # siguiente); solo preocupa si alguna sigue creciendo por encima del 93%. La principal alarma desde el 85%.
         if nombre.startswith("texto") and f < 0.93:
             peor = max(peor, min(f, ALARMA - 0.01))
         else:
