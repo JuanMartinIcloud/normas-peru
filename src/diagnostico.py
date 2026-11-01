@@ -4,6 +4,7 @@
     python src/diagnostico.py consultas   # consultas que mas filas devolvieron en la base principal
     python src/diagnostico.py conteos     # conteos de control del sistema
     python src/diagnostico.py seguridad   # usuarios, permisos, funciones y disparadores de cada base
+    python src/diagnostico.py web         # comprueba desde afuera que la web este cerrada (sin usuario)
 
 El resultado se muestra como un aviso de la ejecucion en GitHub (no se guarda en el repositorio).
 """
@@ -124,9 +125,46 @@ def seguridad():
             p(f"[{nombre}] no se pudo revisar: {type(e).__name__}")
 
 
+def web():
+    """Pruebas desde afuera, sin usuario: nada debe mostrar datos."""
+    sitio = "https://normas-peru.vercel.app"
+    nav = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120 Safari/537.36"}
+    falsa = {"Cookie": "sesion=1.99999999999999." + "a" * 64, **nav}
+    pruebas = [
+        ("portada sin usuario (espera 307 a /ingresar)", "GET", "/", nav),
+        ("proyectos sin usuario (espera 307)", "GET", "/proyectos?q=agua", nav),
+        ("monitoreo sin usuario (espera 307)", "GET", "/monitoreo", nav),
+        ("descarga Excel sin usuario (espera 401)", "GET", "/api/csv", nav),
+        ("estado del sistema sin usuario (espera 401)", "GET", "/api/estado", nav),
+        ("IA sin usuario (espera 401)", "POST", "/api/ia/resumir", nav),
+        ("robot de Google (espera 403)", "GET", "/", {"User-Agent": "Googlebot/2.1"}),
+        ("programa automatico (espera 403)", "GET", "/", {"User-Agent": "python-requests/2.32"}),
+        ("sesion falsificada en pagina (no debe mostrar datos)", "GET", "/resumenes", falsa),
+        ("sesion falsificada en descarga (espera 401)", "GET", "/api/csv", falsa),
+        ("tarea de busquedas con clave falsa (espera 401)", "POST", "/api/busquedas/ejecutar",
+         {"x-clave-tareas": "0" * 48, **nav}),
+        ("optimizador de imagenes (espera 404)", "GET", "/_next/image?url=%2Fx.svg&w=64&q=75", nav),
+        ("pagina de ingreso (espera 200)", "GET", "/ingresar", nav),
+        ("robots.txt (espera 200)", "GET", "/robots.txt", nav),
+    ]
+    for titulo, metodo, ruta, cab in pruebas:
+        try:
+            r = requests.request(metodo, sitio + ruta, headers=cab, timeout=60, allow_redirects=False)
+            extra = r.headers.get("location", "")
+            if "falsificada en pagina" in titulo:
+                extra = "sin datos" if ("no está disponible" in r.text or r.status_code in (307, 401)) and "sumilla" not in r.text else "MUESTRA DATOS"
+            p(f"{titulo}: {r.status_code} {extra}")
+        except Exception as e:  # noqa: BLE001
+            p(f"{titulo}: error {type(e).__name__}")
+    r = requests.get(sitio + "/ingresar", headers=nav, timeout=60)
+    p("cabeceras: " + ", ".join(f"{k}={'si' if r.headers.get(k) else 'NO'}" for k in
+                                ("x-robots-tag", "x-frame-options", "strict-transport-security", "x-content-type-options"))
+      + f", x-powered-by={'PRESENTE' if r.headers.get('x-powered-by') else 'oculto'}")
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
-    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad}[modo]()
+    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web}[modo]()
     texto = "\n".join(lineas)
     print(texto)
     # Un solo aviso con todo el resultado (los saltos de linea se codifican para GitHub)
