@@ -1,14 +1,14 @@
-"""Diagnostico temporal: tablas de la base principal y de la base 11 (tamanos)."""
+"""Diagnostico: que consultas sacan mas datos de la base principal (pg_stat_statements)."""
 import os
 import psycopg2
-SQL = """SELECT c.relname, pg_total_relation_size(c.oid)/1e6, pg_relation_size(c.oid)/1e6, c.reltuples::bigint
-         FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-         WHERE n.nspname='public' AND c.relkind='r' ORDER BY 2 DESC"""
-for nombre, var in (("PRINCIPAL A (4)", "DATABASE_URL"), ("BASE 11", "TEXTOS_URL_11"), ("BASE 10", "TEXTOS_URL_10")):
-    c = psycopg2.connect(os.environ[var]); cur = c.cursor()
-    cur.execute(SQL); print("\n==", nombre)
-    for r in cur.fetchall(): print("  ", r)
-    cur.execute("SELECT pg_database_size(current_database())/1e6, version()"); print("  total MB", cur.fetchone())
-    cur.execute("SELECT extname FROM pg_extension"); print("  ext", cur.fetchall())
-    cur.execute("SELECT sequence_name FROM information_schema.sequences"); print("  seq", [r[0] for r in cur.fetchall()])
-    c.close()
+c = psycopg2.connect(os.environ["DATABASE_URL"]); cur = c.cursor()
+cur.execute("SELECT stats_reset FROM pg_stat_statements_info")
+print("estadisticas desde:", cur.fetchone())
+cur.execute("""SELECT calls, rows, round(rows::numeric / greatest(calls,1), 1), round(total_exec_time::numeric/1000,1),
+                      regexp_replace(left(query, 330), '\\s+', ' ', 'g')
+               FROM pg_stat_statements ORDER BY rows DESC LIMIT 45""")
+for r in cur.fetchall():
+    print(r)
+cur.execute("SELECT sum(calls), sum(rows) FROM pg_stat_statements"); print("total", cur.fetchone())
+cur.execute("""SELECT usename, application_name, client_addr, state, left(query,80) FROM pg_stat_activity WHERE datname = current_database()""")
+for r in cur.fetchall(): print("act", r)
