@@ -5,6 +5,7 @@
     python src/diagnostico.py conteos     # conteos de control del sistema
     python src/diagnostico.py seguridad   # usuarios, permisos, funciones y disparadores de cada base
     python src/diagnostico.py web         # comprueba desde afuera que la web este cerrada (sin usuario)
+    python src/diagnostico.py ia          # cuanto trabajo de IA tiene cada mes y cuanto se gasto por dia
 
 El resultado se muestra como un aviso de la ejecucion en GitHub (no se guarda en el repositorio).
 """
@@ -162,9 +163,51 @@ def web():
       + f", x-powered-by={'PRESENTE' if r.headers.get('x-powered-by') else 'oculto'}")
 
 
+def ia():
+    """Cifras para calcular el cupo de la IA (solo conteos)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    local = """(n.sector IN ('Gobiernos Locales', 'Gobiernos Regionales')
+               OR upper(translate(n.tipo, 'áéíóúÁÉÍÓÚ', 'aeiouAEIOU')) ~ '^(ORDENANZA|DECRETO DE ALCALDIA|ACUERDO DE CONCEJO|RESOLUCION DE ALCALDIA|ACUERDO REGIONAL|RESOLUCION EJECUTIVA REGIONAL|ACUERDO DE CONSEJO REGIONAL)'
+               OR upper(n.entidad) ~ '(MUNICIPALIDAD|GOBIERNO REGIONAL|CONSEJO REGIONAL)')"""
+    rango = "n.tipo ~* '^\\s*(fe\\s+de\\s+erratas?\\s+)?(ley|decreto\\s+legislativo|decreto\\s+de\\s+urgencia|resoluci[oó]n\\s+legislativa)\\y'"
+    cur.execute(f"""SELECT extract(year FROM n.fecha)::int, count(*), count(*) FILTER (WHERE NOT {local}),
+                           count(*) FILTER (WHERE {rango})
+                    FROM normas n GROUP BY 1 ORDER BY 1""")
+    p("NORMAS por año (total | no locales | rango de ley):")
+    for a, t, nl, r in cur.fetchall():
+        p(f"  {a}: {t} | {nl} | {r}")
+    cur.execute("""SELECT extract(year FROM fecha_presentacion)::int, count(*) FROM proyectos_ley
+                   WHERE fecha_presentacion IS NOT NULL GROUP BY 1 ORDER BY 1""")
+    p("PROYECTOS presentados por año: " + ", ".join(f"{a}: {n}" for a, n in cur.fetchall()))
+    cur.execute(f"""SELECT to_char(n.fecha, 'YYYY-MM'), count(*), count(*) FILTER (WHERE NOT {local}),
+                           count(a.id), count(*) FILTER (WHERE a.relevante),
+                           count(*) FILTER (WHERE {rango} AND NOT {local})
+                    FROM normas n LEFT JOIN analisis a ON a.tipo = 'N' AND a.ref_id = n.id
+                    WHERE n.fecha >= '2026-01-01' GROUP BY 1 ORDER BY 1""")
+    p("MESES 2026 normas (total | no locales | revisadas | relevantes | rango de ley no locales):")
+    for m, t, nl, rv, rl, rg in cur.fetchall():
+        p(f"  {m}: {t} | {nl} | {rv} | {rl} | {rg}")
+    cur.execute("""SELECT to_char(a.fecha, 'YYYY-MM'), count(*), count(*) FILTER (WHERE a.relevante)
+                   FROM analisis a WHERE a.tipo = 'P' AND a.fecha >= '2026-01-01' GROUP BY 1 ORDER BY 1""")
+    p("MESES 2026 proyectos analizados (revisados | relevantes): " + ", ".join(f"{m}: {t}|{r}" for m, t, r in cur.fetchall()))
+    cur.execute("""SELECT (creado_en AT TIME ZONE 'America/Los_Angeles')::date AS dia, coalesce(modelo, '(filtro o local)'), count(*)
+                   FROM analisis WHERE creado_en > now() - interval '21 days' GROUP BY 1, 2 ORDER BY 1, 2""")
+    p("ANALISIS guardados por dia (hora del Pacifico, cuando Google renueva el cupo) y modelo:")
+    for d, m, n in cur.fetchall():
+        p(f"  {d} {m}: {n}")
+    try:
+        cur.execute("""SELECT (creado_en AT TIME ZONE 'America/Los_Angeles')::date, tipo, count(*) FROM consultas_ia
+                       WHERE creado_en > now() - interval '45 days' GROUP BY 1, 2 ORDER BY 1, 2""")
+        p("CONSULTAS desde la web por dia: " + ", ".join(f"{d} {t}: {n}" for d, t, n in cur.fetchall()))
+    except psycopg2.Error:
+        c.rollback()
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
-    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web}[modo]()
+    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia}[modo]()
     texto = "\n".join(lineas)
     print(texto)
     # Un solo aviso con todo el resultado (los saltos de linea se codifican para GitHub)

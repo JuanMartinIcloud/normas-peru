@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "neon | consultas | conteos | seguridad | web"
+        description: "neon | consultas | conteos | seguridad | web | ia"
         default: "neon"
 
 jobs:
