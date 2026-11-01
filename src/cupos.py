@@ -1,6 +1,6 @@
 """Cupo mensual de TRANSFERENCIA de cada base de Neon (datos que salen de la base: 5 GB al mes gratis).
 
-    python src/cupos.py            # mide cada base y guarda el resultado (cada hora, flujo "Cupos de Neon")
+    python src/cupos.py            # mide cada base y guarda el resultado (4 veces al dia, flujo "Cupos de Neon")
 
 Reglas:
 - Base de texto que llega a 4 GB en el mes: no se le agrega nada mas; lo nuevo va a la siguiente.

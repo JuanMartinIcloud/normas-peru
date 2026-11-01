@@ -1,11 +1,13 @@
 name: Programador de tareas
 
-# Cada 30 minutos revisa la hora de Lima y lanza las tareas diarias que tocan (o repite las que fallaron).
-# Hace una sola revision y termina en segundos. Ver src/programador.py.
+# Revisa la hora de Lima y lanza las tareas diarias que tocan (o repite las que fallaron). Corre solo en
+# las horas en que hay tareas: cada hora de 10:45 p. m. a 7:45 a. m., y a las 3:05 y 4:05 p. m. (hora de
+# Lima). Hace una sola revision y termina en segundos. Ver src/programador.py.
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "45 3-12 * * *"     # 10:45 p. m. a 7:45 a. m. de Lima (hora universal + 5)
+    - cron: "5 20,21 * * *"     # 3:05 y 4:05 p. m. de Lima
 
 concurrency:
   group: programador

@@ -47,7 +47,7 @@ SQL_PENDIENTES = """
     FROM analisis a
     LEFT JOIN normas n ON a.tipo = 'N' AND n.id = a.ref_id
     LEFT JOIN proyectos_ley p ON a.tipo = 'P' AND p.id = a.ref_id
-    WHERE a.relevante AND a.criterio IS DISTINCT FROM %s
+    WHERE a.relevante AND NOT a.manual AND a.criterio IS DISTINCT FROM %s
     ORDER BY a.fecha DESC, a.id"""
 
 
@@ -65,7 +65,7 @@ def pendientes(conn, limite=None, buscar=None):
 
 def contar(conn):
     with conn.cursor() as cur:
-        cur.execute("SELECT count(*) FROM analisis WHERE relevante AND criterio IS DISTINCT FROM %s", (CRITERIO,))
+        cur.execute("SELECT count(*) FROM analisis WHERE relevante AND NOT manual AND criterio IS DISTINCT FROM %s", (CRITERIO,))
         return cur.fetchone()[0]
 
 

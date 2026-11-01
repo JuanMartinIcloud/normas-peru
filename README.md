@@ -15,16 +15,16 @@ los guarda en bases de datos de Neon, los resume y analiza con IA (Gemini) y los
 
 ## Tareas automáticas
 
-El flujo **Programador de tareas** (`programador.yml`, cada 30 minutos) es el único que lanza las tareas
-diarias, a su hora de Lima, y repite una tarea que falló (cada 30 minutos, hasta 6 veces en el día). Los
-demás flujos no tienen horario propio.
+El flujo **Programador de tareas** (`programador.yml`) es el único que lanza las tareas diarias, a su hora
+de Lima, y repite una tarea que falló (hasta 6 veces en el día). Corre solo en las horas en que hay tareas:
+cada hora de 10:45 p. m. a 7:45 a. m., y a las 3:05 y 4:05 p. m. Los demás flujos no tienen horario propio.
 
 | Hora (Lima) | Flujo | Qué hace |
 |---|---|---|
 | 22:40 | `diario.yml` | Normas del día (y del anterior, por ediciones extraordinarias) |
 | 23:30 | `historico.yml` | Días pendientes del archivo histórico de El Peruano |
 | 01:20 | `congreso.yml` | Proyectos de ley, su seguimiento y las leyes publicadas |
-| 02:20 | `monitoreo.yml` | Análisis con IA de lo nuevo para el monitoreo empresarial |
+| 02:20 | `monitoreo.yml` | Análisis con IA del mes en curso y de lo pedido desde la web |
 | 03:20 | `resumen.yml` | Resumen diario con IA |
 | 04:00 | `indexar.yml` | Texto completo de lo nuevo (solo lo que aún no está guardado) |
 | 05:00 | `busquedas.yml` | Búsquedas guardadas que tocan ese día |
@@ -35,8 +35,17 @@ demás flujos no tienen horario propio.
 
 Otros flujos:
 
-- **Cupos de Neon** (`cupos.yml`, cada hora): mide con la API de Neon cuántos datos salió de cada base en
-  el mes (sin despertar las bases). Ver «Límites de Neon».
+- **Cupos de Neon** (`cupos.yml`, 4 veces al día: 10 p. m., 2 a. m., 5 a. m. y 1 p. m.): mide con la API de
+  Neon cuántos datos salieron de cada base en el mes. Ver «Límites de Neon».
+
+## Monitoreo a pedido
+
+La IA revisa sola cada madrugada el mes en curso. Los meses anteriores se revisan a pedido: al abrir un mes
+en el monitoreo aparece «Revisar este mes con IA». También se piden solos los documentos de una búsqueda
+guardada que la IA aún no revisó, y los que alguien pasa a mano a «impacto empresarial» (esos quedan en el
+reporte aunque la IA los vuelva a revisar). Los pedidos se guardan en la tabla `analisis_pedidos` y los
+atiende `monitoreo.py pedidos`: al momento si Vercel tiene la variable `GITHUB_TAREAS` (clave de GitHub que
+solo puede lanzar tareas de este repositorio); si no, en la ejecución de la madrugada.
 - **Diagnóstico** (`diagnostico.yml`, a mano): mediciones de solo lectura.
 - **Reconstruir la base principal** (`reconstruir.yml`, a mano): llena una base principal nueva desde las
   fuentes oficiales.
@@ -66,8 +75,8 @@ catálogos 6 horas): una misma consulta no se vuelve a pedir a la base mientras 
 - Descargas en Excel: hasta 5.000 filas. Listados: hasta la página 100.
 
 Variables de entorno en Vercel: `TEXTOS_URL_2` a `TEXTOS_URL_12` (las mismas cadenas de las bases),
-`GEMINI_API_KEY` (y opcional `GEMINI_MODELOS`), y para el correo `CORREO_SERVIDOR`, `CORREO_USUARIO`,
-`CORREO_CLAVE`.
+`GEMINI_API_KEY` (y opcional `GEMINI_MODELOS`), `GITHUB_TAREAS` (opcional, ver «Monitoreo a pedido») y
+para el correo `CORREO_SERVIDOR`, `CORREO_USUARIO`, `CORREO_CLAVE`.
 
 ## Secretos de GitHub Actions
 

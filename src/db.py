@@ -32,6 +32,10 @@ _ETAPAS = [
                                      WHERE schemaname = 'public' AND indexname = 'idx_normas_numero')"""),
     ("-- Etapa 10:", """SELECT NOT EXISTS (SELECT 1 FROM information_schema.tables
                                          WHERE table_schema = 'public' AND table_name = 'textos')"""),
+    ("-- Etapa 11:", """SELECT EXISTS (SELECT 1 FROM information_schema.tables
+                                     WHERE table_schema = 'public' AND table_name = 'analisis_pedidos')
+                         AND EXISTS (SELECT 1 FROM information_schema.columns
+                                     WHERE table_schema = 'public' AND table_name = 'analisis' AND column_name = 'manual')"""),
 ]
 
 

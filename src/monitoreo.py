@@ -9,7 +9,8 @@ Para cada norma legal y cada proyecto de ley:
 Todo queda en la tabla "analisis"; la web arma los reportes con ella.
 
     python src/monitoreo.py diario              # mes actual (solo lo que falta) + movimientos del Congreso
-    python src/monitoreo.py historico           # el mes anterior al ultimo procesado (un mes por vez)
+    python src/monitoreo.py pedidos             # meses y documentos pedidos desde la web (a pedido)
+    python src/monitoreo.py historico           # el mes anterior al ultimo procesado (solo a mano)
     python src/monitoreo.py rango 2026-08-01 2026-08-31
 Opciones: --max-minutos 300
 """
@@ -330,21 +331,31 @@ def guardar(filas):
             "calificacion", "impacto", "puntaje", "criterio", "comites", "acciones", "accion_directorio",
             "lectura", "modelo"]
     valores = []
+    forzados = []
     for f in filas:
-        if f.pop("acto_individual", False):
+        forzado = f.pop("forzado", False)
+        if f.pop("acto_individual", False) and not forzado:
             f["relevante"] = False   # acto sobre una empresa, contrato o persona concreta: fuera del reporte
+        if forzado:
+            forzados.append((f["tipo"], f["ref_id"]))
         v = [f.get(c) for c in cols]
         v[cols.index("acciones")] = Json(f["acciones"]) if f.get("acciones") is not None else None
         valores.append(v)
     c = db.conectar()
     with c.cursor() as cur:
         execute_values(cur, f"""INSERT INTO analisis ({', '.join(cols)}) VALUES %s
-            ON CONFLICT (tipo, ref_id) DO UPDATE SET relevante = EXCLUDED.relevante, resumen = EXCLUDED.resumen,
+            ON CONFLICT (tipo, ref_id) DO UPDATE SET
+              -- lo pasado a mano a "impacto empresarial" sigue en el reporte aunque la IA lo vuelva a revisar
+              relevante = analisis.manual OR EXCLUDED.relevante, resumen = EXCLUDED.resumen,
               cambios = EXCLUDED.cambios, comentario = EXCLUDED.comentario, sector = EXCLUDED.sector,
               calificacion = EXCLUDED.calificacion, impacto = EXCLUDED.impacto, puntaje = EXCLUDED.puntaje,
               criterio = EXCLUDED.criterio, comites = EXCLUDED.comites,
               acciones = EXCLUDED.acciones, accion_directorio = EXCLUDED.accion_directorio,
               lectura = EXCLUDED.lectura, modelo = EXCLUDED.modelo, creado_en = now()""", valores)
+        # Pasados a mano a "impacto empresarial": quedan en el reporte aunque antes se hubieran quitado
+        for t, r in forzados:
+            cur.execute("""UPDATE analisis SET relevante = TRUE, manual = TRUE, excluido = FALSE, excluido_por = NULL,
+                                  excluido_en = NULL WHERE tipo = %s AND ref_id = %s""", (t, r))
     c.commit()
     c.close()
 
@@ -361,22 +372,26 @@ def consultar(sql, params=()):
 
 # --------------------------------------------------------------------------- proceso
 
-def procesar_normas(desde, hasta, reloj, ids=None):
-    """ids: solo esas normas (revisiones puntuales); None = todas las del rango sin analisis."""
-    filas = consultar(
-        """SELECT n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle, n.sector
-           FROM normas n WHERE n.fecha BETWEEN %s AND %s
-             AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)""" +
-        (" AND n.id = ANY(%s)" if ids is not None else "") +
-        " ORDER BY n.fecha DESC, n.id DESC", (desde, hasta, list(ids)) if ids is not None else (desde, hasta))
+def procesar_normas(desde, hasta, reloj, ids=None, forzar=False):
+    """ids: solo esas normas (pedidos desde la web); None = todas las del rango sin analisis.
+    forzar: pasadas a mano a "impacto empresarial": se analizan completas sin pasar por el filtro."""
+    columnas = "n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle, n.sector"
+    sin_analisis = "NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)"
+    if ids is not None:
+        filas = consultar(f"""SELECT {columnas} FROM normas n WHERE n.id = ANY(%s)
+                              {'' if forzar else 'AND ' + sin_analisis} ORDER BY n.fecha DESC, n.id DESC""",
+                          ([int(x) for x in ids],))
+    else:
+        filas = consultar(f"""SELECT {columnas} FROM normas n WHERE n.fecha BETWEEN %s AND %s AND {sin_analisis}
+                              ORDER BY n.fecha DESC, n.id DESC""", (desde, hasta))
     print(f"Normas por revisar {desde} a {hasta}: {len(filas)}")
     hechas = 0
     for i in range(0, len(filas), 200):
         if not reloj.queda():
             break
         grupo = filas[i:i + 200]
-        # Normas municipales y regionales: fuera del reporte, sin consultar a la IA
-        locales = [f for f in grupo if es_local(f[2], f[4], f[8])]
+        # Normas municipales y regionales: fuera del reporte, sin consultar a la IA (salvo las pasadas a mano)
+        locales = [] if forzar else [f for f in grupo if es_local(f[2], f[4], f[8])]
         guardar([{"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": False, "criterio": CRITERIO} for f in locales])
         grupo = [f for f in grupo if not es_local(f[2], f[4], f[8])]
         if not grupo:
@@ -389,7 +404,7 @@ def procesar_normas(desde, hasta, reloj, ids=None):
                 return f"{f[2]} {f[3] or ''} — Fe de erratas de: {corregidas[f[0]][0]}"
             return f"{f[2]} {f[3] or ''} — {f[4] or ''}: {f[5] or ''}"
         items = [(str(f[0]), descripcion(f)) for f in grupo]
-        r = filtrar(items)
+        r = (set(k for k, _ in items), len(items)) if forzar else filtrar(items)
         if r is None:
             print("La IA no respondio al filtro; se continuara en la proxima ejecucion.")
             return hechas, False
@@ -434,7 +449,7 @@ def procesar_normas(desde, hasta, reloj, ids=None):
                 guardar(lote)
                 return hechas, False
             lote.append({"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": True, **datos,
-                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo})
+                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo, "forzado": forzar})
             hechas += 1
             if len(lote) >= 10:
                 guardar(lote)
@@ -450,18 +465,9 @@ def procesar_normas(desde, hasta, reloj, ids=None):
 MOVIMIENTOS = r"dictamen|aut.grafa|senado|aprobad|publicad"
 
 
-def procesar_proyectos(desde, hasta, reloj):
-    filas = consultar(
-        """SELECT p.id, p.fecha_presentacion, p.numero, p.camara, p.proponente, p.autor,
-                  CASE WHEN p.ley_numero IS NOT NULL
-                       THEN 'Aprobada y publicada: ' || coalesce(p.ley_tipo, 'Ley') || ' N° ' || p.ley_numero ||
-                            coalesce(' (El Peruano, ' || p.ley_fecha || ')', '')
-                       ELSE p.estado END,
-                  p.titulo, p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero,
-                  (SELECT n.hash_unico FROM normas n WHERE n.id = (p.ley_docs->'ley'->>'id')::bigint)
-           FROM proyectos_ley p
-           LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = p.id
-           WHERE (a.id IS NULL AND (p.fecha_presentacion BETWEEN %(d)s AND %(h)s OR p.ley_fecha BETWEEN %(d)s AND %(h)s
+# Proyectos del periodo por analizar: sin analisis (presentados, publicados como ley o con un movimiento
+# importante en el periodo), o ya analizados pero que avanzaron despues
+CONDICION_PROYECTOS = """(a.id IS NULL AND (p.fecha_presentacion BETWEEN %(d)s AND %(h)s OR p.ley_fecha BETWEEN %(d)s AND %(h)s
                                     OR EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id
                                                  AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %(d)s AND %(h)s
                                                  AND s.estado ~* %(mov)s)))
@@ -471,8 +477,27 @@ def procesar_proyectos(desde, hasta, reloj):
                   AND (EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id AND s.fecha > a.creado_en
                                  AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %(d)s AND %(h)s
                                  AND s.estado ~* %(mov)s)
-                       OR (p.ley_fecha BETWEEN %(d)s AND %(h)s AND a.creado_en < p.ley_fecha + 1)))
-           ORDER BY p.fecha_presentacion DESC NULLS LAST""", {"d": desde, "h": hasta, "mov": MOVIMIENTOS})
+                       OR (p.ley_fecha BETWEEN %(d)s AND %(h)s AND a.creado_en < p.ley_fecha + 1)))"""
+
+
+def procesar_proyectos(desde, hasta, reloj, ids=None, forzar=False):
+    """ids / forzar: como en procesar_normas (pedidos desde la web)."""
+    if ids is not None:
+        condicion = "p.id = ANY(%(ids)s)" + ("" if forzar else " AND a.id IS NULL")
+    else:
+        condicion = CONDICION_PROYECTOS
+    filas = consultar(
+        f"""SELECT p.id, p.fecha_presentacion, p.numero, p.camara, p.proponente, p.autor,
+                  CASE WHEN p.ley_numero IS NOT NULL
+                       THEN 'Aprobada y publicada: ' || coalesce(p.ley_tipo, 'Ley') || ' N° ' || p.ley_numero ||
+                            coalesce(' (El Peruano, ' || p.ley_fecha || ')', '')
+                       ELSE p.estado END,
+                  p.titulo, p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero,
+                  (SELECT n.hash_unico FROM normas n WHERE n.id = (p.ley_docs->'ley'->>'id')::bigint)
+           FROM proyectos_ley p
+           LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = p.id
+           WHERE {condicion}
+           ORDER BY p.fecha_presentacion DESC NULLS LAST""", {"d": desde, "h": hasta, "mov": MOVIMIENTOS, "ids": [int(x) for x in (ids or [])]})
     print(f"Proyectos por revisar {desde} a {hasta}: {len(filas)}")
     hechas = 0
     for i in range(0, len(filas), 200):
@@ -480,7 +505,7 @@ def procesar_proyectos(desde, hasta, reloj):
             break
         grupo = filas[i:i + 200]
         items = [(str(f[0]), f"{f[7] or ''} — {(f[8] or '')[:400]}") for f in grupo]
-        r = filtrar(items)
+        r = (set(k for k, _ in items), len(items)) if forzar else filtrar(items)
         if r is None:
             return hechas, False
         relevantes, cubiertos = r
@@ -512,7 +537,7 @@ def procesar_proyectos(desde, hasta, reloj):
                 guardar(lote)
                 return hechas, False
             lote.append({"tipo": "P", "ref_id": f[0], "fecha": fecha(f), "relevante": True, **datos,
-                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo})
+                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo, "forzado": forzar})
             hechas += 1
             if len(lote) >= 10:
                 guardar(lote)
@@ -543,6 +568,51 @@ def hoy_lima():
     return (datetime.now(timezone.utc) - timedelta(hours=5)).date()
 
 
+def fin_de_mes(dia):
+    sig = (dia.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return sig - timedelta(days=1)
+
+
+def procesar_pedidos(reloj):
+    """Meses y documentos pedidos desde la web: un mes que alguien abrio en el monitoreo, los resultados
+    de una busqueda guardada aun sin revisar, o documentos pasados a mano a "impacto empresarial"."""
+    global MODELOS_FILTRO, MODELOS_ANALISIS
+    # Todos los modelos disponibles (los del dia y los de reserva), para no quedarse sin cupo de la IA
+    MODELOS_FILTRO = list(dict.fromkeys(MODELOS_FILTRO + HIST_FILTRO))
+    MODELOS_ANALISIS = list(dict.fromkeys(gemini.modelos() + HIST_ANALISIS))
+    pedidos = consultar("""SELECT id, tipo, ref, forzar FROM analisis_pedidos WHERE estado = 'pendiente'
+                           ORDER BY forzar DESC, creado_en""")
+    print(f"Pedidos pendientes: {len(pedidos)}")
+    hechos = []
+    inicio, final = date(2000, 1, 1), date(2100, 1, 1)
+    for tipo in ("N", "P"):
+        for forzar in (True, False):
+            grupo = [p for p in pedidos if p[1] == tipo and bool(p[3]) == forzar and str(p[2]).isdigit()]
+            if not grupo or not reloj.queda():
+                continue
+            funcion = procesar_normas if tipo == "N" else procesar_proyectos
+            _, completo = funcion(inicio, final, reloj, ids=[p[2] for p in grupo], forzar=forzar)
+            if completo:
+                hechos += [p[0] for p in grupo]
+    for pid, tipo, ref, _ in pedidos:
+        if tipo != "M" or not reloj.queda():
+            continue
+        try:
+            ini = date.fromisoformat(f"{ref}-01")
+        except ValueError:
+            hechos.append(pid)
+            continue
+        if rango(ini, fin_de_mes(ini), reloj):
+            hechos.append(pid)
+    if hechos:
+        c = db.conectar()
+        with c.cursor() as cur:
+            cur.execute("UPDATE analisis_pedidos SET estado = 'hecho', hecho_en = now() WHERE id = ANY(%s)", (hechos,))
+        c.commit()
+        c.close()
+    print(f"Pedidos atendidos: {len(hechos)} de {len(pedidos)}")
+
+
 def rango(desde, hasta, reloj, solo_normas=False):
     hn, ok1 = procesar_normas(desde, hasta, reloj)
     hp, ok2 = (0, True) if solo_normas else procesar_proyectos(desde, hasta, reloj)
@@ -552,7 +622,7 @@ def rango(desde, hasta, reloj, solo_normas=False):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("modo", choices=["diario", "historico", "rango"])
+    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango"])
     ap.add_argument("fechas", nargs="*")
     ap.add_argument("--max-minutos", type=float, default=300)
     ap.add_argument("--forzar", action="store_true")
@@ -570,6 +640,8 @@ def main():
         rango(desde, hoy + timedelta(days=1), reloj)
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
+    elif a.modo == "pedidos":
+        procesar_pedidos(reloj)
     elif a.modo == "historico":
         if cupos.principal_agotada():
             return

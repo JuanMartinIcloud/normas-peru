@@ -1,15 +1,16 @@
 """Programador de tareas: lanza cada tarea diaria a su hora y la repite si fallo.
 
-Lo ejecuta el flujo "Programador de tareas" cada 30 minutos (una revision rapida y termina). Es el unico
+Lo ejecuta el flujo "Programador de tareas" cada hora, solo en las horas en que hay tareas (una revision
+rapida y termina). Es el unico
 que lanza las tareas diarias: los flujos de esas tareas no tienen horario propio, asi ninguna corre dos
 veces. Los horarios de GitHub pueden retrasarse; por eso cada tarea se lanza en la primera revision
-posterior a su hora y, si falla, se repite cada 30 minutos (hasta 6 veces en el dia).
+posterior a su hora y, si falla, se repite en la revision siguiente (hasta 6 veces en el dia).
 
 Tareas (hora de Lima):
   22:40  Descarga diaria de normas (diario.yml)
   23:30  Dias pendientes del historico de El Peruano (historico.yml)
   01:20  Proyectos de ley, seguimiento y leyes publicadas (congreso.yml)
-  02:20  Monitoreo empresarial del dia y un mes anterior (monitoreo.yml) -> listo antes de las 7:00
+  02:20  Monitoreo empresarial del mes y lo pedido desde la web (monitoreo.yml) -> listo antes de las 7:00
   03:20  Resumen diario con IA (resumen.yml)
   04:00  Texto completo de lo nuevo (indexar.yml)
   05:00  Busquedas guardadas que tocan hoy (busquedas.yml)
@@ -47,7 +48,7 @@ MAX_INTENTOS = 6            # por dia y por tarea
 # La alarma de consumo "falla" a proposito cuando una base se acerca a su limite: no se repite (cada
 # repeticion volveria a consultar todas las bases para dar el mismo aviso)
 SIN_REPETIR = {"vigilar.yml"}
-ESPERA_REINTENTO = timedelta(minutes=30)
+ESPERA_REINTENTO = timedelta(minutes=30)   # una falla se repite en la revision siguiente (cada hora)
 
 
 def ahora():

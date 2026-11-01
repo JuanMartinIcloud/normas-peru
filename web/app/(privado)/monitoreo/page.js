@@ -1,5 +1,6 @@
+import AvisoMes from "./AvisoMes";
 import { exigirUsuario } from "../../../lib/auth";
-import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados, cifrasPeriodo, finDeMes, nombreMes } from "../../../lib/monitoreo";
+import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados, cifrasPeriodo, estadoMes, finDeMes, nombreMes } from "../../../lib/monitoreo";
 import { mensajeError } from "../../../lib/errores";
 import { urlProyecto } from "../../../lib/resumenes";
 import { estadoProyecto } from "../../../lib/leyes";
@@ -36,14 +37,16 @@ export default async function ResumenEjecutivo({ searchParams: parametros }) {
   const mesAnt = `${m === 1 ? a - 1 : a}-${String(m === 1 ? 12 : m - 1).padStart(2, "0")}`;
   let previos = null;
   try {
-    const [n0, p0, cAnt] = await Promise.all([
+    const [n0, p0, cAnt, eAnt] = await Promise.all([
       normasAnalizadas(f, per.desde, per.hasta),
       proyectosAnalizados(f, per.desde, per.hasta),
       per.tipo === "mes" ? cifrasPeriodo(`${mesAnt}-01`, finDeMes(mesAnt)) : Promise.resolve(null),
+      per.tipo === "mes" ? estadoMes(mesAnt) : Promise.resolve(null),
     ]);
     normas = n0;
     proyectos = p0;
-    if (cAnt && (cAnt.normas || cAnt.proyectos)) previos = cAnt;
+    // Solo se compara si la IA ya reviso todo el mes anterior (si no, la comparacion engañaria)
+    if (cAnt && eAnt && !(eAnt.faltan_normas + eAnt.faltan_proyectos)) previos = cAnt;
   } catch (e) {
     error = mensajeError(e);
   }
@@ -76,6 +79,7 @@ export default async function ResumenEjecutivo({ searchParams: parametros }) {
   return (
     <>
       <h1>Resumen ejecutivo · {per.nombre}</h1>
+      <AvisoMes mes={per.desde.slice(0, 7)} />
       <form className="filtros" method="get" action="/monitoreo">
         <label>
           Mes

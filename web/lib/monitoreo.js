@@ -208,6 +208,21 @@ export async function proyectosAnalizados(f, desde, hasta) {
   return proyectosCon(f, BASE_PROYECTOS_PERIODO, [desde, hasta]);
 }
 
+// Cuanto falta revisar con la IA en un mes (consulta en el momento: cambia apenas termina un analisis)
+export async function estadoMes(mes) {
+  const desde = `${mes}-01`;
+  const hasta = finDeMes(mes);
+  const [r] = await consultar(
+    `SELECT (SELECT count(*)::int FROM normas n WHERE n.fecha BETWEEN $1 AND $2) AS normas,
+            (SELECT count(*)::int FROM normas n WHERE n.fecha BETWEEN $1 AND $2
+               AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)) AS faltan_normas,
+            (SELECT count(*)::int FROM (${BASE_PROYECTOS_PERIODO}) b
+               WHERE NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = b.pid)) AS faltan_proyectos`,
+    [desde, hasta]
+  );
+  return r;
+}
+
 // Solo las cifras de un periodo (para comparar con el mes anterior): la base devuelve unas pocas filas
 // de conteo en lugar de todos los documentos analizados.
 export async function cifrasPeriodo(desde, hasta) {

@@ -1,3 +1,4 @@
+import AvisoMes from "../AvisoMes";
 import { exigirUsuario } from "../../../../lib/auth";
 import { mensajeError } from "../../../../lib/errores";
 import { leerFiltrosMonitoreo, reporteCongreso, opcionesFiltros, ayerLima, fechaLarga } from "../../../../lib/monitoreo";
@@ -66,6 +67,7 @@ export default async function CongresoMonitoreo({ searchParams: parametros }) {
   return (
     <>
       <h1>Reporte del Congreso · {fechaLarga(fecha)}</h1>
+      <AvisoMes mes={fecha.slice(0, 7)} />
       <p className="sub">
         Proposiciones legislativas ingresadas, dictámenes de comisiones, autógrafas y leyes publicadas del día, con su análisis de impacto
         empresarial. El reporte de cada día está listo a las 7:00 a. m. del día siguiente.

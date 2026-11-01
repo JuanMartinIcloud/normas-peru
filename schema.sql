@@ -212,3 +212,19 @@ CREATE INDEX IF NOT EXISTS idx_normas_numero ON normas (numero);
 
 -- Etapa 10: tabla vacia de una version anterior (los textos estan en las bases de texto, tabla "documentos").
 DROP TABLE IF EXISTS textos;
+
+-- Etapa 11: analisis a pedido (meses que alguien abre en el monitoreo, resultados de busquedas guardadas
+-- y documentos pasados a mano a "impacto empresarial"). Los atiende src/monitoreo.py (modo pedidos).
+CREATE TABLE IF NOT EXISTS analisis_pedidos (
+    id         BIGSERIAL PRIMARY KEY,
+    tipo       CHAR(1) NOT NULL,                  -- M = mes, N = norma, P = proyecto de ley
+    ref        TEXT    NOT NULL,                  -- 'AAAA-MM' o el id de la norma o del proyecto
+    forzar     BOOLEAN NOT NULL DEFAULT FALSE,    -- pasado a mano a "impacto empresarial"
+    pedido_por TEXT,
+    estado     TEXT    NOT NULL DEFAULT 'pendiente',   -- pendiente | hecho
+    creado_en  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    hecho_en   TIMESTAMPTZ
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pedidos_pendientes ON analisis_pedidos (tipo, ref) WHERE estado = 'pendiente';
+-- Documentos pasados a mano a "impacto empresarial": la IA no los vuelve a sacar del reporte
+ALTER TABLE analisis ADD COLUMN IF NOT EXISTS manual BOOLEAN NOT NULL DEFAULT FALSE;

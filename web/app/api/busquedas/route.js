@@ -3,6 +3,7 @@ import { usuarioActual } from "../../../lib/auth";
 import { consultar } from "../../../lib/db";
 import { asegurarTablas, ejecutar, periodoDe, FRECUENCIAS, claveTareas } from "../../../lib/busquedas";
 import { listaCorreos } from "../../../lib/correo";
+import { lanzarAnalisis } from "../../../lib/pedidos";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -53,6 +54,7 @@ export async function POST(request) {
       if (!b) throw new Aviso("La búsqueda no existe.");
       const per = periodoDe(b.frecuencia, undefined, true);
       const r = await ejecutar(b, per.desde, per.hasta);
+      if (r.pedidos) await lanzarAnalisis();
       return Response.json({ ok: true, total_normas: r.total_normas, total_proyectos: r.total_proyectos });
     } else {
       throw new Aviso("Acción desconocida.");

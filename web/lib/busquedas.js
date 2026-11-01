@@ -5,6 +5,7 @@ import { leerFiltrosProyectos, whereProyectos, ordenProyectos } from "./proyecto
 import { urlProyecto } from "./resumenes";
 import { generarJSON } from "./gemini";
 import { mensajeError } from "./errores";
+import { anotarPedidos, estadoImpacto } from "./pedidos";
 
 // Busquedas guardadas: una pregunta (interpretada por la IA en terminos) + filtros, que se ejecuta
 // sola con la frecuencia elegida y guarda cada resultado con un resumen de IA.
@@ -114,9 +115,9 @@ export async function ejecutar(b, desde, hasta) {
     consultar(`SELECT count(*)::int AS n FROM proyectos_ley ${wp.where}`, wp.params),
   ]);
   const normas = ns.map((n) => ({
-    nombre: [n.tipo, n.numero].filter(Boolean).join(" N° "), entidad: n.entidad, fecha: n.fecha, sumilla: n.sumilla, url: n.url_detalle,
+    id: n.id, nombre: [n.tipo, n.numero].filter(Boolean).join(" N° "), entidad: n.entidad, fecha: n.fecha, sumilla: n.sumilla, url: n.url_detalle,
   }));
-  const proyectos = ps.map((p) => ({ nombre: `Proyecto ${p.numero}`, fecha: p.fecha, titulo: p.titulo, estado: estadoProyecto(p), url: urlProyecto(p) }));
+  const proyectos = ps.map((p) => ({ id: p.id, nombre: `Proyecto ${p.numero}`, fecha: p.fecha, titulo: p.titulo, estado: estadoProyecto(p), url: urlProyecto(p) }));
   let resumen = null;
   if (b.con_resumen && (normas.length || proyectos.length)) {
     try {
@@ -149,7 +150,14 @@ entre el ${desde} y el ${hasta}. Español claro. Usa solo los datos recibidos y 
     [b.id, desde, hasta, cn.n, cp.n, JSON.stringify(normas), JSON.stringify(proyectos), JSON.stringify(resumen)]
   );
   await consultar(`UPDATE busquedas_guardadas SET ultima_ejecucion = now() WHERE id = $1`, [b.id]);
-  return { id: fila.id, total_normas: cn.n, total_proyectos: cp.n, normas, proyectos, resumen, desde, hasta };
+  // La IA debe revisar todo: lo que salio en la busqueda y aun no tiene su revision empresarial se pide
+  const estados = await estadoImpacto(normas.map((x) => x.id), proyectos.map((x) => x.id));
+  const sinRevisar = [
+    ...normas.filter((x) => estados[`N${x.id}`] === "sin_revisar").map((x) => ({ tipo: "N", ref: x.id })),
+    ...proyectos.filter((x) => estados[`P${x.id}`] === "sin_revisar").map((x) => ({ tipo: "P", ref: x.id })),
+  ];
+  const pedidos = await anotarPedidos(sinRevisar, "Búsqueda guardada");
+  return { id: fila.id, total_normas: cn.n, total_proyectos: cp.n, normas, proyectos, resumen, desde, hasta, pedidos };
 }
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

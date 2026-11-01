@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { consultar } from "../../../../lib/db";
 import { asegurarTablas, ejecutar, periodoDe, claveTareas, htmlEjecucion } from "../../../../lib/busquedas";
 import { correoConfigurado, enviarCorreo } from "../../../../lib/correo";
+import { lanzarAnalisis } from "../../../../lib/pedidos";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -22,6 +23,7 @@ export async function POST(request) {
   const activas = await consultar(`SELECT * FROM busquedas_guardadas WHERE activa ORDER BY id`);
   const hechas = [];
   let pendientes = 0;
+  let pedidosIA = 0;
   for (const b of activas) {
     const per = periodoDe(b.frecuencia);
     if (!per) continue;
@@ -43,6 +45,9 @@ export async function POST(request) {
       }
     }
     hechas.push({ id: b.id, nombre: b.nombre, normas: r.total_normas, proyectos: r.total_proyectos, enviado });
+    pedidosIA += r.pedidos || 0;
   }
+  // Lo que la IA aun no habia revisado se analiza al momento (o en la madrugada si no hay clave de GitHub)
+  if (pedidosIA) await lanzarAnalisis();
   return Response.json({ hechas, pendientes });
 }

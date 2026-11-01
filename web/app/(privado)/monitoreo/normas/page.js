@@ -1,3 +1,4 @@
+import AvisoMes from "../AvisoMes";
 import { exigirUsuario } from "../../../../lib/auth";
 import { mensajeError } from "../../../../lib/errores";
 import { leerFiltrosMonitoreo, normasAnalizadas, avanceNormas, opcionesFiltros, finDeMes, nombreMes, hoyLima } from "../../../../lib/monitoreo";
@@ -27,6 +28,7 @@ export default async function NormasMonitoreo({ searchParams: parametros }) {
   return (
     <>
       <h1>Normas legales que afectan al sector empresarial · {nombreMes(f.mes)}</h1>
+      <AvisoMes mes={f.mes} />
       <p className="sub">
         Normas publicadas en El Peruano que afectan a las empresas, a sectores económicos o al clima de inversiones,
         analizadas con IA. {esMesActual && "Este mes se actualiza cada día antes de las 7:00 a. m."}
@@ -37,13 +39,10 @@ export default async function NormasMonitoreo({ searchParams: parametros }) {
         <p className="resumen">
           {filas.length.toLocaleString("es-PE")} normas en el reporte · {avance.relevantes.toLocaleString("es-PE")} relevantes de{" "}
           {avance.total.toLocaleString("es-PE")} publicadas en el mes
-          {avance.revisadas < avance.total && ` · faltan revisar ${(avance.total - avance.revisadas).toLocaleString("es-PE")} (en proceso)`}
+          {avance.revisadas < avance.total && ` · faltan revisar ${(avance.total - avance.revisadas).toLocaleString("es-PE")}`}
           {" · "}
           <a href={`/api/monitoreo/csv?vista=normas&${qs}`}>Descargar en Excel</a>
         </p>
-      )}
-      {avance && avance.revisadas === 0 && (
-        <p className="vacio">Este mes todavía no se ha analizado. Cada día se agrega un mes anterior.</p>
       )}
       <div className="lista">
         {filas.map((n) => (

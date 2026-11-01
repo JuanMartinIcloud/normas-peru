@@ -1,3 +1,4 @@
+import AvisoMes from "../AvisoMes";
 import { exigirUsuario } from "../../../../lib/auth";
 import { mensajeError } from "../../../../lib/errores";
 import { leerFiltrosMonitoreo, normasAnalizadas, proyectosAnalizados, opcionesFiltros, COMITES } from "../../../../lib/monitoreo";
@@ -52,6 +53,7 @@ export default async function Impacto({ searchParams: parametros }) {
   return (
     <>
       <h1>Impacto en el sector empresarial · {per.nombre}</h1>
+      <AvisoMes mes={per.desde.slice(0, 7)} />
       <p className="sub">
         Normas legales y proyectos de ley juntos, ordenados por puntaje de impacto (de 10 a 1). Abajo, las acciones sugeridas a cada
         comité y al Directorio de AmCham.
