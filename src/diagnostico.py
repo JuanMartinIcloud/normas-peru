@@ -26,11 +26,15 @@ def p(*x):
 def neon():
     h = {"Authorization": f"Bearer {os.environ['NEON_API_KEY']}", "Accept": "application/json"}
     orgs = requests.get(f"{API}/users/me/organizations", headers=h, timeout=60).json().get("organizations") or []
+    p(f"cuenta de Neon: verificacion en dos pasos exigida = {[o.get('require_mfa') for o in orgs]}")
     params = {"limit": 100, **({"org_id": orgs[0]["id"]} if orgs else {})}
     for q in requests.get(f"{API}/projects", headers=h, params=params, timeout=60).json().get("projects", []):
         d = requests.get(f"{API}/projects/{q['id']}", headers=h, timeout=60).json().get("project", {})
         br = requests.get(f"{API}/projects/{q['id']}/branches", headers=h, timeout=60).json().get("branches", [])
         tam = sum(b.get("logical_size") or 0 for b in br)
+        ajustes = d.get("settings") or {}
+        p(f"{d.get('name')}: IPs permitidas {(ajustes.get('allowed_ips') or {}).get('ips') or 'todas'}, "
+          f"solo conexiones privadas {ajustes.get('block_public_connections')}")
         p(f"{d.get('name')}: transferencia {(d.get('data_transfer_bytes') or 0) / 1e9:.2f} GB, "
           f"computo {(d.get('compute_time_seconds') or 0) / 3600:.1f} h, espacio {tam / 1e6:.0f} MB, "
           f"limite de espacio {d.get('branch_logical_size_limit')} MiB, periodo desde {d.get('consumption_period_start')}")
@@ -94,13 +98,25 @@ def seguridad():
             esquemas = [r[0] for r in cur.fetchall()]
             cur.execute("""SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY 1""")
             tablas = [r[0] for r in cur.fetchall()]
+            cur.execute("""SELECT string_agg(relname || ' ' || pg_size_pretty(pg_total_relation_size(oid)) || ' (' ||
+                                  reltuples::bigint || ' filas aprox.)', ', ')
+                           FROM pg_class WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace
+                             AND relname IN ('textos')""")
+            viejas = cur.fetchone()[0]
+            cur.execute("""SELECT string_agg(r.rolname || ' miembros:' || coalesce((SELECT string_agg(m.rolname, '/')
+                                  FROM pg_auth_members a JOIN pg_roles m ON m.oid = a.member WHERE a.roleid = r.oid), '-')
+                                  || ' tablas:' || (SELECT count(*) FROM information_schema.role_table_grants g
+                                                    WHERE g.grantee = r.rolname AND g.table_schema = 'public'), ', ')
+                           FROM pg_roles r WHERE r.rolname IN ('token_roles', 'authenticated', 'anonymous', 'authenticator')""")
+            api_roles = cur.fetchone()[0]
             cur.execute("SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()")
             conexiones = cur.fetchone()[0]
             c.close()
             p(f"[{nombre}] roles: {', '.join(roles)} | PUBLIC puede crear objetos: {pub_crear} | PUBLIC puede conectarse: "
               f"{pub_conectar} | permisos de tablas a PUBLIC: {pub_tablas} | funciones propias: {funciones or 'ninguna'} | "
               f"disparadores: {disparadores or 'ninguno'} | extensiones: {ext} | otros esquemas: {esquemas or 'ninguno'} | "
-              f"tablas: {tablas} | otras conexiones abiertas: {conexiones}")
+              f"tablas: {tablas} | tablas antiguas: {viejas or 'ninguna'} | roles de acceso por API: {api_roles or 'ninguno'} | "
+              f"otras conexiones abiertas: {conexiones}")
         except Exception as e:  # noqa: BLE001
             p(f"[{nombre}] no se pudo revisar: {type(e).__name__}")
 
