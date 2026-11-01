@@ -69,6 +69,8 @@ def revisar_computo():
     r.raise_for_status()
     peor = 0.0
     for p in r.json().get("projects", []):
+        if not str(p.get("name", "")).startswith("normas-textos-"):
+            continue   # otros proyectos de la cuenta: no son de este sistema (y el registro de GitHub es publico)
         d = requests.get(f"https://console.neon.tech/api/v2/projects/{p['id']}", headers=h, timeout=60)
         d.raise_for_status()
         q = d.json().get("project", {})

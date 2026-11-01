@@ -73,7 +73,8 @@ function Opciones({ lista }) {
   );
 }
 
-export default async function Proyectos({ searchParams }) {
+export default async function Proyectos({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const f = leerFiltrosProyectos(searchParams || {});
   let datos;

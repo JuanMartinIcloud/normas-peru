@@ -8,7 +8,8 @@ import Destinatarios from "./Destinatarios";
 
 export const metadata = { title: "Informe y envío · Monitoreo empresarial" };
 
-export default async function Informe({ searchParams }) {
+export default async function Informe({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const sp = searchParams || {};
   const fecha = typeof sp.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.fecha) ? sp.fecha : ayerLima();

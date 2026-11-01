@@ -88,7 +88,8 @@ function Opciones({ lista }) {
   );
 }
 
-export default async function Pagina({ searchParams }) {
+export default async function Pagina({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const sp = { ...(searchParams || {}) };
   if (sp.fecha === "hoy") sp.fecha = hoyLima();

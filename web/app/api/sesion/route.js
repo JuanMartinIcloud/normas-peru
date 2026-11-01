@@ -16,12 +16,13 @@ export async function POST(request) {
   }
   try {
     if (c.accion === "salir") {
-      cerrarSesion();
+      await cerrarSesion();
       return Response.json({ ok: true });
     }
     if (c.accion !== "ingresar") return Response.json({ error: "Pedido inválido" }, { status: 400 });
     const usuario = String(c.usuario || "").trim().toLowerCase().slice(0, 60);
-    const ip = (headers().get("x-forwarded-for") || "").split(",")[0].trim().slice(0, 60) || "desconocida";
+    const h = await headers();
+    const ip = (h.get("x-real-ip") || h.get("x-forwarded-for") || "").split(",")[0].trim().slice(0, 60) || "desconocida";
     const claves = [`ip:${ip}`, `usuario:${usuario}`];
     if (await bloqueado(claves)) {
       return Response.json({ error: "Demasiados intentos fallidos. Espera 15 minutos e intenta de nuevo." }, { status: 429 });

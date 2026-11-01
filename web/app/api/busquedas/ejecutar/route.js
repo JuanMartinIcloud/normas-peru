@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { consultar } from "../../../../lib/db";
 import { asegurarTablas, ejecutar, periodoDe, claveTareas, htmlEjecucion } from "../../../../lib/busquedas";
 import { correoConfigurado, enviarCorreo } from "../../../../lib/correo";
@@ -9,7 +10,12 @@ export const maxDuration = 300;
 // Si no alcanza el tiempo, responde "pendientes" y la tarea vuelve a llamar.
 export async function POST(request) {
   const clave = request.headers.get("x-clave-tareas") || "";
-  if (!clave || clave !== (await claveTareas())) return Response.json({ error: "No autorizado" }, { status: 401 });
+  // Sin clave (o con una de otro largo) se rechaza sin consultar la base; la comparacion es de tiempo constante
+  if (!/^[0-9a-f]{48}$/.test(clave)) return Response.json({ error: "No autorizado" }, { status: 401 });
+  const buena = Buffer.from(await claveTareas());
+  if (buena.length !== 48 || !timingSafeEqual(buena, Buffer.from(clave))) {
+    return Response.json({ error: "No autorizado" }, { status: 401 });
+  }
   await asegurarTablas();
   const inicio = Date.now();
   const sitio = new URL(request.url).origin;

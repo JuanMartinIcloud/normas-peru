@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Resúmenes diarios · Normas Legales del Perú" };
 
-export default async function Resumenes({ searchParams }) {
+export default async function Resumenes({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const pedida = typeof searchParams?.fecha === "string" ? searchParams.fecha.trim() : "";
 

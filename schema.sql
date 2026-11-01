@@ -209,3 +209,6 @@ ALTER TABLE proyectos_ley DROP COLUMN IF EXISTS texto_estado;
 ALTER TABLE proyectos_ley DROP COLUMN IF EXISTS texto_base;
 ALTER TABLE proyectos_ley DROP COLUMN IF EXISTS comision;
 CREATE INDEX IF NOT EXISTS idx_normas_numero ON normas (numero);
+
+-- Etapa 10: tabla vacia de una version anterior (los textos estan en las bases de texto, tabla "documentos").
+DROP TABLE IF EXISTS textos;

@@ -67,7 +67,8 @@ async function buscarTodo(fn, fp, tiempos = []) {
   return { normas: a, totalN: b[0].n, proyectos: c, totalP: d[0].n, fragN, fragP };
 }
 
-export default async function Buscar({ searchParams }) {
+export default async function Buscar({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const sp = searchParams || {};
   const base = {

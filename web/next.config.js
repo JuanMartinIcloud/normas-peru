@@ -11,6 +11,8 @@ const SEGURIDAD = [
 
 module.exports = {
   poweredByHeader: false,
+  // El sitio no usa el optimizador de imagenes de Next: se desactiva (asi su direccion no queda expuesta)
+  images: { unoptimized: true },
   async headers() {
     return [{ source: "/:path*", headers: SEGURIDAD }];
   },

@@ -6,7 +6,8 @@ import AccionesBusqueda from "../AccionesBusqueda";
 
 export const metadata = { title: "Resultados · Búsquedas guardadas" };
 
-export default async function Resultados({ params }) {
+export default async function Resultados({ params: parametrosRuta }) {
+  const params = await parametrosRuta;
   await exigirUsuario();
   const id = Number(params.id);
   if (!id) notFound();

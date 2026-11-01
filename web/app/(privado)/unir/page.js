@@ -2,7 +2,8 @@ import Unir from "./Unir";
 
 export const metadata = { title: "Unir documentos · Normas Legales del Perú" };
 
-export default function Pagina({ searchParams }) {
+export default async function Pagina({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   const accion = searchParams?.accion === "proyecto" ? "proyecto" : "unir";
   return (
     <main className="contenedor">

@@ -12,7 +12,8 @@ export const metadata = { title: "Impacto · Monitoreo empresarial" };
 const ORDEN_IMP = { Alto: 0, Moderado: 1, Bajo: 2 };
 const ORDEN_CAL = { Desfavorable: 0, "Para seguimiento": 1, Favorable: 2 };
 
-export default async function Impacto({ searchParams }) {
+export default async function Impacto({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const f = leerFiltrosMonitoreo(searchParams || {});
   const per = leerPeriodo(searchParams || {});

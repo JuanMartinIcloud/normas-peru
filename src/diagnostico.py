@@ -16,6 +16,7 @@ import requests
 import bases
 
 API = "https://console.neon.tech/api/v2"
+PREFIJO = "normas-textos-"   # nombre de los proyectos de Neon de este sistema
 lineas = []
 
 
@@ -29,6 +30,8 @@ def neon():
     p(f"cuenta de Neon: verificacion en dos pasos exigida = {[o.get('require_mfa') for o in orgs]}")
     params = {"limit": 100, **({"org_id": orgs[0]["id"]} if orgs else {})}
     for q in requests.get(f"{API}/projects", headers=h, params=params, timeout=60).json().get("projects", []):
+        if not str(q.get("name", "")).startswith(PREFIJO):
+            continue   # otros proyectos de la cuenta: no son de este sistema y no se muestran (el registro es publico)
         d = requests.get(f"{API}/projects/{q['id']}", headers=h, timeout=60).json().get("project", {})
         br = requests.get(f"{API}/projects/{q['id']}/branches", headers=h, timeout=60).json().get("branches", [])
         tam = sum(b.get("logical_size") or 0 for b in br)

@@ -6,7 +6,8 @@ import Tarjeta from "../Tarjeta";
 
 export const metadata = { title: "Normas legales · Monitoreo empresarial" };
 
-export default async function NormasMonitoreo({ searchParams }) {
+export default async function NormasMonitoreo({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const f = leerFiltrosMonitoreo(searchParams || {});
   const desde = `${f.mes}-01`;

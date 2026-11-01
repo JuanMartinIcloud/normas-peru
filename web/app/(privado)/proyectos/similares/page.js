@@ -81,7 +81,8 @@ function Tarjeta({ p, extra }) {
   );
 }
 
-export default async function Similares({ searchParams }) {
+export default async function Similares({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const id = /^\d{1,18}$/.test(String(searchParams?.id || "")) ? String(searchParams.id) : "";
   let datos = { base: null, similares: [] };

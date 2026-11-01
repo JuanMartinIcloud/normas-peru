@@ -18,6 +18,6 @@ export default async function LayoutPrivado({ children }) {
       </main>
     );
   }
-  if (!u) redirect(`/ingresar?volver=${encodeURIComponent(volverSeguro(headers().get("x-ruta")))}`);
+  if (!u) redirect(`/ingresar?volver=${encodeURIComponent(volverSeguro((await headers()).get("x-ruta")))}`);
   return children;
 }

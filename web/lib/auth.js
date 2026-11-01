@@ -115,18 +115,18 @@ export async function iniciarSesion(u) {
   const exp = Date.now() + DURACION_DIAS * 86400000;
   const datos = `${u.id}.${exp}`;
   const token = `${datos}.${firmar(datos, await secreto())}`;
-  cookies().set(COOKIE, token, {
+  (await cookies()).set(COOKIE, token, {
     httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: DURACION_DIAS * 86400,
   });
 }
 
-export function cerrarSesion() {
-  cookies().set(COOKIE, "", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 0 });
+export async function cerrarSesion() {
+  (await cookies()).set(COOKIE, "", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 0 });
 }
 
 // Usuario de la sesion actual, o null (se consulta una sola vez por pagina, aunque varias partes lo pidan)
 export const usuarioActual = cache(async () => {
-  const token = cookies().get(COOKIE)?.value || "";
+  const token = (await cookies()).get(COOKIE)?.value || "";
   const partes = token.split(".");
   if (partes.length !== 3) return null;
   const [id, exp, firma] = partes;
@@ -142,6 +142,6 @@ export const usuarioActual = cache(async () => {
 // "layout", asi que la revision del layout sola no impediria que la pagina consulte la base.)
 export async function exigirUsuario() {
   const u = await usuarioActual();
-  if (!u) redirect(`/ingresar?volver=${encodeURIComponent(volverSeguro(headers().get("x-ruta")))}`);
+  if (!u) redirect(`/ingresar?volver=${encodeURIComponent(volverSeguro((await headers()).get("x-ruta")))}`);
   return u;
 }

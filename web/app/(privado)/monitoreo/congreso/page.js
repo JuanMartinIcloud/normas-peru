@@ -47,7 +47,8 @@ function Seccion({ titulo, datos, vacio, mostrarMovimiento }) {
   );
 }
 
-export default async function CongresoMonitoreo({ searchParams }) {
+export default async function CongresoMonitoreo({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const f = leerFiltrosMonitoreo(searchParams || {});
   const fecha = f.fecha || ayerLima();

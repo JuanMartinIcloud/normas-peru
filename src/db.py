@@ -30,6 +30,8 @@ _ETAPAS = [
                                        AND column_name = 'enlace_estado')"""),
     ("-- Etapa 9:", """SELECT EXISTS (SELECT 1 FROM pg_indexes
                                      WHERE schemaname = 'public' AND indexname = 'idx_normas_numero')"""),
+    ("-- Etapa 10:", """SELECT NOT EXISTS (SELECT 1 FROM information_schema.tables
+                                         WHERE table_schema = 'public' AND table_name = 'textos')"""),
 ]
 
 

@@ -22,7 +22,8 @@ function origenProyecto(x) {
 
 const CALS = ["Favorable", "Desfavorable", "Para seguimiento"];
 
-export default async function ResumenEjecutivo({ searchParams }) {
+export default async function ResumenEjecutivo({ searchParams: parametros }) {
+  const searchParams = (await parametros) || {};
   await exigirUsuario();
   const sp = searchParams || {};
   const per = leerPeriodo(sp);
