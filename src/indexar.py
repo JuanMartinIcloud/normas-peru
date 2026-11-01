@@ -4,11 +4,12 @@
     python src/indexar.py normas --parte 0 --de 3      # trabajador 1 de 3 para normas
     python src/indexar.py proyectos                     # proyectos de ley
 
-Diseño pensado para la capa gratuita de Neon (100 horas de computo al mes por proyecto):
+Corre una vez al dia, despues de la descarga de normas y proyectos (lo lanza el programador). Lo ya
+guardado no se vuelve a descargar: solo se procesa lo nuevo.
+Diseño pensado para la capa gratuita de Neon:
 - La BASE PRINCIPAL (DATABASE_URL) casi no se toca: cada ejecucion la consulta una sola vez al
-  empezar (y, para proyectos, una vez al final para guardar sumillas). Asi se apaga sola.
-- Todo lo demas (textos) va a las bases de texto TEXTOS_URL_2..12 (la 4 es la principal).
-  La base 1 se retiro: su contenido se copio integro a la 12. El avance esta en la base 2.
+  empezar (y, para proyectos, una vez al final para guardar sumillas).
+- Los textos van a las bases de texto (ver src/bases.py). El avance esta en la base de control (2).
 - Cada documento se identifica con una clave estable que no depende de la base principal:
   normas = hash_unico; proyectos = "periodo|camara|numero".
 - Normas: primero las de los ultimos 7 dias que falten; luego hacia atras desde donde quedo.
@@ -32,14 +33,14 @@ from pypdf import PdfReader
 
 import config
 import cupos
-import principal as registro
+import bases as registro
 import ocr as ocr_mod
 from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
-LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "400"))   # cada base gratuita de Neon admite 512 MB; margen para 15 trabajadores
-# Base de texto que guarda la tabla "avance" (la 1 se lleno). La web y el relanzador leen la misma.
-CONTROL = int(os.getenv("TEXTOS_CONTROL", "2"))
+LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "400"))   # espacio que se usa de cada base de texto (ver README)
+# Base de texto que guarda la tabla "avance" (base de control)
+CONTROL = registro.CONTROL
 PAUSA = {"normas": 1.0, "proyectos": 1.0}
 MAX_ERRORES_SEGUIDOS = 12
 # Las escrituras se juntan y se envian en bloque cada 20 minutos de reloj (:00, :20, :40), a la vez en
@@ -92,7 +93,6 @@ class Bases:
     def __init__(self):
         self.urls = []
         control = ""
-        # Bases de texto: secretos TEXTOS_URL_<n> que no son principales + las creadas automaticamente
         for i, url in registro.bases_texto():
             self.urls.append(url)
             if i == CONTROL:
@@ -106,34 +106,12 @@ class Bases:
                                               WHERE table_schema = 'public' AND table_name = 'documentos')""")
                 if not cur.fetchone()[0]:
                     cur.execute(SQL_BASE_TEXTOS)
-                cur.execute("ALTER TABLE avance ADD COLUMN IF NOT EXISTS cursor_clave TEXT")
             self.ejecutar(url, preparar)
         self.control = control or self.urls[0]
-        if self.control != self.urls[0]:
-            self.mudar_avance(self.urls[0])
         self.actual = None
         self.pendientes = []          # documentos aun no enviados
         self.avance_pendiente = {}    # trabajador -> (cursor, terminado, procesados, cursor_clave)
         self.bloque = int(time.time() // BLOQUE_SEGUNDOS)
-
-    def mudar_avance(self, origen):
-        """Copia una sola vez el avance desde la base de texto 1 a la base de control."""
-        def contar(cur):
-            cur.execute("SELECT count(*) FROM avance")
-            return cur.fetchone()[0]
-        if self.ejecutar(self.control, contar):
-            return
-        def leer(cur):
-            cur.execute("SELECT trabajador, cursor, cursor_clave, terminado, procesados FROM avance")
-            return cur.fetchall()
-        filas = self.ejecutar(origen, leer)
-        if not filas:
-            return
-        def copiar(cur):
-            execute_values(cur, """INSERT INTO avance (trabajador, cursor, cursor_clave, terminado, procesados)
-                                   VALUES %s ON CONFLICT (trabajador) DO NOTHING""", filas)
-        self.ejecutar(self.control, copiar)
-        print(f"Avance copiado a la base de control ({len(filas)} trabajadores)")
 
     @staticmethod
     def ejecutar(url, funcion):
@@ -163,7 +141,9 @@ class Bases:
         return self.ejecutar(url, f)
 
     def destino(self):
-        """Base con espacio libre (se revisa en cada envio)."""
+        """Base con espacio libre. Se revisa primero la que se esta usando; las demas solo si esa se lleno."""
+        if self.actual and not cupos.agotada(self.actual) and self.tamano_mb(self.actual) < LIMITE_MB:
+            return self.actual
         for n, url in enumerate(self.urls, start=1):
             if cupos.agotada(url):
                 continue   # llego a 4 GB de transferencia este mes: no se le agrega nada mas
@@ -175,7 +155,7 @@ class Bases:
                 return url
         raise SystemExit(
             f"::error title=Bases llenas::Todas las bases de texto llegaron a {LIMITE_MB} MB. "
-            "Hay que crear otra base gratuita en Neon y agregarla como secreto TEXTOS_URL_<numero>."
+            "Hay que crear otra base gratuita en Neon y agregarla como secreto TEXTOS_URL_<numero> (ver README)."
         )
 
     def existentes(self, tipo, claves) -> set:
@@ -314,6 +294,16 @@ def bajar_archivo(archivo):
     return rp.content
 
 
+def sumilla_expediente(periodo, camara, num_pley) -> str:
+    """Solo la sumilla extensa del expediente (sin descargar sus PDF)."""
+    url = f"{API_CONGRESO}/expediente/{cifrar(periodo)}/{cifrar(num_pley)}"
+    r = pedir(url, params={"codTipoParl": camara or "C"}, headers=CABECERAS_CONGRESO)
+    if r.status_code == 404:
+        return ""
+    exp = (r.json() or {}).get("data") or {}
+    return ((exp.get("general") or {}).get("sumilla") or "").strip()
+
+
 def expediente_proyecto(periodo, camara, num_pley):
     """Devuelve (sumilla, texto, hubo_pdf) del proyecto.
     Revisa hasta 4 archivos posibles y se queda con el de mas texto; si todos son escaneados,
@@ -364,7 +354,7 @@ def extraer(datos, ocr=True) -> str:
 def principal():
     if not config.DATABASE_URL:
         raise SystemExit("Falta DATABASE_URL")
-    if cupos.principal_en_emergencia() or registro.copiando():
+    if cupos.principal_en_emergencia():
         raise SystemExit(0)
     return psycopg2.connect(config.DATABASE_URL)
 
@@ -658,15 +648,34 @@ def trabajar_proyectos(minutos, parte=0, de=1):
 
     claves = [f"{p}|{c}|{n}" for p, c, n, _, _ in filas]
     hechas = bases.existentes("P", claves)
+    mios = lambda k: zlib.crc32(k.encode()) % de == parte  # noqa: E731
     # Cada trabajador toma su parte (reparto fijo segun la clave)
     # (los que faltaban en la revision diaria los toma todos el trabajador 0)
-    pendientes = [(k, f) for k, f in zip(claves, filas)
-                  if k not in hechas and (zlib.crc32(k.encode()) % de == parte or k in faltan)]
-    print(f"Proyectos: {len(filas)} en total, {len(pendientes)} pendientes")
+    pendientes = [(k, f) for k, f in zip(claves, filas) if k not in hechas and (mios(k) or k in faltan)]
+    # Proyectos que ya tienen su texto guardado pero no quedaron marcados (por ejemplo, si una ejecucion
+    # se corto antes del final): solo se lee su sumilla y se marcan. Asi no se vuelven a leer cada vez.
+    solo_sumilla = [(k, f) for k, f in zip(claves, filas) if k in hechas and k not in faltan and mios(k)]
+    print(f"Proyectos: {len(filas)} sin marcar, {len(pendientes)} sin texto, {len(solo_sumilla)} con texto por marcar")
     sumillas = []
     hechos = 0
     errores, espera = 0, 30
     try:
+        for clave, (periodo, camara, numero, num_pley, titulo) in solo_sumilla:
+            if not reloj.queda():
+                break
+            try:
+                sumillas.append((sumilla_expediente(periodo, camara, num_pley), periodo, camara, numero))
+                errores, espera = 0, 30
+            except (requests.RequestException, FuenteNoResponde, ValueError) as e:
+                errores += 1
+                print(f"  proyecto {numero}: {e}; espero {espera} s")
+                if errores >= MAX_ERRORES_SEGUIDOS:
+                    break
+                time.sleep(espera)
+                espera = min(espera * 2, 600)
+                continue
+            time.sleep(PAUSA["proyectos"])
+        errores, espera = 0, 30
         for clave, (periodo, camara, numero, num_pley, titulo) in pendientes:
             if not reloj.queda():
                 break

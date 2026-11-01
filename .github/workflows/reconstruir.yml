@@ -22,7 +22,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: |
           python - <<'PY'
           import os, psycopg2
@@ -59,7 +58,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: >
           python src/backfill.py --desde "${{ matrix.tramo.desde }}"
           ${{ matrix.tramo.hasta && format('--hasta {0}', matrix.tramo.hasta) || '' }}
@@ -82,7 +80,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: python src/run_congreso.py
 
   resumenes:
@@ -105,5 +102,4 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: python src/resumen.py --sin-descarga

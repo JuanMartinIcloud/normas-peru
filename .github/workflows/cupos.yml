@@ -1,8 +1,8 @@
 name: Cupos de Neon
 
-# Mide cada hora cuanto ha transferido cada base en el mes. Si una base llega a 4 GB (de los 5 GB
-# gratuitos), el sistema deja de agregarle datos y detiene las tareas no indispensables que la leen.
-# Rota la base principal entre varias copias (cada 2 GB) y crea bases nuevas en Neon cuando hacen falta.
+# Mide cada hora cuanto ha transferido cada base en el mes (API de Neon; no despierta las bases).
+# Si una base llega a 4 GB (de los 5 GB gratuitos), el sistema deja de agregarle datos y detiene las tareas
+# no indispensables que la leen; a los 4,6 GB, la base principal solo atiende a la web (ver src/cupos.py).
 on:
   schedule:
     - cron: "23 * * * *"
@@ -17,10 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     # Una falla no marca la tarea como error: se repite en la hora siguiente
     continue-on-error: true
-    timeout-minutes: 120
-    permissions:
-      actions: read
-      contents: read
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -30,9 +27,9 @@ jobs:
       - name: Medir transferencia
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
           TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
-          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
           TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
           TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
@@ -42,36 +39,3 @@ jobs:
           TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
           TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: bash src/reintentar.sh python src/cupos.py
-      - name: Bases automaticas (registro y bases nuevas de texto si hacen falta)
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
-          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
-          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
-          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
-          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
-          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
-          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
-          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
-          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
-        run: python src/bases_auto.py
-      - name: Rotar la base principal si la activa gasto su parte del cupo
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_3: ${{ secrets.TEXTOS_URL_3 }}
-          TEXTOS_URL_4: ${{ secrets.TEXTOS_URL_4 }}
-          TEXTOS_URL_5: ${{ secrets.TEXTOS_URL_5 }}
-          TEXTOS_URL_6: ${{ secrets.TEXTOS_URL_6 }}
-          TEXTOS_URL_7: ${{ secrets.TEXTOS_URL_7 }}
-          TEXTOS_URL_8: ${{ secrets.TEXTOS_URL_8 }}
-          TEXTOS_URL_9: ${{ secrets.TEXTOS_URL_9 }}
-          TEXTOS_URL_10: ${{ secrets.TEXTOS_URL_10 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
-          TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
-        run: python src/cambiar_principal.py

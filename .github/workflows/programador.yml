@@ -1,10 +1,11 @@
 name: Programador de tareas
 
+# Cada 30 minutos revisa la hora de Lima y lanza las tareas diarias que tocan (o repite las que fallaron).
+# Hace una sola revision y termina en segundos. Ver src/programador.py.
 on:
   workflow_dispatch:
   schedule:
-    # Respaldo: si la cadena se cortara, se retoma sola cada 4 horas
-    - cron: "11 */4 * * *"
+    - cron: "*/30 * * * *"
 
 concurrency:
   group: programador
@@ -17,16 +18,15 @@ permissions:
 jobs:
   programar:
     runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
     continue-on-error: true
-    timeout-minutes: 355
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install requests
-      - name: Vigilar la hora y lanzar las tareas
+      - name: Lanzar las tareas que tocan
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python src/programador.py

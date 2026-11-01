@@ -1,8 +1,7 @@
 name: Vocabulario para corregir busquedas
 
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
-  schedule:
-    - cron: "41 11 * * *"   # 6:41 a. m. Lima, despues de cargar las normas del dia
   workflow_dispatch:
 
 jobs:
@@ -22,5 +21,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: bash src/reintentar.sh python src/vocabulario.py

@@ -1,0 +1,26 @@
+name: Diagnostico (solo lectura)
+
+# Mediciones que no cambian nada: estado de los proyectos de Neon, consultas mas pesadas y conteos.
+# El resultado queda como aviso de la ejecucion (no se guarda en el repositorio).
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "neon | consultas | conteos"
+        default: "neon"
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests psycopg2-binary
+      - name: Medir
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
+        run: python src/diagnostico.py "${{ github.event.inputs.modo || 'neon' }}"

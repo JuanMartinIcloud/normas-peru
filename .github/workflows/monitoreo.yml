@@ -1,15 +1,12 @@
 name: Monitoreo empresarial (analisis con IA)
 run-name: Monitoreo ${{ inputs.modo || 'diario' }}
 
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
-  schedule:
-    # 07:23 UTC = 2:23 a. m. Lima; respaldo 5:03 a. m. Lima. El reporte debe estar a las 7 a. m.
-    - cron: "23 7 * * *"
-    - cron: "3 10 * * *"
   workflow_dispatch:
     inputs:
       modo:
-        description: "diario | historico | rango | leyes (revision de leyes descartadas)"
+        description: "diario | historico | rango"
         default: "diario"
       fechas:
         description: "Para 'rango': desde hasta (AAAA-MM-DD AAAA-MM-DD)"
@@ -59,8 +56,6 @@ jobs:
             bash src/reintentar.sh python src/monitoreo.py diario --max-minutos 150 > salida.log 2>&1; codigo=$?
             # Despues del dia, un mes mas hacia atras (uno por dia)
             [ $codigo -eq 0 ] && { bash src/reintentar.sh python src/monitoreo.py historico --max-minutos 150 >> salida.log 2>&1; codigo=$?; }
-          elif [ "$MODO" = "leyes" ]; then
-            bash src/reintentar.sh python src/revisar_leyes.py --max-minutos 300 > salida.log 2>&1; codigo=$?
           else
             bash src/reintentar.sh python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
           fi

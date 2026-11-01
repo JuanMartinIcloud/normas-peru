@@ -4,14 +4,7 @@ import time
 import requests
 
 from classifier import clasificar_rubro
-
-API = "https://api.congreso.gob.pe/spley-portal-service"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; normas-peru-research/0.1; uso academico)",
-    "Origin": "https://wb2server.congreso.gob.pe",
-    "Referer": "https://wb2server.congreso.gob.pe/",
-    "Accept": "application/json, text/plain, */*",
-}
+from textos import API_CONGRESO as API, CABECERAS_CONGRESO as HEADERS
 PAGINA = 200          # el portal ofrece 20, 50, 100 o 200
 PAUSA = 1.0           # segundos entre solicitudes
 CAMARAS = ["C", "D", "S"]   # Congreso, Diputados, Senado (este ultimo desde 2026)

@@ -2,9 +2,8 @@ name: Recalificar monitoreo
 
 # Vuelve a calificar (con los criterios vigentes) lo analizado antes: si sigue en el reporte,
 # su calificacion y su puntaje de impacto del 1 al 10. Se relanza sola hasta terminar.
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
-  schedule:
-    - cron: "29 15 * * *"    # respaldo diario (si no hay nada pendiente, termina en segundos)
   workflow_dispatch:
     inputs:
       buscar:
@@ -19,7 +18,6 @@ env:
   DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-  TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
 
 jobs:
   recalificar:

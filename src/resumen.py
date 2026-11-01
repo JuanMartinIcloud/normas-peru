@@ -5,12 +5,11 @@
     python src/resumen.py 2026-10-11       # resume una fecha concreta
     python src/resumen.py 2026-10-11 --forzar      # lo rehace aunque ya exista
     python src/resumen.py --sin-ia         # muestra lo que se enviaria a Gemini, sin guardar
-    python src/resumen.py --sin-descarga   # no vuelve a descargar El Peruano ni el Congreso
+    python src/resumen.py --sin-descarga   # no vuelve a descargar El Peruano
 
 Pasos:
 1. Si el dia ya tiene resumen, termina sin hacer nada (asi los intentos de respaldo no gastan).
-2. Vuelve a descargar las normas de ese dia (recoge ediciones extraordinarias tardias)
-   y actualiza los proyectos de ley del Congreso.
+2. Vuelve a descargar las normas de ese dia (recoge ediciones extraordinarias tardias).
 3. Envia a Gemini las sumillas de las normas, los proyectos nuevos y los que cambiaron de estado.
 4. Guarda el resumen en la tabla 'resumenes'; la pagina web lo muestra al abrirla.
 """
@@ -24,7 +23,6 @@ from psycopg2.extras import Json, RealDictCursor
 import db
 import elperuano
 import gemini
-import run_congreso
 
 DIAS_ATRAS = 7            # cuantos dias hacia atras se rellenan si faltan resumenes
 MAX_NORMAS = 400
@@ -126,8 +124,9 @@ def proyectos_con_cambios(conn, desde, hasta, excluir: set) -> list[dict]:
         return [p for p in cur.fetchall() if p["id"] not in excluir][: MAX_CAMBIOS + 1]
 
 
-def refrescar_fuentes(conn, fechas: list[date], con_congreso: bool) -> list[str]:
-    """Vuelve a descargar El Peruano (y el Congreso). Si algo falla, lo anota y sigue."""
+def refrescar_fuentes(conn, fechas: list[date]) -> list[str]:
+    """Vuelve a descargar El Peruano (recoge ediciones extraordinarias tardias). Si algo falla, lo anota
+    y sigue. Los proyectos del Congreso ya los actualizo la tarea "Proyectos de ley" una hora antes."""
     avisos = []
     for f in fechas:
         try:
@@ -139,14 +138,6 @@ def refrescar_fuentes(conn, fechas: list[date], con_congreso: bool) -> list[str]
             conn.rollback()
             print(f"{f}: no se pudo volver a descargar El Peruano: {e}")
             avisos.append("No se pudo revisar El Peruano a última hora; podría faltar alguna norma.")
-    if con_congreso:
-        try:
-            n = run_congreso.actualizar(conn)
-            print(f"Congreso: {n} proyectos revisados")
-        except Exception as e:  # noqa: BLE001
-            conn.rollback()
-            print(f"No se pudo actualizar el portal del Congreso: {e}")
-            avisos.append("No se pudo consultar el portal del Congreso; los proyectos podrían estar incompletos.")
     return avisos
 
 
@@ -392,7 +383,7 @@ def main():
             except gemini.ErrorGemini as e:
                 raise SystemExit(str(e))
         print("Dias a resumir:", ", ".join(d.isoformat() for d in dias))
-        avisos = [] if sin_descarga else refrescar_fuentes(conn, dias, con_congreso=ayer in dias)
+        avisos = [] if sin_descarga else refrescar_fuentes(conn, dias)
 
         fallas = []
         for i, d in enumerate(dias):

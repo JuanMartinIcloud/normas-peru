@@ -1,3 +1,0 @@
-https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjU2Mjg2MS0xMjAyNjEwMDk= -> 200 application/pdf; Charset=UTF-8 384585 b'%PDF-1.7\n%\xc7\xec\x8f\xa2\n10 0 obj\n<</Linearized 1/L 338915/H[ 303208 1'
-https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjU2Mjg2Mi0xMjAyNjEwMDk= -> 200 application/pdf; Charset=UTF-8 853944 b'%PDF-1.7\n%\xc7\xec\x8f\xa2\n38 0 obj\n<</Linearized 1/L 808269/H[ 311535 1'
-https://epdoc2.elperuano.pe/EpPo/VistaDE.asp?Referencias=MjU2MzE5OS0xMjAyNjEwMDk= -> 200 application/pdf; Charset=UTF-8 1231341 b'%PDF-1.6\r%\xe2\xe3\xcf\xd3\r\n64 0 obj\r<</Linearized 1/L 1183513/O 66/E 42'

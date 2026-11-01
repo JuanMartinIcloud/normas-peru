@@ -1,17 +1,15 @@
 name: Carga historica por tandas
 
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
   workflow_dispatch:
     inputs:
       desde:
         description: "Fecha mas antigua a cubrir (YYYY-MM-DD)"
-        default: "2019-01-01"
+        default: "2015-01-01"
       max_dias:
         description: "Maximo de dias por tanda"
         default: "400"
-  schedule:
-    # Una tanda cada 8 horas hasta completar el historico (se reanuda sola)
-    - cron: "0 */8 * * *"
 
 concurrency:
   group: historico
@@ -34,13 +32,8 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          ELPERUANO_ENDPOINT: ${{ vars.ELPERUANO_ENDPOINT }}
-          ELPERUANO_METODO: ${{ vars.ELPERUANO_METODO }}
-          ELPERUANO_PARAM_DESDE: ${{ vars.ELPERUANO_PARAM_DESDE }}
-          ELPERUANO_PARAM_HASTA: ${{ vars.ELPERUANO_PARAM_HASTA }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: >
           python src/backfill.py
-          --desde "${{ github.event.inputs.desde || '2019-01-01' }}"
+          --desde "${{ github.event.inputs.desde || '2015-01-01' }}"
           --max-dias "${{ github.event.inputs.max_dias || '400' }}"
           --max-minutos 330

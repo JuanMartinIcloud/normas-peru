@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS normas (
     url_pdf         TEXT,
     url_detalle     TEXT,
     extraordinaria  BOOLEAN     NOT NULL DEFAULT FALSE,
-    texto_r2_key    TEXT,                              -- ruta del texto/PDF en Cloudflare R2 (opcional)
     hash_unico      TEXT        NOT NULL,              -- evita duplicados
     creado_en       TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT normas_hash_unico UNIQUE (hash_unico)
@@ -39,16 +38,6 @@ CREATE TABLE IF NOT EXISTS descargas (
 );
 
 -- Proyectos de ley del Congreso (periodo 2021 en adelante, desde su portal oficial)
--- Migracion unica: si la tabla antigua (sin columna "camara") existe, se recrea. Estaba vacia.
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'proyectos_ley')
-       AND NOT EXISTS (SELECT 1 FROM information_schema.columns
-                       WHERE table_name = 'proyectos_ley' AND column_name = 'camara') THEN
-        DROP TABLE proyectos_ley;
-    END IF;
-END $$;
-
 CREATE TABLE IF NOT EXISTS proyectos_ley (
     id                 BIGSERIAL PRIMARY KEY,
     periodo            TEXT NOT NULL,            -- ej. 2021 (periodo parlamentario 2021-2026)
@@ -59,7 +48,6 @@ CREATE TABLE IF NOT EXISTS proyectos_ley (
     titulo             TEXT,
     autor              TEXT,
     proponente         TEXT,
-    comision           TEXT,
     estado             TEXT,
     rubro              TEXT,
     url                TEXT,
@@ -113,21 +101,6 @@ ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS sumilla_revisada BOOLEAN NOT 
 CREATE INDEX IF NOT EXISTS idx_proy_busqueda ON proyectos_ley
     USING GIN (to_tsvector('spanish', coalesce(titulo,'') || ' ' || coalesce(sumilla,'')));
 
--- Normas: palabras del texto completo (del PDF oficial). Se guardan solo las palabras
--- indexadas, no el texto, para no llenar la base gratuita.
-ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_tsv tsvector;
-ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_estado TEXT;   -- ok | sin_texto | sin_pdf
-CREATE INDEX IF NOT EXISTS idx_normas_texto ON normas USING GIN (texto_tsv);
-
--- ---------------------------------------------------------------------------
--- Etapa 5: texto completo de todas las normas y proyectos (busqueda e IA).
--- El texto NO se guarda en esta base: va a las bases de texto (secretos TEXTOS_URL_1, _2...),
--- en la tabla "documentos" que crea src/indexar.py. Esta base solo se consulta al empezar.
--- Las columnas texto_estado/texto_base quedan de una version anterior y ya no se usan.
--- ---------------------------------------------------------------------------
-ALTER TABLE normas ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
-ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_estado TEXT;
-ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS texto_base SMALLINT;
 
 -- ---------------------------------------------------------------------------
 -- Etapa 6: monitoreo empresarial (reportes para AmCham).
@@ -223,3 +196,15 @@ ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_numero TEXT;
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_camara CHAR(1);
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS enlace_estado TEXT;
 CREATE INDEX IF NOT EXISTS idx_proy_ley ON proyectos_ley (ley_numero) WHERE ley_numero IS NOT NULL;
+
+-- Etapa 9: limpieza de columnas de versiones anteriores (el texto completo esta en las bases de texto)
+-- e indice para buscar normas por su numero (lo usa src/leyes.py).
+DROP INDEX IF EXISTS idx_normas_texto;
+ALTER TABLE normas DROP COLUMN IF EXISTS texto_tsv;
+ALTER TABLE normas DROP COLUMN IF EXISTS texto_estado;
+ALTER TABLE normas DROP COLUMN IF EXISTS texto_base;
+ALTER TABLE normas DROP COLUMN IF EXISTS texto_r2_key;
+ALTER TABLE proyectos_ley DROP COLUMN IF EXISTS texto_estado;
+ALTER TABLE proyectos_ley DROP COLUMN IF EXISTS texto_base;
+ALTER TABLE proyectos_ley DROP COLUMN IF EXISTS comision;
+CREATE INDEX IF NOT EXISTS idx_normas_numero ON normas (numero);

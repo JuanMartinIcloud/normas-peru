@@ -1,8 +1,7 @@
 name: Alarma de consumo de Neon
 
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
-  schedule:
-    - cron: "13 12 * * *"    # 7:13 a. m. Lima
   workflow_dispatch:
 
 jobs:

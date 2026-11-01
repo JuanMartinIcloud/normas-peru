@@ -1,11 +1,7 @@
 name: Proyectos de ley (Congreso)
 
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
-  schedule:
-    # 06:23 UTC = 1:23 a. m. Lima (respaldo 3:53 a. m.): proyectos y seguimiento listos para el
-    # reporte de las 7 a. m. aunque GitHub se retrase
-    - cron: "23 6 * * *"
-    - cron: "53 8 * * *"
   workflow_dispatch:
 
 jobs:
@@ -25,17 +21,14 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: bash src/reintentar.sh python src/run_congreso.py
       - name: Seguimiento de expedientes (dictamenes, autografas, remisiones)
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: bash src/reintentar.sh python src/seguimiento.py --max-minutos 40
       - name: Proposiciones convertidas en ley (numero de ley, fe de erratas y enlace entre camaras)
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: bash src/reintentar.sh python src/leyes.py --max-minutos 20

@@ -1,10 +1,7 @@
 name: Descarga diaria
 
+# Lo lanza el programador de tareas (src/programador.py) a su hora; tambien se puede lanzar a mano.
 on:
-  schedule:
-    # 03:30 UTC = 22:30 hora de Lima. Descarga el dia anterior y el actual
-    # (GitHub a veces la ejecuta con horas de retraso; repasar ayer evita huecos).
-    - cron: "30 3 * * *"
   workflow_dispatch:
     inputs:
       fecha:
@@ -29,5 +26,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: bash src/reintentar.sh python src/run_dia.py ${{ github.event.inputs.fecha }}

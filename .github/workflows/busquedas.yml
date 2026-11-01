@@ -16,5 +16,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-          TEXTOS_URL_11: ${{ secrets.TEXTOS_URL_11 }}
         run: bash src/reintentar.sh python3 src/busquedas_tarea.py

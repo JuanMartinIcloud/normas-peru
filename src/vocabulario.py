@@ -9,9 +9,7 @@ import os
 
 import psycopg2
 
-import config  # noqa: F401  (elige la base principal activa)
 import cupos
-import principal
 
 SIN_TILDE = "translate(word, 'áéíóúüàèìòù', 'aeiouuaeiou')"
 
@@ -27,7 +25,7 @@ CREATE INDEX IF NOT EXISTS vocabulario_trgm ON vocabulario USING gin (sin_tilde 
 
 
 def main():
-    if cupos.principal_en_emergencia() or principal.copiando():
+    if cupos.principal_en_emergencia():
         return
     c = psycopg2.connect(os.environ["DATABASE_URL"], connect_timeout=60)
     cur = c.cursor()

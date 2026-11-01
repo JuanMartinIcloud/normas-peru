@@ -1,8 +1,8 @@
 """Vuelve a leer los documentos guardados SIN TEXTO (PDF escaneados): primero busca en el expediente
 otro PDF que si traiga texto y, si no hay, lee el escaneado con OCR (Tesseract, gratuito).
 
-    python src/ocr_pendientes.py --parte 0 --de 16 --max-minutos 50
-    python src/ocr_pendientes.py --contar          # cuantos faltan (para el relanzador)
+    python src/ocr_pendientes.py --max-minutos 45
+    python src/ocr_pendientes.py --contar          # cuantos faltan (para decidir si se corre)
 
 - Cada documento revisado queda anotado en la tabla "ocr_revisado" de la base de control:
   no se repite aunque el OCR no encuentre texto.

@@ -344,7 +344,7 @@ def guardar(filas):
               calificacion = EXCLUDED.calificacion, impacto = EXCLUDED.impacto, puntaje = EXCLUDED.puntaje,
               criterio = EXCLUDED.criterio, comites = EXCLUDED.comites,
               acciones = EXCLUDED.acciones, accion_directorio = EXCLUDED.accion_directorio,
-              lectura = EXCLUDED.lectura, modelo = EXCLUDED.modelo""", valores)
+              lectura = EXCLUDED.lectura, modelo = EXCLUDED.modelo, creado_en = now()""", valores)
     c.commit()
     c.close()
 
@@ -446,6 +446,10 @@ def procesar_normas(desde, hasta, reloj, ids=None):
     return hechas, True
 
 
+# Movimientos del Congreso que justifican analizar (o volver a analizar) un proyecto
+MOVIMIENTOS = r"dictamen|aut.grafa|senado|aprobad|publicad"
+
+
 def procesar_proyectos(desde, hasta, reloj):
     filas = consultar(
         """SELECT p.id, p.fecha_presentacion, p.numero, p.camara, p.proponente, p.autor,
@@ -456,13 +460,19 @@ def procesar_proyectos(desde, hasta, reloj):
                   p.titulo, p.sumilla, p.periodo || '|' || p.camara || '|' || p.numero,
                   (SELECT n.hash_unico FROM normas n WHERE n.id = (p.ley_docs->'ley'->>'id')::bigint)
            FROM proyectos_ley p
-           WHERE NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = p.id)
-             AND (p.fecha_presentacion BETWEEN %s AND %s OR p.ley_fecha BETWEEN %s AND %s
-                  OR EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id
-                               AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %s AND %s
-                               AND (s.estado ILIKE '%%dictamen%%' OR s.estado ILIKE '%%aut_grafa%%'
-                                    OR s.estado ILIKE '%%senado%%' OR s.estado ILIKE 'publicad%%')))
-           ORDER BY p.fecha_presentacion DESC NULLS LAST""", (desde, hasta, desde, hasta, desde, hasta))
+           LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = p.id
+           WHERE (a.id IS NULL AND (p.fecha_presentacion BETWEEN %(d)s AND %(h)s OR p.ley_fecha BETWEEN %(d)s AND %(h)s
+                                    OR EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id
+                                                 AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %(d)s AND %(h)s
+                                                 AND s.estado ~* %(mov)s)))
+              -- Ya analizado pero avanzo despues (dictamen, aprobacion, autografa, publicacion como ley):
+              -- se vuelve a analizar para que el analisis refleje su estado actual
+              OR (a.id IS NOT NULL AND NOT a.excluido
+                  AND (EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id AND s.fecha > a.creado_en
+                                 AND (s.fecha AT TIME ZONE 'America/Lima')::date BETWEEN %(d)s AND %(h)s
+                                 AND s.estado ~* %(mov)s)
+                       OR (p.ley_fecha BETWEEN %(d)s AND %(h)s AND a.creado_en < p.ley_fecha + 1)))
+           ORDER BY p.fecha_presentacion DESC NULLS LAST""", {"d": desde, "h": hasta, "mov": MOVIMIENTOS})
     print(f"Proyectos por revisar {desde} a {hasta}: {len(filas)}")
     hechas = 0
     for i in range(0, len(filas), 200):

@@ -13,6 +13,8 @@ import sys
 import psycopg2
 import requests
 
+import bases
+
 LIMITE_CU_HORAS = 100
 LIMITE_TRANSFER_GB = 5
 LIMITE_ESPACIO_MB = 512
@@ -24,12 +26,9 @@ def nivel(fraccion):
 
 
 def revisar_espacio():
-    import principal
-    activa = principal.activa()
-    bases = [(f"principal {n}" + (" (en uso)" if n == activa else ""), principal.url_de(n)) for n in principal.principales()]
-    bases += [(f"texto {i}", url) for i, url in principal.bases_texto()]
+    lista = [("principal", bases.url_principal())] + [(f"texto {i}", u) for i, u in bases.bases_texto()]
     peor = 0.0
-    for nombre, url in bases:
+    for nombre, url in lista:
         if not url.strip():
             continue
         try:

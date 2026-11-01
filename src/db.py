@@ -6,7 +6,6 @@ from psycopg2.extras import execute_values
 
 import config
 import cupos
-import principal
 
 _ESQUEMA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "schema.sql")
 # Cada etapa: (marca en schema.sql, consulta que dice si ya esta aplicada)
@@ -17,12 +16,7 @@ _ETAPAS = [
                                      WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
                                        AND column_name = 'estado_cambiado_en')"""),
     ("-- Etapa 4:", """SELECT EXISTS (SELECT 1 FROM pg_indexes
-                                     WHERE schemaname = 'public' AND indexname = 'idx_normas_texto')
-                         AND EXISTS (SELECT 1 FROM pg_indexes
                                      WHERE schemaname = 'public' AND indexname = 'idx_proy_busqueda')"""),
-    ("-- Etapa 5:", """SELECT EXISTS (SELECT 1 FROM information_schema.columns
-                                     WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
-                                       AND column_name = 'texto_base')"""),
     ("-- Etapa 6:", """SELECT EXISTS (SELECT 1 FROM information_schema.tables
                                      WHERE table_schema = 'public' AND table_name = 'informes')
                          AND EXISTS (SELECT 1 FROM information_schema.columns
@@ -34,17 +28,24 @@ _ETAPAS = [
     ("-- Etapa 8:", """SELECT EXISTS (SELECT 1 FROM information_schema.columns
                                      WHERE table_schema = 'public' AND table_name = 'proyectos_ley'
                                        AND column_name = 'enlace_estado')"""),
+    ("-- Etapa 9:", """SELECT EXISTS (SELECT 1 FROM pg_indexes
+                                     WHERE schemaname = 'public' AND indexname = 'idx_normas_numero')"""),
 ]
 
 
 def conectar():
     if not config.DATABASE_URL:
         raise SystemExit("Falta la variable de entorno DATABASE_URL (cadena de conexion de Neon).")
-    if cupos.principal_en_emergencia() or principal.copiando():
+    if cupos.principal_en_emergencia():
         raise SystemExit(0)
-    conn = psycopg2.connect(config.DATABASE_URL)
-    asegurar_esquema(conn)
+    conn = psycopg2.connect(config.DATABASE_URL, connect_timeout=60)
+    if not _esquema_revisado[0]:
+        asegurar_esquema(conn)   # una sola vez por ejecucion (no en cada conexion)
+        _esquema_revisado[0] = True
     return conn
+
+
+_esquema_revisado = [False]
 
 
 def asegurar_esquema(conn):
@@ -143,7 +144,16 @@ def upsert_proyectos(conn, filas: list[dict]) -> int:
                     proponente = EXCLUDED.proponente, rubro = EXCLUDED.rubro,
                     url = COALESCE(EXCLUDED.url, proyectos_ley.url),
                     camara_actual = COALESCE(EXCLUDED.camara_actual, proyectos_ley.camara_actual),
-                    fecha_presentacion = EXCLUDED.fecha_presentacion, actualizado = now()""",
+                    fecha_presentacion = EXCLUDED.fecha_presentacion, actualizado = now()
+                -- Solo se escribe si algo cambio (antes se reescribian los ~15.600 proyectos en cada descarga)
+                WHERE (proyectos_ley.estado, proyectos_ley.titulo, proyectos_ley.autor, proyectos_ley.proponente,
+                       proyectos_ley.rubro, proyectos_ley.url, proyectos_ley.camara_actual,
+                       proyectos_ley.fecha_presentacion)
+                      IS DISTINCT FROM
+                      (COALESCE(EXCLUDED.estado, proyectos_ley.estado), EXCLUDED.titulo, EXCLUDED.autor,
+                       EXCLUDED.proponente, EXCLUDED.rubro, COALESCE(EXCLUDED.url, proyectos_ley.url),
+                       COALESCE(EXCLUDED.camara_actual, proyectos_ley.camara_actual),
+                       EXCLUDED.fecha_presentacion)""",
             valores,
         )
     conn.commit()

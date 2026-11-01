@@ -1,43 +1,25 @@
 name: Indexar textos completos
 
+# Guarda el texto completo de las normas y proyectos NUEVOS (lo ya guardado no se vuelve a descargar).
+# Lo lanza el programador de tareas una vez al dia (4:00 a. m. de Lima), despues de la descarga de normas,
+# del Congreso y del resumen. Tambien se puede lanzar a mano.
 on:
-  schedule:
-    # Cada hora. Solo corre si el repositorio es publico (minutos ilimitados);
-    # siendo privado se agotarian los 2 000 minutos gratuitos del mes.
-    - cron: "7 * * * *"
   workflow_dispatch:
 
-# Una sola tanda a la vez (si llega otra, espera a que termine la actual)
 concurrency:
   group: indexar
   cancel-in-progress: false
 
 jobs:
   indexar:
-    if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
     runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
+    # Una falla no marca la tarea como error: el programador la detecta y la repite
     continue-on-error: true
     timeout-minutes: 59
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { tipo: normas, parte: 0, de: 12 }
-          - { tipo: normas, parte: 1, de: 12 }
-          - { tipo: normas, parte: 2, de: 12 }
-          - { tipo: normas, parte: 3, de: 12 }
-          - { tipo: normas, parte: 4, de: 12 }
-          - { tipo: normas, parte: 5, de: 12 }
-          - { tipo: normas, parte: 6, de: 12 }
-          - { tipo: normas, parte: 7, de: 12 }
-          - { tipo: normas, parte: 8, de: 12 }
-          - { tipo: normas, parte: 9, de: 12 }
-          - { tipo: normas, parte: 10, de: 12 }
-          - { tipo: normas, parte: 11, de: 12 }
-          - { tipo: proyectos, parte: 0, de: 3 }
-          - { tipo: proyectos, parte: 1, de: 3 }
-          - { tipo: proyectos, parte: 2, de: 3 }
+        tipo: [normas, proyectos]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,7 +31,7 @@ jobs:
       - run: timeout 300 bash -c "sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-spa poppler-utils" || true
         timeout-minutes: 6
         continue-on-error: true
-      - name: Texto completo (${{ matrix.tipo }} ${{ matrix.parte }})
+      - name: Texto completo (${{ matrix.tipo }})
         env:
           DATABASE_URL: ${{ secrets.TEXTOS_URL_4 }}
           TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
@@ -64,64 +46,10 @@ jobs:
           TEXTOS_URL_12: ${{ secrets.TEXTOS_URL_12 }}
         run: |
           set +e
-          # Hasta 3 intentos dentro del tiempo de la tanda (una falla pasajera no detiene al trabajador;
-          # el avance queda guardado y cada intento sigue donde quedo el anterior)
-          : > salida.log
-          for intento in 1 2 3; do
-            quedan=$(( 52 - SECONDS / 60 ))
-            [ $quedan -lt 5 ] && break
-            python src/indexar.py ${{ matrix.tipo }} --parte ${{ matrix.parte }} --de ${{ matrix.de }} --max-minutos $quedan >> salida.log 2>&1
-            codigo=$?
-            [ $codigo -eq 0 ] && break
-            echo "Intento $intento fallo (codigo $codigo)" >> salida.log
-            sleep 60
-          done
+          python src/indexar.py ${{ matrix.tipo }} --max-minutos 50 > salida.log 2>&1
+          codigo=$?
           cat salida.log
           if [ $codigo -ne 0 ]; then
-            # Las ultimas lineas quedan como avisos visibles en GitHub (los registros completos no siempre se pueden leer)
             tail -n 9 salida.log | while IFS= read -r linea; do echo "::error::${linea:0:900}"; done
           fi
           exit $codigo
-
-  # Si la tanda termino bien y aun queda trabajo, lanza la siguiente sin esperar el horario.
-  # No consulta la base principal: el avance esta en la base de texto 2 (la 1 se lleno).
-  relanzar:
-    needs: indexar
-    # Tambien relanza si fallo solo algun trabajador (los demas avanzan); pero no si la tanda fallo en minutos
-    if: (needs.indexar.result == 'success' || needs.indexar.result == 'failure') && github.event.repository.private == false
-    runs-on: ubuntu-latest
-    # Una falla no marca la tarea como error: el programador la detecta y la repite sola
-    continue-on-error: true
-    timeout-minutes: 5
-    permissions:
-      actions: write
-    steps:
-      - name: Revisar si queda trabajo
-        id: cuenta
-        env:
-          TEXTOS_URL_2: ${{ secrets.TEXTOS_URL_2 }}
-        run: |
-          pip install psycopg2-binary >/dev/null
-          python3 - <<'PY'
-          import os, psycopg2
-          c = psycopg2.connect(os.environ["TEXTOS_URL_2"]); cur = c.cursor()
-          cur.execute("SELECT count(*) FROM avance WHERE NOT terminado")
-          n = cur.fetchone()[0]
-          print(f"Trabajadores con trabajo pendiente: {n}")
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"pendientes={n}\n")
-          PY
-      - name: Lanzar la siguiente tanda
-        if: steps.cuenta.outputs.pendientes != '0'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RESULTADO: ${{ needs.indexar.result }}
-        run: |
-          inicio=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" --jq .run_started_at)
-          minutos=$(( ( $(date -u +%s) - $(date -u -d "$inicio" +%s) ) / 60 ))
-          echo "La tanda duro $minutos minutos (resultado: $RESULTADO)"
-          if [ "$RESULTADO" = "failure" ] && [ "$minutos" -lt 15 ]; then
-            echo "::warning::La tanda fallo en pocos minutos; no se relanza (la reintentara el horario automatico)."
-            exit 0
-          fi
-          gh workflow run indexar.yml --repo "${{ github.repository }}" --ref main
