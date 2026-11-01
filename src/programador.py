@@ -10,7 +10,7 @@ Tareas (hora de Lima):
   22:40  Descarga diaria de normas (diario.yml)
   23:30  Dias pendientes del historico de El Peruano (historico.yml)
   01:20  Proyectos de ley, seguimiento y leyes publicadas (congreso.yml)
-  02:20  Monitoreo empresarial del mes y lo pedido desde la web (monitoreo.yml) -> listo antes de las 7:00
+  02:20  Monitoreo empresarial del mes, lo pedido desde la web y un mes anterior (monitoreo.yml)
   03:20  Resumen diario con IA (resumen.yml)
   04:00  Texto completo de lo nuevo (indexar.yml)
   05:00  Busquedas guardadas que tocan hoy (busquedas.yml)

@@ -24,7 +24,7 @@ cada hora de 10:45 p. m. a 7:45 a. m., y a las 3:05 y 4:05 p. m. Los demás fluj
 | 22:40 | `diario.yml` | Normas del día (y del anterior, por ediciones extraordinarias) |
 | 23:30 | `historico.yml` | Días pendientes del archivo histórico de El Peruano |
 | 01:20 | `congreso.yml` | Proyectos de ley, su seguimiento y las leyes publicadas |
-| 02:20 | `monitoreo.yml` | Análisis con IA del mes en curso y de lo pedido desde la web |
+| 02:20 | `monitoreo.yml` | Análisis con IA del mes en curso, de lo pedido desde la web y de un mes anterior (hasta 2015) |
 | 03:20 | `resumen.yml` | Resumen diario con IA |
 | 04:00 | `indexar.yml` | Texto completo de lo nuevo (solo lo que aún no está guardado) |
 | 05:00 | `busquedas.yml` | Búsquedas guardadas que tocan ese día |
@@ -40,8 +40,8 @@ Otros flujos:
 
 ## Monitoreo a pedido
 
-La IA revisa sola cada madrugada el mes en curso. Los meses anteriores se revisan a pedido: al abrir un mes
-en el monitoreo aparece «Revisar este mes con IA». También se piden solos los documentos de una búsqueda
+La IA revisa sola cada madrugada el mes en curso y un mes anterior (va hacia atrás hasta 2015). Si se abre
+en el monitoreo un mes que todavía no revisó, aparece «Revisar este mes con IA» para revisarlo en ese momento. También se piden solos los documentos de una búsqueda
 guardada que la IA aún no revisó, y los que alguien pasa a mano a «impacto empresarial» (esos quedan en el
 reporte aunque la IA los vuelva a revisar). Los pedidos se guardan en la tabla `analisis_pedidos` y los
 atiende `monitoreo.py pedidos`: al momento si Vercel tiene la variable `GITHUB_TAREAS` (clave de GitHub que

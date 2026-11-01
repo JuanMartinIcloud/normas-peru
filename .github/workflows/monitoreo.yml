@@ -53,9 +53,11 @@ jobs:
           MODO="${{ github.event.inputs.modo || 'diario' }}"
           FORZAR="${{ github.event.inputs.forzar == 'true' && '--forzar' || '' }}"
           if [ "$MODO" = "diario" ]; then
-            bash src/reintentar.sh python src/monitoreo.py diario --max-minutos 150 > salida.log 2>&1; codigo=$?
+            bash src/reintentar.sh python src/monitoreo.py diario --max-minutos 120 > salida.log 2>&1; codigo=$?
             # Despues del dia, lo pedido desde la web que haya quedado pendiente (meses y documentos)
-            [ $codigo -eq 0 ] && { bash src/reintentar.sh python src/monitoreo.py pedidos --max-minutos 150 >> salida.log 2>&1; codigo=$?; }
+            [ $codigo -eq 0 ] && { bash src/reintentar.sh python src/monitoreo.py pedidos --max-minutos 90 >> salida.log 2>&1; codigo=$?; }
+            # Y un mes mas hacia atras, hasta revisar todo desde 2015
+            [ $codigo -eq 0 ] && { bash src/reintentar.sh python src/monitoreo.py historico --max-minutos 100 >> salida.log 2>&1; codigo=$?; }
           else
             bash src/reintentar.sh python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
           fi

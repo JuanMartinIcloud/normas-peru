@@ -10,7 +10,7 @@ Todo queda en la tabla "analisis"; la web arma los reportes con ella.
 
     python src/monitoreo.py diario              # mes actual (solo lo que falta) + movimientos del Congreso
     python src/monitoreo.py pedidos             # meses y documentos pedidos desde la web (a pedido)
-    python src/monitoreo.py historico           # el mes anterior al ultimo procesado (solo a mano)
+    python src/monitoreo.py historico           # el mes anterior al ultimo procesado (cada madrugada, hasta 2015)
     python src/monitoreo.py rango 2026-08-01 2026-08-31
 Opciones: --max-minutos 300
 """
