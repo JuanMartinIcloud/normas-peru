@@ -23,6 +23,7 @@ from datetime import date, timedelta
 import psycopg2
 from psycopg2.extras import Json, execute_values
 
+import bases
 import cupos
 import db
 import gemini
@@ -54,7 +55,7 @@ MODELOS_SEGUNDA = HIST_ANALISIS   # segunda revision de las normas con rango de 
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
-# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; version 4)
+# Criterios del reporte (los usan el filtro, el analisis y la recalificacion; su version es CRITERIO)
 CRITERIO = 5
 NO_RELEVANTES = """NO son relevantes (quedan fuera del reporte) aunque mencionen a empresas o sectores:
 - Actos dirigidos a una empresa, persona o entidad concreta, que no cambian las reglas para el resto:
@@ -198,8 +199,7 @@ class Reloj:
 # --------------------------------------------------------------------------- textos completos
 
 def _bases_texto():
-    import principal
-    return [url for _, url in principal.bases_texto()]
+    return [url for _, url in bases.bases_texto()]
 
 
 def textos(tipo, claves):

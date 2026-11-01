@@ -2,8 +2,8 @@ name: Leer documentos escaneados (OCR)
 
 # Vuelve a leer los documentos guardados sin texto (PDF escaneados): busca otro PDF con texto y, si no
 # hay, los lee con OCR (Tesseract, gratuito). Lo lanza el programador de tareas una vez al dia; primero
-# cuenta los pendientes y solo instala el lector si hay algo que leer. Si al terminar quedan pendientes,
-# se relanza sola (sin esperar al dia siguiente).
+# cuenta los pendientes y solo instala el lector si hay algo que leer. Si al terminar quedan pendientes
+# y la tanda avanzo, se relanza sola (sin esperar al dia siguiente).
 on:
   workflow_dispatch:
 
@@ -58,5 +58,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           n=$(python src/ocr_pendientes.py --contar | tail -n 1)
-          echo "Quedan: $n"
-          if [ "$n" != "0" ] && [ -n "$n" ]; then gh workflow run ocr.yml --repo "${{ github.repository }}" --ref main; fi
+          antes="${{ steps.antes.outputs.pendientes }}"
+          echo "Quedan: $n (antes: $antes)"
+          # Solo si esta tanda avanzo: si la fuente no responde, no se relanza en cadena (sigue al dia siguiente)
+          if [ -n "$n" ] && [ "$n" != "0" ] && [ "$n" -lt "$antes" ]; then gh workflow run ocr.yml --repo "${{ github.repository }}" --ref main; fi

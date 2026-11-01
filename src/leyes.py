@@ -110,7 +110,7 @@ def completar_antiguas(conn, fin):
     return hechos
 
 
-def enlazar_camaras(conn):
+def enlazar_camaras(conn, fin):
     """Proposiciones recibidas de la otra camara aun sin enlace (el seguimiento diario tambien lo hace)."""
     with conn.cursor() as cur:
         cur.execute("""SELECT id, periodo, camara, num_pley FROM proyectos_ley
@@ -120,6 +120,8 @@ def enlazar_camaras(conn):
     conn.commit()
     n = 0
     for pid, periodo, camara, num in filas:
+        if time.time() > fin:
+            break
         e = expediente(periodo, camara, num)
         otro = enlace_de(e or {}, camara)
         if not otro:
@@ -203,7 +205,7 @@ def main():
     with conn.cursor() as cur:
         n2 = leyes_de_seguimientos(cur)
     conn.commit()
-    enlaces = enlazar_camaras(conn)
+    enlaces = enlazar_camaras(conn, fin)
     with conn.cursor() as cur:
         docs = documentos_de_leyes(cur)
         estados, leyes = propagar(cur)

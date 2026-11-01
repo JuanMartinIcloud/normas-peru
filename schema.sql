@@ -1,4 +1,5 @@
--- Esquema para Neon (PostgreSQL). Ejecutar una vez: psql "$DATABASE_URL" -f schema.sql
+-- Esquema de la base principal (Neon, PostgreSQL). En una base nueva lo ejecuta entero el flujo
+-- "Reconstruir la base principal"; despues, src/db.py (asegurar_esquema) aplica solo las etapas que falten.
 
 CREATE TABLE IF NOT EXISTS normas (
     id              BIGSERIAL PRIMARY KEY,

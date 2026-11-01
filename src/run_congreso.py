@@ -33,7 +33,7 @@ def main():
     finally:
         if conn:
             conn.close()
-    print(f"Total guardados/actualizados: {total_guardados}")
+    print(f"Total procesados: {total_guardados} (solo se escriben los que cambiaron)")
 
 
 if __name__ == "__main__":

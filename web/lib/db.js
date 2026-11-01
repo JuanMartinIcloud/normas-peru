@@ -192,7 +192,7 @@ export async function corregirConsulta(q) {
   if (!palabras.length) return "";
   let filas;
   try {
-    filas = await consultar(
+    filas = await consultarGuardado(
       `SELECT t.w,
               coalesce((SELECT v.n FROM vocabulario v WHERE v.sin_tilde = t.w), 0) AS n,
               c.palabra AS cercana, c.n AS n_cercana
@@ -201,7 +201,8 @@ export async function corregirConsulta(q) {
          SELECT v.palabra, v.n FROM vocabulario v
          WHERE v.sin_tilde % t.w AND similarity(v.sin_tilde, t.w) >= 0.4 AND v.sin_tilde <> t.w
          ORDER BY similarity(v.sin_tilde, t.w) DESC, v.n DESC LIMIT 1) c ON true`,
-      [palabras.map((p) => quitarTildes(p.limpia))]
+      [palabras.map((p) => quitarTildes(p.limpia))],
+      "catalogos"
     );
   } catch (e) {
     return ""; // sin vocabulario no se corrige, la busqueda sigue igual

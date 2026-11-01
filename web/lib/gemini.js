@@ -1,6 +1,6 @@
 // Cliente de la API de Google Gemini para la web (capa gratuita).
-import { Aviso } from "./errores";
 // Usa las variables de entorno de Vercel: GEMINI_API_KEY (obligatoria) y GEMINI_MODELOS (opcional).
+import { Aviso } from "./errores";
 
 const API = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const SUBIDA = "https://generativelanguage.googleapis.com/upload/v1beta/files";

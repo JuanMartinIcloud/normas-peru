@@ -1,4 +1,4 @@
-"""Diccionario de palabras para corregir errores de escritura en las busquedas.
+"""Diccionario de palabras para corregir errores de escritura en las busquedas (se actualiza cada lunes).
 
 Reune todas las palabras de las sumillas de las normas y de los titulos y sumillas de los proyectos
 (tabla "vocabulario" de la base principal). La web lo usa cuando una busqueda no da resultados:
@@ -49,7 +49,9 @@ def main():
                      row_number() OVER (PARTITION BY {SIN_TILDE} ORDER BY n DESC) AS orden
               FROM v) y
             WHERE orden = 1
-            ON CONFLICT (sin_tilde) DO UPDATE SET palabra = excluded.palabra, n = excluded.n"""
+            ON CONFLICT (sin_tilde) DO UPDATE SET palabra = excluded.palabra, n = excluded.n
+            -- solo se reescriben las palabras que cambiaron (no las ~100 mil cada semana)
+            WHERE (vocabulario.palabra, vocabulario.n) IS DISTINCT FROM (excluded.palabra, excluded.n)"""
     )
     c.commit()
     cur.execute("SELECT count(*) FROM vocabulario")

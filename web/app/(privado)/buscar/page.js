@@ -119,7 +119,6 @@ export default async function Buscar({ searchParams }) {
 
   return (
     <main className="contenedor">
-      {sp.diag === "1" && <pre className="ia-pendiente" id="diag-tiempos">{tiempos.join("\n")}</pre>}
       <h1>Buscar en todo</h1>
       <p className="sub">Normas legales y proyectos de ley a la vez. Puedes resumir lo encontrado con IA o seleccionar documentos para unirlos.</p>
 

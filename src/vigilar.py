@@ -4,8 +4,8 @@
 - Horas de computo (100 CU-hora al mes por proyecto) y transferencia (5 GB al mes): con la API de
   Neon, si existe el secreto NEON_API_KEY (clave de solo lectura de la cuenta de Neon).
 
-Si algo pasa del 70 % deja un aviso; si pasa del 85 % la tarea termina en error, y GitHub envia un
-correo al dueño del repositorio.
+Si algo pasa del 70 % deja un aviso; si pasa del 85 % la tarea termina en error (marca roja en la
+pestaña Actions de GitHub). No se repite el mismo dia (ver SIN_REPETIR en src/programador.py).
 """
 import os
 import sys

@@ -13,7 +13,7 @@ export default async function Usuarios() {
   return (
     <>
       <h1>Usuarios</h1>
-      <p className="sub">Quienes pueden entrar al monitoreo. Los editores pueden quitar ítems y aprobar o enviar el informe; el administrador además gestiona usuarios y destinatarios.</p>
+      <p className="sub">Quienes pueden entrar al sistema (buscador y monitoreo). Los editores pueden quitar ítems y aprobar o enviar el informe; el administrador además gestiona usuarios y destinatarios.</p>
       <AdminUsuarios lista={lista} yo={u.id} />
     </>
   );

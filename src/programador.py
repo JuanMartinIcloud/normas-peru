@@ -44,6 +44,9 @@ TAREAS = [
     ("vocabulario.yml", 6, 10, {}, None, 0),
 ]
 MAX_INTENTOS = 6            # por dia y por tarea
+# La alarma de consumo "falla" a proposito cuando una base se acerca a su limite: no se repite (cada
+# repeticion volveria a consultar todas las bases para dar el mismo aviso)
+SIN_REPETIR = {"vigilar.yml"}
 ESPERA_REINTENTO = timedelta(minutes=30)
 
 
@@ -94,7 +97,7 @@ def revisar():
             continue   # el flujo no existe
         if ya:
             # Ya corrio desde su hora. Si fallo, se repite (cada 30 min, hasta 6 veces en el dia).
-            if any(x["status"] != "completed" for x in ya) or len(ya) >= MAX_INTENTOS:
+            if any(x["status"] != "completed" for x in ya) or len(ya) >= MAX_INTENTOS or archivo in SIN_REPETIR:
                 continue
             ultima = max(ya, key=lambda x: x["created_at"])
             fin = datetime.fromisoformat(ultima["updated_at"].replace("Z", "+00:00"))

@@ -100,7 +100,6 @@ export default async function Proyectos({ searchParams }) {
         <div className="error">
           <strong>No se pudo leer la base de datos.</strong>
           <p>{mensajeError(e)}</p>
-          <p>Si dice que la tabla no existe, ejecuta en GitHub el flujo “Crear tablas” y luego “Proyectos de ley (Congreso)”.</p>
         </div>
       </main>
     );

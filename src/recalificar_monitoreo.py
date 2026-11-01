@@ -105,7 +105,8 @@ def main():
         return
     gemini.verificar_clave()
     fin = time.time() + a.max_minutos * 60
-    filas = pendientes(conn, buscar=a.buscar)
+    # Solo los que alcanzan a recalificarse en esta tanda (unos 15 por minuto): no se lee todo lo pendiente
+    filas = pendientes(conn, limite=1000, buscar=a.buscar)
     print(f"Por recalificar: {len(filas)}")
     hechos = fuera = fallos = 0
     for i in range(0, len(filas), LOTE):

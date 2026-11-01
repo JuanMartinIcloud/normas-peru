@@ -25,6 +25,8 @@ jobs:
     # Una falla no marca la tarea como error: se relanza o la retoma el horario
     continue-on-error: true
     timeout-minutes: 59
+    outputs:
+      antes: ${{ steps.antes.outputs.pendientes }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,6 +34,11 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: bash src/reintentar.sh pip install -r requirements.txt
+      - name: Contar pendientes antes
+        id: antes
+        run: |
+          n=$(python src/recalificar_monitoreo.py --contar | tail -n 1)
+          echo "pendientes=$n" >> "$GITHUB_OUTPUT"
       - name: Recalificar
         env:
           BUSCAR: ${{ github.event.inputs.buscar }}
@@ -60,8 +67,17 @@ jobs:
           n=$(python src/recalificar_monitoreo.py --contar | tail -n 1)
           echo "Pendientes: $n"
           echo "pendientes=$n" >> "$GITHUB_OUTPUT"
+      # Solo si esta tanda avanzo: si la IA no respondio o no pudo con nada, no se relanza en cadena
+      # (lo retoma el programador al dia siguiente)
       - name: Lanzar la siguiente tanda
         if: steps.cuenta.outputs.pendientes != '0' && steps.cuenta.outputs.pendientes != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run recalificar.yml --repo "${{ github.repository }}" --ref main
+          ANTES: ${{ needs.recalificar.outputs.antes }}
+          AHORA: ${{ steps.cuenta.outputs.pendientes }}
+        run: |
+          if [ -n "$ANTES" ] && [ "$AHORA" -lt "$ANTES" ]; then
+            gh workflow run recalificar.yml --repo "${{ github.repository }}" --ref main
+          else
+            echo "Esta tanda no avanzo ($ANTES -> $AHORA); no se relanza."
+          fi

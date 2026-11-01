@@ -359,7 +359,7 @@ def principal():
         raise SystemExit("Falta DATABASE_URL")
     if cupos.principal_en_emergencia():
         raise SystemExit(0)
-    return psycopg2.connect(config.DATABASE_URL)
+    return psycopg2.connect(config.DATABASE_URL, connect_timeout=60)
 
 
 def normas_de_principal(desde_fecha, hasta_fecha, parte, de, limite, hasta_clave=None):

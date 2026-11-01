@@ -118,7 +118,6 @@ export default async function Pagina({ searchParams }) {
         <div className="error">
           <strong>No se pudo leer la base de datos.</strong>
           <p>{mensajeError(e)}</p>
-          <p>Revisa que la variable DATABASE_URL esté puesta en Vercel y que las tablas existan en Neon.</p>
         </div>
       </main>
     );
@@ -237,7 +236,7 @@ export default async function Pagina({ searchParams }) {
         <div className="acciones">
           <button className="boton" type="submit">Buscar</button>
           <a className="boton sec" href="/">Limpiar</a>
-          <a className="boton sec" href={csv}>Descargar en Excel (CSV)</a>
+          <a className="boton sec" href={csv}>Descargar en Excel (CSV, hasta 5.000)</a>
         </div>
       </form>
 
