@@ -11,6 +11,7 @@
 El resultado se muestra como un aviso de la ejecucion en GitHub (no se guarda en el repositorio).
 """
 import os
+from datetime import timedelta
 import sys
 
 import psycopg2
@@ -449,10 +450,57 @@ def detalle():
     c.close()
 
 
+def leyes_faltantes():
+    """Leyes que el Congreso da por publicadas y que no se hallan entre las normas: se buscan en El Peruano."""
+    import elperuano
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""SELECT DISTINCT ley_tipo, ley_numero, ley_fecha FROM proyectos_ley
+                   WHERE ley_numero IS NOT NULL AND ley_docs->'ley' IS NULL ORDER BY ley_fecha""")
+    faltan = cur.fetchall()
+    p(f"Leyes y resoluciones legislativas distintas no halladas: {len(faltan)}")
+    resumen = {"en_sistema_con_otro_numero": 0, "en_el_peruano_y_no_en_sistema": 0, "no_estan_en_el_peruano": 0, "sin_fecha": 0}
+    ejemplos = {k: [] for k in resumen}
+    cache = {}
+    for tipo, num, fecha in faltan:
+        cur.execute("""SELECT tipo, numero FROM normas WHERE (numero ILIKE %s OR tipo ILIKE %s)
+                       AND entidad ILIKE 'CONGRESO%%' LIMIT 1""", (f"%{num}%", f"%{num}%"))
+        otro = cur.fetchone()
+        if otro:
+            resumen["en_sistema_con_otro_numero"] += 1
+            ejemplos["en_sistema_con_otro_numero"].append(f"{num} -> '{otro[0]}' '{otro[1]}'")
+            continue
+        if not fecha:
+            resumen["sin_fecha"] += 1
+            ejemplos["sin_fecha"].append(num)
+            continue
+        hallada = False
+        for d in (fecha, fecha + timedelta(days=1), fecha - timedelta(days=1)):
+            if d not in cache:
+                try:
+                    cache[d] = elperuano.descargar_dia(d)
+                except Exception:  # noqa: BLE001
+                    cache[d] = []
+            for f in cache[d]:
+                if num in f"{f['tipo']} {f['numero']}":
+                    hallada = True
+                    ejemplos["en_el_peruano_y_no_en_sistema"].append(f"{num} ({d}): {f['tipo']} {f['numero']}")
+                    break
+            if hallada:
+                break
+        resumen["en_el_peruano_y_no_en_sistema" if hallada else "no_estan_en_el_peruano"] += 1
+        if not hallada:
+            ejemplos["no_estan_en_el_peruano"].append(f"{tipo} {num} ({fecha})")
+    for k, v in resumen.items():
+        p(f"{k}: {v}" + (f" -> {'; '.join(ejemplos[k][:15])}" if ejemplos[k] else ""))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
-     "verificar_dias": verificar_dias, "detalle": detalle}[modo]()
+     "verificar_dias": verificar_dias, "detalle": detalle,
+     "leyes_faltantes": leyes_faltantes}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
