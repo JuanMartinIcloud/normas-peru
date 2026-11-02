@@ -585,13 +585,25 @@ def clasificacion_datos():
     c.close()
 
 
+def muestra_ia():
+    """Muestra al azar de normas clasificadas por la IA, para revisar si el rubro es correcto (solo lectura)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""SELECT rubro, count(*) FROM normas WHERE rubro_ia GROUP BY 1 ORDER BY 2 DESC""")
+    p("RUBROS IA: " + " | ".join(f"{r}={n}" for r, n in cur.fetchall()))
+    cur.execute("""SELECT rubro, entidad, left(sumilla, 160) FROM normas WHERE rubro_ia AND rubro <> 'Sin clasificar'
+                   ORDER BY random() LIMIT 60""")
+    for r, e, s_ in cur.fetchall():
+        p(f"[{r}] {e}: {s_}")
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
      "clasificacion": clasificacion, "depurar_leyes": depurar_leyes,
-     "clasificacion_datos": clasificacion_datos}[modo]()
+     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
