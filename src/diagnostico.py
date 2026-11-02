@@ -532,11 +532,33 @@ def casos():
     c.close()
 
 
+def clasificacion():
+    """De donde vienen las normas sin rubro o sin sector reconocido (solo lectura)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("SELECT count(*), count(*) FILTER (WHERE sector = 'Otros'), count(*) FILTER (WHERE rubro = 'Sin clasificar') FROM normas")
+    t, so, rs = cur.fetchone()
+    p(f"Normas: {t}; sector 'Otros': {so}; rubro 'Sin clasificar': {rs}")
+    cur.execute("""SELECT upper(entidad), count(*) FROM normas WHERE sector = 'Otros' GROUP BY 1 ORDER BY 2 DESC LIMIT 45""")
+    p("Entidades con sector 'Otros' (las 45 con mas normas): " + "; ".join(f"{e} {n}" for e, n in cur.fetchall()))
+    cur.execute("""SELECT count(DISTINCT upper(entidad)) FROM normas WHERE sector = 'Otros'""")
+    p(f"Entidades distintas con sector 'Otros': {cur.fetchone()[0]}")
+    cur.execute("""SELECT sector, count(*) FROM normas WHERE rubro = 'Sin clasificar' GROUP BY 1 ORDER BY 2 DESC LIMIT 12""")
+    p("Rubro 'Sin clasificar' por sector: " + "; ".join(f"{a} {b}" for a, b in cur.fetchall()))
+    cur.execute("""SELECT tipo, count(*) FROM normas WHERE rubro = 'Sin clasificar' GROUP BY 1 ORDER BY 2 DESC LIMIT 15""")
+    p("Rubro 'Sin clasificar' por tipo: " + "; ".join(f"{a} {b}" for a, b in cur.fetchall()))
+    cur.execute("""SELECT left(sumilla, 110) FROM normas WHERE rubro = 'Sin clasificar' AND sector NOT IN ('Gobiernos Locales', 'Gobiernos Regionales')
+                   ORDER BY random() LIMIT 25""")
+    p("Muestra de sumillas sin rubro: " + " || ".join(r[0] for r in cur.fetchall()))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
-     "leyes_faltantes": leyes_faltantes, "casos": casos}[modo]()
+     "leyes_faltantes": leyes_faltantes, "casos": casos,
+     "clasificacion": clasificacion}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
