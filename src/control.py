@@ -122,14 +122,23 @@ def main():
                     # Cuales faltan (para saber exactamente que corregir)
                     cur.execute("SELECT numero FROM proyectos_ley WHERE periodo = %s AND camara = %s", clave)
                     tengo = {r[0] for r in cur.fetchall()}
-                    faltan = []
+                    faltan, nuevos = [], []
                     for lote_p, _ in congreso.paginas(per["perParId"], cam):
                         for x in lote_p:
                             n = congreso.normalizar(x, cam)
                             if n["numero"] not in tengo and (n["fecha_presentacion"] or "") < hoy.isoformat():
                                 faltan.append(f"{n['numero']} ({n['fecha_presentacion']}, camara {n['camara']})")
-                    anotar("FALLA", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: sistema {propio}, Congreso {oficial} "
-                           f"(hasta ayer); faltan: {', '.join(faltan[:15]) or 'no identificados'}")
+                                nuevos.append(n)
+                    # El portal a veces publica tarde proyectos con fecha anterior: se agregan en este momento.
+                    if nuevos:
+                        db.upsert_proyectos(c, nuevos)
+                        c.commit()
+                    if nuevos and len(nuevos) >= oficial - propio:
+                        anotar("INFO", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: el Congreso publico tarde "
+                               f"{len(nuevos)} proyecto(s) con fecha anterior; se agregaron ahora: {', '.join(faltan[:15])}")
+                    else:
+                        anotar("FALLA", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: sistema {propio}, Congreso {oficial} "
+                               f"(hasta ayer); faltan: {', '.join(faltan[:15]) or 'no identificados'}")
                 else:
                     anotar("OK", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: {propio} hasta ayer, igual que el Congreso")
     except Exception as e:  # noqa: BLE001
