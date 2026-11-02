@@ -572,12 +572,25 @@ def depurar_leyes():
     c.close()
 
 
+def clasificacion_datos():
+    """Lista completa de entidades sin sector y frases frecuentes sin rubro (solo lectura)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("SELECT upper(entidad), count(*) FROM normas WHERE sector = 'Otros' GROUP BY 1 ORDER BY 2 DESC")
+    p("ENTIDADES: " + " | ".join(f"{e}={n}" for e, n in cur.fetchall()))
+    cur.execute("""SELECT lower(split_part(sumilla, ' ', 1) || ' ' || split_part(sumilla, ' ', 2) || ' ' || split_part(sumilla, ' ', 3)) f,
+                          count(*) FROM normas WHERE rubro = 'Sin clasificar' GROUP BY 1 ORDER BY 2 DESC LIMIT 120""")
+    p("FRASES: " + " | ".join(f"{f}={n}" for f, n in cur.fetchall()))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
-     "clasificacion": clasificacion, "depurar_leyes": depurar_leyes}[modo]()
+     "clasificacion": clasificacion, "depurar_leyes": depurar_leyes,
+     "clasificacion_datos": clasificacion_datos}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
