@@ -6,6 +6,7 @@
     python src/diagnostico.py seguridad   # usuarios, permisos, funciones y disparadores de cada base
     python src/diagnostico.py web         # comprueba desde afuera que la web este cerrada (sin usuario)
     python src/diagnostico.py ia          # cuanto trabajo de IA tiene cada mes y cuanto se gasto por dia
+    python src/diagnostico.py auditoria   # auditoria completa de los datos: que esta completo y que falta
 
 El resultado se muestra como un aviso de la ejecucion en GitHub (no se guarda en el repositorio).
 """
@@ -223,14 +224,181 @@ def ia():
     c.close()
 
 
+def auditoria():
+    """Auditoria completa de los datos (solo lectura): que esta completo y que falta."""
+    from datetime import date, timedelta
+    hoy = date.today()
+    ayer = hoy - timedelta(days=1)
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+
+    def q(sql, args=()):
+        cur.execute(sql, args)
+        return cur.fetchall()
+
+    def muestra(lista, n=25):
+        lista = [str(x) for x in lista]
+        return ", ".join(lista[:n]) + (f" ... (+{len(lista) - n})" if len(lista) > n else "")
+
+    # ---------------------------------------------------------------- 1. normas
+    p("=== 1. NORMAS DE EL PERUANO ===")
+    [(total, primera, ultima)] = q("SELECT count(*), min(fecha), max(fecha) FROM normas")
+    p(f"Total: {total} normas, del {primera} al {ultima}")
+    sin_marca = [r[0] for r in q("""SELECT d::date FROM generate_series('2015-01-01'::date, %s::date, interval '1 day') d
+                                    WHERE d::date NOT IN (SELECT fecha FROM descargas WHERE estado IN ('ok', 'vacio'))
+                                    ORDER BY 1""", (ayer,))]
+    p(f"Dias sin descarga confirmada (2015 a ayer): {len(sin_marca)}" + (f" -> {muestra(sin_marca)}" if sin_marca else ""))
+    errores = [r[0] for r in q("SELECT fecha FROM descargas WHERE estado = 'error' ORDER BY 1")]
+    p(f"Dias con error de descarga: {len(errores)}" + (f" -> {muestra(errores)}" if errores else ""))
+    vacios = [r[0] for r in q("SELECT fecha FROM descargas WHERE estado = 'vacio' ORDER BY 1")]
+    p(f"Dias que El Peruano no publico nada (marcados vacios): {len(vacios)}" + (f" -> {muestra(vacios, 40)}" if vacios else ""))
+    distintos = q("""SELECT d.fecha, d.cantidad, count(n.id) FROM descargas d LEFT JOIN normas n ON n.fecha = d.fecha
+                     WHERE d.estado = 'ok' GROUP BY 1, 2 HAVING count(n.id) < d.cantidad ORDER BY 1""")
+    p(f"Dias con menos normas guardadas que las que tenia El Peruano al descargar: {len(distintos)}"
+      + (f" -> {muestra([f'{f} ({g} de {e})' for f, e, g in distintos])}" if distintos else ""))
+    bajos = q("""WITH d AS (SELECT fecha, count(*) n FROM normas GROUP BY 1),
+                      m AS (SELECT extract(year FROM fecha) a, percentile_cont(0.5) WITHIN GROUP (ORDER BY n) med FROM d GROUP BY 1)
+                 SELECT d.fecha, d.n, m.med::int FROM d JOIN m ON m.a = extract(year FROM d.fecha)
+                 WHERE d.n < m.med * 0.2 AND extract(dow FROM d.fecha) BETWEEN 1 AND 5 ORDER BY 1""")
+    p(f"Dias habiles con muy pocas normas (menos del 20% de lo normal en su año): {len(bajos)}"
+      + (f" -> {muestra([f'{f} ({n}, normal {m})' for f, n, m in bajos])}" if bajos else ""))
+    [(sin_sumilla, sin_enlace, sin_tipo, sin_entidad)] = q("""SELECT count(*) FILTER (WHERE coalesce(sumilla, '') = ''),
+        count(*) FILTER (WHERE url_detalle IS NULL), count(*) FILTER (WHERE coalesce(tipo, '') = ''),
+        count(*) FILTER (WHERE coalesce(entidad, '') = '') FROM normas""")
+    p(f"Normas sin sumilla: {sin_sumilla}; sin enlace a El Peruano: {sin_enlace}; sin tipo: {sin_tipo}; sin entidad: {sin_entidad}")
+    [(dup,)] = q("""SELECT count(*) FROM (SELECT 1 FROM normas WHERE coalesce(numero, '') <> ''
+                    GROUP BY fecha, lower(tipo), numero, entidad HAVING count(*) > 1) x""")
+    p(f"Normas repetidas (mismo dia, tipo, numero y entidad): {dup}")
+    [(sin_clas,)] = q("SELECT count(*) FROM normas WHERE rubro = 'Sin clasificar' OR sector = 'Otros'")
+    p(f"Normas sin rubro o sector reconocido (Sin clasificar / Otros): {sin_clas} de {total}")
+
+    # ---------------------------------------------------------------- 2. proyectos
+    p("=== 2. PROYECTOS DE LEY ===")
+    nuestros = {(str(a), b): n for a, b, n in q("SELECT periodo, camara, count(*) FROM proyectos_ley GROUP BY 1, 2")}
+    try:
+        import congreso
+        for per in congreso.periodos():
+            for cam in congreso.CAMARAS:
+                datos = congreso._con_reintentos(congreso._s.post, f"{congreso.API}/proyecto-ley/lista-con-filtro",
+                                                 json=congreso._cuerpo(per["perParId"], cam, 0))["data"]
+                oficial = datos.get("rowsTotal") or 0
+                propio = nuestros.get((str(per["perParId"]), cam), 0)
+                if oficial or propio:
+                    p(f"Periodo {per.get('desPerParAbrev')} camara {cam}: Congreso {oficial}, sistema {propio}"
+                      + ("" if oficial == propio else f"  <- DIFERENCIA {propio - oficial:+d}"))
+    except Exception as e:  # noqa: BLE001
+        p(f"No se pudo comparar con el portal del Congreso: {type(e).__name__}")
+    [(tp, sin_estado, sin_fecha, sin_titulo, sin_num)] = q("""SELECT count(*), count(*) FILTER (WHERE coalesce(estado, '') = ''),
+        count(*) FILTER (WHERE fecha_presentacion IS NULL), count(*) FILTER (WHERE coalesce(titulo, '') = ''),
+        count(*) FILTER (WHERE num_pley IS NULL) FROM proyectos_ley""")
+    p(f"Total: {tp}; sin estado: {sin_estado}; sin fecha de presentacion: {sin_fecha}; sin titulo: {sin_titulo}; sin numero del portal: {sin_num}")
+    [(act, nunca, viejo, sin_mov)] = q("""SELECT count(*), count(*) FILTER (WHERE seguimiento_revisado IS NULL),
+        count(*) FILTER (WHERE seguimiento_revisado < now() - interval '7 days'),
+        count(*) FILTER (WHERE NOT EXISTS (SELECT 1 FROM seguimientos s WHERE s.proyecto_id = p.id))
+        FROM proyectos_ley p WHERE periodo = (SELECT max(periodo) FROM proyectos_ley)""")
+    p(f"Periodo actual: {act} proyectos; seguimiento nunca revisado: {nunca}; revisado hace mas de 7 dias: {viejo}; sin ningun movimiento guardado: {sin_mov}")
+    [(leyes, sin_doc)] = q("SELECT count(*), count(*) FILTER (WHERE ley_docs->'ley' IS NULL) FROM proyectos_ley WHERE ley_numero IS NOT NULL")
+    p(f"Convertidos en ley: {leyes}; sin la ley hallada en El Peruano: {sin_doc}")
+    [(pub_sin,)] = q("SELECT count(*) FROM proyectos_ley WHERE estado ILIKE 'publicad%%' AND ley_numero IS NULL")
+    p(f"Con estado 'Publicada' pero sin numero de ley: {pub_sin}")
+
+    # ---------------------------------------------------------------- 3. monitoreo
+    p("=== 3. MONITOREO EMPRESARIAL ===")
+    meses = q("""SELECT to_char(n.fecha, 'YYYY-MM'), count(*), count(a.id), count(*) FILTER (WHERE a.relevante AND NOT a.excluido)
+                 FROM normas n LEFT JOIN analisis a ON a.tipo = 'N' AND a.ref_id = n.id GROUP BY 1 ORDER BY 1""")
+    completos = [m for m, t, r, _ in meses if r == t]
+    parciales = [f"{m} ({r} de {t})" for m, t, r, _ in meses if 0 < r < t]
+    nada = [m for m, t, r, _ in meses if r == 0]
+    p(f"Meses con todas las normas revisadas: {len(completos)}" + (f" -> {muestra(completos, 40)}" if completos else ""))
+    p(f"Meses a medio revisar: {len(parciales)}" + (f" -> {muestra(parciales, 40)}" if parciales else ""))
+    p(f"Meses sin revisar: {len(nada)} (de {nada[0] if nada else '-'} a {nada[-1] if nada else '-'})")
+    pmes = q("""SELECT to_char(fecha_presentacion, 'YYYY-MM'), count(*), count(a.id) FROM proyectos_ley p
+                LEFT JOIN analisis a ON a.tipo = 'P' AND a.ref_id = p.id WHERE fecha_presentacion IS NOT NULL GROUP BY 1 ORDER BY 1""")
+    p("Proyectos presentados por mes revisados por la IA: " + ", ".join(f"{m}: {r}/{t}" for m, t, r in pmes if r))
+    [(rel, vacios_a, sin_punt, sin_com, sin_cal)] = q("""SELECT count(*), count(*) FILTER (WHERE coalesce(resumen, '') = ''),
+        count(*) FILTER (WHERE puntaje IS NULL), count(*) FILTER (WHERE coalesce(cardinality(comites), 0) = 0),
+        count(*) FILTER (WHERE coalesce(calificacion, '') = '') FROM analisis WHERE relevante""")
+    p(f"Documentos en el reporte: {rel}; sin analisis escrito: {vacios_a}; sin puntaje: {sin_punt}; sin comites: {sin_com}; sin calificacion: {sin_cal}")
+    crit = q("SELECT coalesce(criterio::text, 'sin version'), count(*) FROM analisis WHERE relevante GROUP BY 1 ORDER BY 1")
+    p("Version de los criterios de los documentos del reporte: " + ", ".join(f"{a}: {b}" for a, b in crit))
+    mod = q("SELECT coalesce(modelo, '-'), count(*) FROM analisis WHERE relevante GROUP BY 1 ORDER BY 2 DESC")
+    p("Modelo de IA que hizo cada analisis del reporte: " + ", ".join(f"{a}: {b}" for a, b in mod))
+    lect = q("SELECT coalesce(lectura, '-'), count(*) FROM analisis WHERE relevante GROUP BY 1 ORDER BY 2 DESC")
+    p("Analisis hechos leyendo: " + ", ".join(f"{a}: {b}" for a, b in lect))
+    [(huerfanos,)] = q("""SELECT count(*) FROM analisis a WHERE (a.tipo = 'N' AND NOT EXISTS (SELECT 1 FROM normas n WHERE n.id = a.ref_id))
+                          OR (a.tipo = 'P' AND NOT EXISTS (SELECT 1 FROM proyectos_ley p WHERE p.id = a.ref_id))""")
+    p(f"Analisis de documentos que ya no existen: {huerfanos}")
+
+    # ---------------------------------------------------------------- 4. texto completo
+    p("=== 4. TEXTO COMPLETO ===")
+    normas_anio = q("SELECT hash_unico, extract(year FROM fecha)::int FROM normas WHERE url_detalle IS NOT NULL")
+    proy = [r[0] for r in q("SELECT periodo || '|' || camara || '|' || numero FROM proyectos_ley WHERE num_pley IS NOT NULL")]
+    c.close()
+    estados_n, estados_p, claves_n, claves_p = {}, {}, set(), set()
+    for numero, url in bases.bases_texto():
+        try:
+            t = psycopg2.connect(url, connect_timeout=60)
+            tc = t.cursor()
+            tc.execute("SELECT to_regclass('public.documentos') IS NOT NULL")
+            if not tc.fetchone()[0]:
+                t.close()
+                continue
+            tc.execute("SELECT tipo, estado, count(*) FROM documentos GROUP BY 1, 2")
+            for tipo, est, n in tc.fetchall():
+                d = estados_n if tipo == "N" else estados_p
+                d[est] = d.get(est, 0) + n
+            tc.execute("SELECT tipo, clave FROM documentos")
+            for tipo, k in tc.fetchall():
+                (claves_n if tipo == "N" else claves_p).add(k)
+            t.close()
+        except psycopg2.Error as e:
+            p(f"Base de texto {numero}: no respondio ({type(e).__name__})")
+    falta_n = {}
+    for k, a in normas_anio:
+        if k not in claves_n:
+            falta_n[a] = falta_n.get(a, 0) + 1
+    p(f"Normas: con texto {estados_n.get('ok', 0)}, escaneadas sin texto {estados_n.get('sin_texto', 0)}, "
+      f"sin PDF {estados_n.get('sin_pdf', 0)}; sin procesar todavia: {sum(falta_n.values())} de {len(normas_anio)}"
+      + (" -> por año: " + ", ".join(f"{a}: {n}" for a, n in sorted(falta_n.items())) if falta_n else ""))
+    falta_p = sum(1 for k in proy if k not in claves_p)
+    p(f"Proyectos: con texto {estados_p.get('ok', 0)}, escaneados sin texto {estados_p.get('sin_texto', 0)}, "
+      f"sin PDF {estados_p.get('sin_pdf', 0)}; sin procesar todavia: {falta_p} de {len(proy)}")
+
+    # ---------------------------------------------------------------- 5. resumenes
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    p("=== 5. RESUMENES DIARIOS ===")
+    [(nr, pr, ur)] = q("SELECT count(*), min(fecha), max(fecha) FROM resumenes")
+    p(f"Total: {nr}, del {pr} al {ur}")
+    if pr:
+        faltan = [r[0] for r in q("""SELECT d::date FROM generate_series(%s::date, %s::date, interval '1 day') d
+                                     WHERE d::date NOT IN (SELECT fecha FROM resumenes) ORDER BY 1""", (pr, ayer))]
+        p(f"Dias sin resumen desde el primero: {len(faltan)}" + (f" -> {muestra(faltan, 40)}" if faltan else ""))
+    [(vac,)] = q("SELECT count(*) FROM resumenes WHERE coalesce(datos->>'panorama', '') = ''")
+    p(f"Resumenes vacios: {vac}")
+    desfase = q("""SELECT r.fecha, r.n_normas, count(n.id) FROM resumenes r LEFT JOIN normas n ON n.fecha = r.fecha
+                   GROUP BY 1, 2 HAVING count(n.id) > r.n_normas ORDER BY 1""")
+    p(f"Resumenes hechos antes de que llegaran todas las normas de su dia: {len(desfase)}"
+      + (f" -> {muestra([f'{f} (resumio {a} de {b})' for f, a, b in desfase], 40)}" if desfase else ""))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
-    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia}[modo]()
-    texto = "\n".join(lineas)
-    print(texto)
-    # Un solo aviso con todo el resultado (los saltos de linea se codifican para GitHub)
-    cod = texto.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
-    print(f"::notice title=Diagnostico {modo}::{cod}")
+    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria}[modo]()
+    print("\n".join(lineas))
+    # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
+    partes, actual = [], ""
+    for linea in lineas:
+        if actual and len(actual) + len(linea) > 3500:
+            partes.append(actual)
+            actual = ""
+        actual += linea + "\n"
+    if actual:
+        partes.append(actual)
+    for i, parte in enumerate(partes[:10], 1):
+        cod = parte.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+        print(f"::notice title=Diagnostico {modo} ({i}/{len(partes)})::{cod}")
 
 
 if __name__ == "__main__":
