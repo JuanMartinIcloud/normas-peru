@@ -2,7 +2,7 @@
 
 Los horarios automaticos de GitHub no son confiables (pueden retrasarse horas o no ocurrir). Por eso el
 programador no depende de ellos para cada tarea: queda encendido y revisa cada 10 minutos en las horas
-en que hay tareas (de 9:30 p. m. a 8:00 a. m. y de 2:45 a 4:30 p. m., hora de Lima); fuera de esas horas
+en que hay tareas (de 9:30 p. m. a 9:30 a. m. y de 2:45 a 4:30 p. m., hora de Lima); fuera de esas horas
 espera sin revisar nada. Antes del limite de 6 horas de GitHub se vuelve a lanzar solo. Si la cadena se
 cortara, cualquiera de sus horarios de respaldo (cada 2 horas) la vuelve a encender.
 
@@ -21,6 +21,8 @@ Tareas (hora de Lima):
   05:30  Lectura de escaneados (ocr.yml), despues del texto completo
   06:00  Alarma de consumo (vigilar.yml)
   06:10  (lunes) Vocabulario del corrector de busquedas (vocabulario.yml)
+  06:20  Rubro con IA de las normas sin rubro, hasta 300 consultas (clasificar.yml), despues del monitoreo
+  07:00  Control de calidad del dia (control.yml), despues de todo lo anterior
   15:00  Recalificacion pendiente del monitoreo (recalificar.yml)
 """
 import os
@@ -50,12 +52,14 @@ TAREAS = [
     ("ocr.yml", 5, 30, {}, "indexar.yml", None),
     ("vigilar.yml", 6, 0, {}, None, None),
     ("vocabulario.yml", 6, 10, {}, None, 0),
+    ("clasificar.yml", 6, 20, {}, "monitoreo.yml", None),
+    ("control.yml", 7, 0, {}, "clasificar.yml", None),
     ("cupos.yml", 15, 0, {}, None, None),
     ("recalificar.yml", 15, 0, {}, None, None),
 ]
 HORA = {a: (h, m) for a, h, m, *_ in reversed(TAREAS)}   # primera hora del dia de cada flujo (para dependencias)
 # Horas en que se revisa (hora de Lima): (desde, hasta) en minutos del dia
-VENTANAS = [(21 * 60 + 30, 24 * 60), (0, 8 * 60), (14 * 60 + 45, 16 * 60 + 30)]
+VENTANAS = [(21 * 60 + 30, 24 * 60), (0, 9 * 60 + 30), (14 * 60 + 45, 16 * 60 + 30)]
 PAUSA = 600                      # segundos entre revisiones
 DURACION_MAXIMA = 5 * 3600 + 30 * 60   # luego se relanza (GitHub corta a las 6 horas)
 MAX_INTENTOS = 6            # por dia y por tarea

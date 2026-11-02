@@ -39,10 +39,12 @@ def main():
     ejemplos = []
     with c.cursor(name="normas") as cur:   # lectura por partes (no carga todo en memoria)
         cur.itersize = 5000
-        cur.execute("SELECT id, entidad, tipo, sumilla, sector, rubro FROM normas")
-        for nid, entidad, tipo, sumilla, sector, rubro in cur:
+        cur.execute("SELECT id, entidad, tipo, sumilla, sector, rubro, rubro_ia FROM normas")
+        for nid, entidad, tipo, sumilla, sector, rubro, rubro_ia in cur:
             s = clasificar_sector(entidad or "")
             r = clasificar_rubro(sumilla or "", tipo or "")
+            if r == "Sin clasificar" and rubro_ia:
+                r = rubro   # el rubro que puso la IA se conserva si las reglas no encuentran otro
             antes_sector[sector] += 1
             antes_rubro[rubro] += 1
             despues_sector[s] += 1

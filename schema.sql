@@ -239,3 +239,14 @@ CREATE TABLE IF NOT EXISTS uso_ia (
     http      INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_uso_ia_fecha ON uso_ia (creado_en);
+
+-- Etapa 13: normas cuyo rubro ya reviso la IA (src/clasificar_ia.py): no se le vuelve a preguntar.
+ALTER TABLE normas ADD COLUMN IF NOT EXISTS rubro_ia BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Etapa 14: control de calidad diario (src/control.py): resultado de cada comprobacion.
+CREATE TABLE IF NOT EXISTS control_calidad (
+    fecha     DATE PRIMARY KEY,
+    ok        BOOLEAN NOT NULL,
+    resultado JSONB NOT NULL,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
+);
