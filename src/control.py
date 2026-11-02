@@ -119,7 +119,17 @@ def main():
                 if not oficial and not propio:
                     continue
                 if propio < oficial:
-                    anotar("FALLA", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: sistema {propio}, Congreso {oficial} (hasta ayer)")
+                    # Cuales faltan (para saber exactamente que corregir)
+                    cur.execute("SELECT numero FROM proyectos_ley WHERE periodo = %s AND camara = %s", clave)
+                    tengo = {r[0] for r in cur.fetchall()}
+                    faltan = []
+                    for lote_p, _ in congreso.paginas(per["perParId"], cam):
+                        for x in lote_p:
+                            n = congreso.normalizar(x, cam)
+                            if n["numero"] not in tengo and (n["fecha_presentacion"] or "") < hoy.isoformat():
+                                faltan.append(f"{n['numero']} ({n['fecha_presentacion']}, camara {n['camara']})")
+                    anotar("FALLA", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: sistema {propio}, Congreso {oficial} "
+                           f"(hasta ayer); faltan: {', '.join(faltan[:15]) or 'no identificados'}")
                 else:
                     anotar("OK", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: {propio} hasta ayer, igual que el Congreso")
     except Exception as e:  # noqa: BLE001
