@@ -1,13 +1,13 @@
 name: Programador de tareas
 
-# Revisa la hora de Lima y lanza las tareas diarias que tocan (o repite las que fallaron). Corre solo en
-# las horas en que hay tareas: cada hora de 10:45 p. m. a 7:45 a. m., y a las 3:05 y 4:05 p. m. (hora de
-# Lima). Hace una sola revision y termina en segundos. Ver src/programador.py.
+# Lanza las tareas diarias a su hora, en orden, y repite las que fallaron (ver src/programador.py).
+# Queda encendido: revisa cada 10 minutos en las horas con tareas y se vuelve a lanzar solo antes del limite
+# de 6 horas. Los horarios de abajo son solo de respaldo (por si la cadena se cortara); si ya hay uno
+# encendido, el nuevo espera en cola y, al encenderse, sigue igual.
 on:
   workflow_dispatch:
   schedule:
-    - cron: "45 3-12 * * *"     # 10:45 p. m. a 7:45 a. m. de Lima (hora universal + 5)
-    - cron: "5 20,21 * * *"     # 3:05 y 4:05 p. m. de Lima
+    - cron: "23 */2 * * *"
 
 concurrency:
   group: programador
@@ -21,7 +21,7 @@ jobs:
   programar:
     runs-on: ubuntu-latest
     continue-on-error: true
-    timeout-minutes: 10
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
