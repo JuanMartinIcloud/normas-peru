@@ -274,6 +274,29 @@ def entero_1_10(v, defecto=5):
         return defecto
 
 
+def _simple(t):
+    import unicodedata
+    t = unicodedata.normalize("NFKD", str(t or "")).encode("ascii", "ignore").decode().lower()
+    palabras = re.sub(r"[^a-z0-9 ]+", " ", re.sub(r"^\W*comite( de)?\s+", "", t)).split()
+    return [w for w in palabras if w not in ("e", "y", "de", "del", "la", "el")]
+
+
+def comite_de(texto):
+    """Comite de AmCham a partir de lo que escribio la IA. Acepta diferencias de tildes, mayusculas,
+    la palabra «Comité» delante o el nombre incompleto (antes estas diferencias dejaban documentos sin comites)."""
+    buscado = _simple(texto)
+    if not buscado:
+        return None
+    for o in COMITES:
+        if _simple(o) == buscado:
+            return o
+    for o in COMITES:   # nombre incompleto o con palabras de mas: el que mas palabras comparte
+        comun = len(set(_simple(o)) & set(buscado))
+        if comun and comun >= min(len(_simple(o)), len(buscado)):
+            return o
+    return None
+
+
 def _limpia(datos):
     def uno(v, opciones, defecto):
         v = str(v or "").strip()
@@ -285,14 +308,14 @@ def _limpia(datos):
         datos = datos[0] if isinstance(datos, list) and datos and isinstance(datos[0], dict) else {}
     comites = []
     for c in datos.get("comites") or []:
-        for o in COMITES:
-            if str(c).strip().lower() == o.lower() and o not in comites:
-                comites.append(o)
+        o = comite_de(c)
+        if o and o not in comites:
+            comites.append(o)
     acciones = []
     for a in datos.get("acciones") or []:
         if not isinstance(a, dict):
             continue
-        com = next((o for o in COMITES if str(a.get("comite", "")).strip().lower() == o.lower()), None)
+        com = comite_de(a.get("comite", ""))
         if com and a.get("accion"):
             acciones.append({"comite": com, "accion": str(a["accion"]).strip()})
             if com not in comites:
@@ -334,9 +357,10 @@ def guardar(filas):
     forzados = []
     for f in filas:
         forzado = f.pop("forzado", False)
+        manual = f.pop("manual", forzado)
         if f.pop("acto_individual", False) and not forzado:
             f["relevante"] = False   # acto sobre una empresa, contrato o persona concreta: fuera del reporte
-        if forzado:
+        if manual:
             forzados.append((f["tipo"], f["ref_id"]))
         v = [f.get(c) for c in cols]
         v[cols.index("acciones")] = Json(f["acciones"]) if f.get("acciones") is not None else None
@@ -372,7 +396,7 @@ def consultar(sql, params=()):
 
 # --------------------------------------------------------------------------- proceso
 
-def procesar_normas(desde, hasta, reloj, ids=None, forzar=False):
+def procesar_normas(desde, hasta, reloj, ids=None, forzar=False, manual=None):
     """ids: solo esas normas (pedidos desde la web); None = todas las del rango sin analisis.
     forzar: pasadas a mano a "impacto empresarial": se analizan completas sin pasar por el filtro."""
     columnas = "n.id, n.fecha, n.tipo, n.numero, n.entidad, n.sumilla, n.hash_unico, n.url_detalle, n.sector"
@@ -449,7 +473,8 @@ def procesar_normas(desde, hasta, reloj, ids=None, forzar=False):
                 guardar(lote)
                 return hechas, False
             lote.append({"tipo": "N", "ref_id": f[0], "fecha": f[1], "relevante": True, **datos,
-                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo, "forzado": forzar})
+                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo, "forzado": forzar,
+                         "manual": forzar if manual is None else manual})
             hechas += 1
             if len(lote) >= 10:
                 guardar(lote)
@@ -480,7 +505,7 @@ CONDICION_PROYECTOS = """(a.id IS NULL AND (p.fecha_presentacion BETWEEN %(d)s A
                        OR (p.ley_fecha BETWEEN %(d)s AND %(h)s AND a.creado_en < p.ley_fecha + 1)))"""
 
 
-def procesar_proyectos(desde, hasta, reloj, ids=None, forzar=False):
+def procesar_proyectos(desde, hasta, reloj, ids=None, forzar=False, manual=None):
     """ids / forzar: como en procesar_normas (pedidos desde la web)."""
     if ids is not None:
         condicion = "p.id = ANY(%(ids)s)" + ("" if forzar else " AND a.id IS NULL")
@@ -537,7 +562,8 @@ def procesar_proyectos(desde, hasta, reloj, ids=None, forzar=False):
                 guardar(lote)
                 return hechas, False
             lote.append({"tipo": "P", "ref_id": f[0], "fecha": fecha(f), "relevante": True, **datos,
-                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo, "forzado": forzar})
+                         "lectura": "texto completo" if texto else "sumilla", "modelo": modelo, "forzado": forzar,
+                         "manual": forzar if manual is None else manual})
             hechas += 1
             if len(lote) >= 10:
                 guardar(lote)
@@ -618,7 +644,7 @@ def rango(desde, hasta, reloj, solo_normas=False):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango"])
+    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites"])
     ap.add_argument("fechas", nargs="*")
     ap.add_argument("--max-minutos", type=float, default=300)
     ap.add_argument("--forzar", action="store_true")
@@ -638,6 +664,19 @@ def main():
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "pedidos":
         procesar_pedidos(reloj)
+    elif a.modo == "sincomites":
+        # Documentos del reporte que quedaron sin comites: se vuelven a analizar completos (siguen en el reporte)
+        filas = consultar("""SELECT tipo, ref_id FROM analisis
+                             WHERE relevante AND NOT excluido AND coalesce(cardinality(comites), 0) = 0""")
+        print(f"Documentos del reporte sin comites: {len(filas)}")
+        inicio, final = date(2000, 1, 1), date(2100, 1, 1)
+        for tipo, funcion in (("N", procesar_normas), ("P", procesar_proyectos)):
+            ids = [r for t, r in filas if t == tipo]
+            if ids:
+                funcion(inicio, final, reloj, ids=ids, forzar=True, manual=False)
+        quedan = consultar("""SELECT count(*) FROM analisis
+                              WHERE relevante AND NOT excluido AND coalesce(cardinality(comites), 0) = 0""")[0][0]
+        print(f"Quedan sin comites: {quedan}")
     elif a.modo == "historico":
         if cupos.principal_agotada():
             return

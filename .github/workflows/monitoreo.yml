@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "diario | pedidos | historico | rango"
+        description: "diario | pedidos | historico | rango | sincomites"
         default: "diario"
       fechas:
         description: "Para 'rango': desde hasta (AAAA-MM-DD AAAA-MM-DD)"
@@ -62,6 +62,6 @@ jobs:
             bash src/reintentar.sh python src/monitoreo.py $MODO ${{ github.event.inputs.fechas }} $FORZAR --max-minutos 300 > salida.log 2>&1; codigo=$?
           fi
           cat salida.log
-          grep -E "^(Normas|Proyectos|Rango|Mes|La IA|Hoy|Pedidos|  analisis|  filtro)" salida.log | tail -n 15 | while IFS= read -r l; do echo "::notice::${l:0:900}"; done
+          grep -E "^(Normas|Proyectos|Rango|Mes|La IA|Hoy|Pedidos|Documentos|Quedan|  analisis|  filtro)" salida.log | tail -n 15 | while IFS= read -r l; do echo "::notice::${l:0:900}"; done
           if [ $codigo -ne 0 ]; then tail -n 9 salida.log | while IFS= read -r l; do echo "::error::${l:0:900}"; done; fi
           exit $codigo

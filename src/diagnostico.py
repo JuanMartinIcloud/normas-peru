@@ -496,11 +496,47 @@ def leyes_faltantes():
     c.close()
 
 
+def casos():
+    """Revision de dos casos de la auditoria: Ley 31632 y proposicion 02233/2021-CR (solo lectura)."""
+    import elperuano
+    import seguimiento
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""SELECT id, periodo, camara, numero, num_pley, ley_tipo, ley_numero, ley_fecha, estado FROM proyectos_ley
+                   WHERE ley_numero LIKE '%%31632%%' OR numero = '02233/2021-CR'""")
+    for pid, per, cam, num, npl, lt, ln, lf, est in cur.fetchall():
+        p(f"Proposicion {num} ({cam}, {per}): estado '{est}', ley {lt} {ln}, fecha {lf}")
+        cur.execute("SELECT fecha::date, estado, left(detalle, 200) FROM seguimientos WHERE proyecto_id = %s AND estado ILIKE 'publicad%%'", (pid,))
+        for f, e, d in cur.fetchall():
+            p(f"  Paso de publicacion guardado: {f} | {e} | {d}")
+        exp = seguimiento.expediente(per, cam, npl) or {}
+        for x in exp.get("seguimientos") or []:
+            if "publicad" in str(x.get("desEstado", "")).lower():
+                p(f"  En el Congreso hoy: {str(x.get('fecha'))[:10]} | {x.get('desEstado')} | {str(x.get('detalle') or x.get('observacion') or '')[:200]}")
+    cur.execute("""SELECT fecha, tipo, numero, entidad, left(sumilla, 120) FROM normas
+                   WHERE numero ILIKE '%%31632%%' OR tipo ILIKE '%%31632%%' OR sumilla ILIKE '%%31632%%' ORDER BY fecha LIMIT 10""")
+    p("Normas del sistema que mencionan 31632: " + ("; ".join(str(r) for r in cur.fetchall()) or "ninguna"))
+    cur.execute("SELECT ley_fecha FROM proyectos_ley WHERE ley_numero LIKE '%%31632%%' AND ley_fecha IS NOT NULL LIMIT 1")
+    f = cur.fetchone()
+    if f:
+        hallados = []
+        for k in range(-10, 11):
+            d = f[0] + timedelta(days=k)
+            try:
+                for x in elperuano.descargar_dia(d):
+                    if "31632" in f"{x['tipo']} {x['numero']} {x['sumilla']}":
+                        hallados.append(f"{d}: {x['tipo']} {x['numero']} | {x['entidad']}")
+            except Exception as e:  # noqa: BLE001
+                hallados.append(f"{d}: sin respuesta ({type(e).__name__})")
+        p("El Peruano, 10 dias antes y despues: " + ("; ".join(hallados) or "no aparece la Ley 31632"))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
-     "leyes_faltantes": leyes_faltantes}[modo]()
+     "leyes_faltantes": leyes_faltantes, "casos": casos}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""

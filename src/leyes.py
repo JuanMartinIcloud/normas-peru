@@ -14,6 +14,7 @@ erratas) y con el mismo expediente en la otra camara (Diputados <-> Senado).
 import argparse
 import re
 import time
+import unicodedata
 from datetime import datetime
 
 from psycopg2.extras import Json, execute_values
@@ -138,33 +139,67 @@ def enlazar_camaras(conn, fin):
     return n
 
 
+def _sin_tildes(t):
+    return unicodedata.normalize("NFKD", str(t or "")).encode("ascii", "ignore").decode().upper()
+
+
+def _rl(a, b, c):
+    """Numero de resolucion legislativa uniforme: 3-2021-2022 -> 003-2021-2022."""
+    return f"{int(a):03d}-{b}-{c}"
+
+
+def claves_norma(tipo, numero):
+    """(es_fe_de_erratas, [(clase, numero, del_senado)]) de una norma de El Peruano.
+    El Peruano escribe el numero de varias formas: «003-2021-2022-CR», «Resolucion Legislativa 010-2021-2022-Cr»
+    (todo en el tipo), «Leyes 31365, 31366 y 31367» (varias en una publicacion). Se reconocen todas."""
+    t = re.sub(r"\s+", " ", _sin_tildes(f"{tipo or ''} {numero or ''}")).strip()
+    errata = bool(re.match(r"^\W*FE DE ERRATAS?", t))
+    cuerpo = re.sub(r"^\W*FE DE ERRATAS?\s*(DE\s+(LA\s+)?)?", "", t)
+    if re.match(r"^\W*LEY(ES)?\b", cuerpo):
+        return errata, [("LEY", n, False) for n in re.findall(r"\b(\d{5})\b", cuerpo)]
+    if re.match(r"^\W*RESOLUCION(ES)? LEGISLATIVAS?\b", cuerpo):
+        senado = "SENADO" in cuerpo or bool(re.search(r"\d{4}-\d{4}-S\b", cuerpo))
+        return errata, [("RL", _rl(*m), senado) for m in re.findall(r"\b(\d{1,4})-(\d{4})-(\d{4})\b", cuerpo)]
+    return errata, []
+
+
+def clave_proyecto(ley_tipo, ley_numero):
+    """(clase, numero, del_senado) de la ley que salio de una proposicion (o None)."""
+    t, n = _sin_tildes(ley_tipo), _sin_tildes(ley_numero)
+    if t.startswith("LEY"):
+        m = re.search(r"\d{5}", n)
+        return ("LEY", m.group(0), False) if m else None
+    m = re.search(r"(\d{1,4})-(\d{4})-(\d{4})", n)
+    return ("RL", _rl(*m.groups()), "SENADO" in t or n.endswith("-S")) if m else None
+
+
 def documentos_de_leyes(cur):
     """Paso 3: la ley y sus fe de erratas en las normas de El Peruano (enlaces para la web)."""
-    cur.execute("""SELECT id, ley_numero, ley_docs FROM proyectos_ley
+    cur.execute("""SELECT id, ley_tipo, ley_numero, ley_docs FROM proyectos_ley
                    WHERE ley_numero IS NOT NULL
                      AND (ley_docs IS NULL OR ley_docs->'ley' IS NULL OR ley_fecha >= current_date - 120)""")
     proyectos = cur.fetchall()
     if not proyectos:
         return 0
-    numeros = sorted({n for _, n, _ in proyectos})
-    sufijos = [f"% {n}" for n in numeros if "-" in n]   # p. ej. tipo "Resolución Legislativa 001-2026-2027-S"
+    # Leyes, resoluciones legislativas y sus fe de erratas publicadas en El Peruano
     cur.execute("""SELECT id, fecha::text, tipo, coalesce(numero, ''), url_detalle FROM normas
-                   WHERE entidad ILIKE 'CONGRESO%%' AND (numero = ANY(%s) OR tipo ILIKE ANY(%s))
-                   ORDER BY fecha, id""", (numeros, sufijos or ["-"]))
-    por_numero = {}
+                   WHERE translate(lower(tipo), 'áéíóú', 'aeiou')
+                         ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(leyes?|resoluciones? legislativas?)\\y'
+                   ORDER BY fecha, id""")
+    por_clave = {}
     for nid, fecha, tipo, numero, url in cur.fetchall():
-        clave = numero or next((n for n in numeros if (tipo or "").upper().endswith(" " + n)), "")
-        if not clave:
-            continue
-        d = por_numero.setdefault(clave, {"ley": None, "erratas": []})
-        doc = {"id": nid, "fecha": fecha, "tipo": tipo, "url": url}
-        if re.match(r"^\s*fe\s+de\s+errata", tipo or "", re.I):
-            d["erratas"].append(doc)
-        elif d["ley"] is None:
-            d["ley"] = doc
+        errata, claves = claves_norma(tipo, numero)
+        for clave in claves:
+            d = por_clave.setdefault(clave, {"ley": None, "erratas": []})
+            doc = {"id": nid, "fecha": fecha, "tipo": tipo, "url": url}
+            if errata:
+                d["erratas"].append(doc)
+            elif d["ley"] is None:
+                d["ley"] = doc
     cambios = 0
-    for pid, numero, actual in proyectos:
-        nuevo = por_numero.get(numero)
+    for pid, ley_tipo, ley_numero, actual in proyectos:
+        clave = clave_proyecto(ley_tipo, ley_numero)
+        nuevo = por_clave.get(clave) if clave else None
         if not nuevo or nuevo == actual:
             continue
         fecha = nuevo["ley"]["fecha"] if nuevo["ley"] else None
