@@ -15,6 +15,7 @@ import psycopg2
 import requests
 
 import bases
+import db
 
 LIMA = timezone(timedelta(hours=-5))
 # Leyes que el Congreso da por publicadas y que El Peruano no lista (revisadas a mano, ver auditoria)
@@ -73,7 +74,7 @@ def main():
     except Exception as e:  # noqa: BLE001
         anotar("FALLA", "Revision de tareas", f"no se pudo consultar GitHub ({type(e).__name__})")
 
-    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    c = db.conectar()   # aplica las etapas pendientes del esquema
     cur = c.cursor()
 
     def uno(sql, args=()):
@@ -118,75 +119,99 @@ def main():
         anotar("FALLA", "Proyectos de ley", f"no se pudo comparar con el Congreso ({type(e).__name__})")
 
     # Leyes sin enlace a su publicacion en El Peruano
-    cur.execute("SELECT DISTINCT ley_numero FROM proyectos_ley WHERE ley_numero IS NOT NULL AND ley_docs->'ley' IS NULL")
-    sin = sorted({r[0] for r in cur.fetchall()} - LEYES_SIN_PUBLICACION_CONOCIDAS)
-    anotar("FALLA" if sin else "OK", "Leyes enlazadas a El Peruano",
-           f"sin enlace: {', '.join(sin[:20])}" if sin else "todas (salvo la Ley 31632, que El Peruano no lista)")
+    try:
+        cur.execute("SELECT DISTINCT ley_numero FROM proyectos_ley WHERE ley_numero IS NOT NULL AND ley_docs->'ley' IS NULL")
+        sin = sorted({r[0] for r in cur.fetchall()} - LEYES_SIN_PUBLICACION_CONOCIDAS)
+        anotar("FALLA" if sin else "OK", "Leyes enlazadas a El Peruano",
+               f"sin enlace: {', '.join(sin[:20])}" if sin else "todas (salvo la Ley 31632, que El Peruano no lista)")
+    except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
+        c.rollback()
+        anotar("FALLA", "Leyes sin enlace a su publicacion en El Peruano", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
 
     # Monitoreo
-    (vacios,) = uno("""SELECT count(*) FROM analisis WHERE relevante AND NOT excluido AND
-                       (coalesce(resumen, '') = '' OR coalesce(cardinality(comites), 0) = 0 OR calificacion IS NULL OR puntaje IS NULL)""")
-    anotar("FALLA" if vacios else "OK", "Analisis del reporte completos", f"{vacios} incompletos" if vacios else "todos completos")
-    inicio_mes = hoy.replace(day=1)
-    (faltan_n,) = uno("""SELECT count(*) FROM normas n WHERE n.fecha BETWEEN %s AND %s
-                         AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)""", (inicio_mes, ayer))
-    (faltan_p,) = uno("""SELECT count(*) FROM proyectos_ley p WHERE p.fecha_presentacion BETWEEN %s AND %s
-                         AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = p.id)""", (inicio_mes, ayer))
-    if inicio_mes <= ayer:
-        anotar("FALLA" if faltan_n or faltan_p else "OK", "Monitoreo del mes en curso",
-               f"sin revisar hasta ayer: {faltan_n} normas y {faltan_p} proyectos" if faltan_n or faltan_p else "revisado hasta ayer")
-    (meses_ok, meses_total) = uno("""SELECT count(*) FILTER (WHERE r = t), count(*) FROM (
-                                    SELECT to_char(n.fecha, 'YYYY-MM') m, count(*) t, count(a.id) r FROM normas n
-                                    LEFT JOIN analisis a ON a.tipo = 'N' AND a.ref_id = n.id GROUP BY 1) x""")
-    anotar("INFO", "Monitoreo de meses anteriores", f"{meses_ok} de {meses_total} meses revisados por completo")
+    try:
+        (vacios,) = uno("""SELECT count(*) FROM analisis WHERE relevante AND NOT excluido AND
+                           (coalesce(resumen, '') = '' OR coalesce(cardinality(comites), 0) = 0 OR calificacion IS NULL OR puntaje IS NULL)""")
+        anotar("FALLA" if vacios else "OK", "Analisis del reporte completos", f"{vacios} incompletos" if vacios else "todos completos")
+        inicio_mes = hoy.replace(day=1)
+        (faltan_n,) = uno("""SELECT count(*) FROM normas n WHERE n.fecha BETWEEN %s AND %s
+                             AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)""", (inicio_mes, ayer))
+        (faltan_p,) = uno("""SELECT count(*) FROM proyectos_ley p WHERE p.fecha_presentacion BETWEEN %s AND %s
+                             AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = p.id)""", (inicio_mes, ayer))
+        if inicio_mes <= ayer:
+            anotar("FALLA" if faltan_n or faltan_p else "OK", "Monitoreo del mes en curso",
+                   f"sin revisar hasta ayer: {faltan_n} normas y {faltan_p} proyectos" if faltan_n or faltan_p else "revisado hasta ayer")
+        (meses_ok, meses_total) = uno("""SELECT count(*) FILTER (WHERE r = t), count(*) FROM (
+                                        SELECT to_char(n.fecha, 'YYYY-MM') m, count(*) t, count(a.id) r FROM normas n
+                                        LEFT JOIN analisis a ON a.tipo = 'N' AND a.ref_id = n.id GROUP BY 1) x""")
+        anotar("INFO", "Monitoreo de meses anteriores", f"{meses_ok} de {meses_total} meses revisados por completo")
+    except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
+        c.rollback()
+        anotar("FALLA", "Monitoreo", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
 
     # Resumen diario de ayer
-    anotar("OK" if uno("SELECT 1 FROM resumenes WHERE fecha = %s", (ayer,)) else "FALLA", "Resumen diario", f"{ayer}")
+    try:
+        anotar("OK" if uno("SELECT 1 FROM resumenes WHERE fecha = %s", (ayer,)) else "FALLA", "Resumen diario", f"{ayer}")
+    except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
+        c.rollback()
+        anotar("FALLA", "Resumen diario de ayer", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
 
     # Texto completo de las normas de la ultima semana (hasta anteayer)
-    cur.execute("SELECT hash_unico FROM normas WHERE fecha BETWEEN %s AND %s AND url_detalle IS NOT NULL",
-                (hoy - timedelta(days=8), hoy - timedelta(days=2)))
-    claves = {r[0] for r in cur.fetchall()}
-    halladas = set()
-    for _, url in bases.bases_texto():
-        try:
-            t = psycopg2.connect(url, connect_timeout=60)
-            tc = t.cursor()
-            tc.execute("SELECT clave FROM documentos WHERE tipo = 'N' AND clave = ANY(%s)", (list(claves),))
-            halladas |= {r[0] for r in tc.fetchall()}
-            t.close()
-        except psycopg2.Error:
-            pass
-    faltan = len(claves - halladas)
-    anotar("FALLA" if faltan else "OK", "Texto completo (ultima semana)",
-           f"{faltan} de {len(claves)} normas sin texto guardado" if faltan else f"las {len(claves)} normas tienen su texto")
+    try:
+        cur.execute("SELECT hash_unico FROM normas WHERE fecha BETWEEN %s AND %s AND url_detalle IS NOT NULL",
+                    (hoy - timedelta(days=8), hoy - timedelta(days=2)))
+        claves = {r[0] for r in cur.fetchall()}
+        halladas = set()
+        for _, url in bases.bases_texto():
+            try:
+                t = psycopg2.connect(url, connect_timeout=60)
+                tc = t.cursor()
+                tc.execute("SELECT clave FROM documentos WHERE tipo = 'N' AND clave = ANY(%s)", (list(claves),))
+                halladas |= {r[0] for r in tc.fetchall()}
+                t.close()
+            except psycopg2.Error:
+                pass
+        faltan = len(claves - halladas)
+        anotar("FALLA" if faltan else "OK", "Texto completo (ultima semana)",
+               f"{faltan} de {len(claves)} normas sin texto guardado" if faltan else f"las {len(claves)} normas tienen su texto")
+    except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
+        c.rollback()
+        anotar("FALLA", "Texto completo de las normas de la ultima semana (hasta ante", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
 
     # Clasificacion
-    (otros, sin_rubro, pend_ia) = uno("""SELECT count(*) FILTER (WHERE sector = 'Otros'), count(*) FILTER (WHERE rubro = 'Sin clasificar'),
-                                         count(*) FILTER (WHERE rubro = 'Sin clasificar' AND NOT rubro_ia) FROM normas""")
-    anotar("INFO", "Clasificacion", f"sector 'Otros': {otros}; sin rubro: {sin_rubro} (por revisar con IA: {pend_ia})")
+    try:
+        (otros, sin_rubro, pend_ia) = uno("""SELECT count(*) FILTER (WHERE sector = 'Otros'), count(*) FILTER (WHERE rubro = 'Sin clasificar'),
+                                             count(*) FILTER (WHERE rubro = 'Sin clasificar' AND NOT rubro_ia) FROM normas""")
+        anotar("INFO", "Clasificacion", f"sector 'Otros': {otros}; sin rubro: {sin_rubro} (por revisar con IA: {pend_ia})")
+    except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
+        c.rollback()
+        anotar("FALLA", "Clasificacion", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
 
     # Uso de la IA de ayer y cupo de Neon
     try:
-        cur.execute("""SELECT modelo, count(*) FILTER (WHERE resultado = 'ok'), count(*) FILTER (WHERE resultado = 'cupo_dia')
-                       FROM uso_ia WHERE creado_en >= now() - interval '24 hours' GROUP BY 1 ORDER BY 2 DESC""")
-        filas = cur.fetchall()
-        anotar("INFO", "IA (ultimas 24 horas)", "; ".join(f"{m}: {ok}" + (" (llego a su limite del dia)" if d else "")
-                                                          for m, ok, d in filas) or "sin consultas")
-    except psycopg2.Error:
+        try:
+            cur.execute("""SELECT modelo, count(*) FILTER (WHERE resultado = 'ok'), count(*) FILTER (WHERE resultado = 'cupo_dia')
+                           FROM uso_ia WHERE creado_en >= now() - interval '24 hours' GROUP BY 1 ORDER BY 2 DESC""")
+            filas = cur.fetchall()
+            anotar("INFO", "IA (ultimas 24 horas)", "; ".join(f"{m}: {ok}" + (" (llego a su limite del dia)" if d else "")
+                                                              for m, ok, d in filas) or "sin consultas")
+        except psycopg2.Error:
+            c.rollback()
+        try:
+            ctl = psycopg2.connect(bases.control_url(), connect_timeout=60)
+            cc = ctl.cursor()
+            cc.execute("""SELECT base, round(transferido / 1e9, 2) FROM cupos
+                          WHERE periodo >= date_trunc('month', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' ORDER BY transferido DESC LIMIT 3""")
+            filas = cc.fetchall()
+            ctl.close()
+            mayor = max((float(g) for _, g in filas), default=0)
+            anotar("FALLA" if mayor >= 4 else "OK", "Transferencia de Neon este mes",
+                   "; ".join(f"{b}: {g} GB de 5" for b, g in filas) or "sin medicion")
+        except Exception as e:  # noqa: BLE001
+            anotar("FALLA", "Transferencia de Neon", f"no se pudo leer ({type(e).__name__})")
+    except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
         c.rollback()
-    try:
-        ctl = psycopg2.connect(bases.control_url(), connect_timeout=60)
-        cc = ctl.cursor()
-        cc.execute("""SELECT base, round(transferido / 1e9, 2) FROM cupos
-                      WHERE periodo >= date_trunc('month', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' ORDER BY transferido DESC LIMIT 3""")
-        filas = cc.fetchall()
-        ctl.close()
-        mayor = max((float(g) for _, g in filas), default=0)
-        anotar("FALLA" if mayor >= 4 else "OK", "Transferencia de Neon este mes",
-               "; ".join(f"{b}: {g} GB de 5" for b, g in filas) or "sin medicion")
-    except Exception as e:  # noqa: BLE001
-        anotar("FALLA", "Transferencia de Neon", f"no se pudo leer ({type(e).__name__})")
+        anotar("FALLA", "Uso de la IA de ayer y cupo de Neon", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
 
     ok = not any(r["estado"] == "FALLA" for r in resultados)
     cur.execute(SQL)
