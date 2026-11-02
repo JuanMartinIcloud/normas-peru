@@ -12,11 +12,11 @@ import time
 import cupos
 import db
 import gemini
-from monitoreo import (CALIFICACIONES, CRITERIO, CRITERIOS_CALIFICACION, HIST_ANALISIS, HIST_FILTRO, INDIVIDUAL,
+from monitoreo import (CALIFICACIONES, CRITERIO, CRITERIOS_CALIFICACION, INDIVIDUAL,
                        NO_RELEVANTES, entero_1_10, es_local, impacto_de)
 
 LOTE = 15
-MODELOS = list(dict.fromkeys(HIST_ANALISIS + HIST_FILTRO))
+MODELOS = gemini.modelos_lite()   # trabajo automatico: solo Lite
 
 INSTR = f"""Eres analista senior de asuntos públicos y regulatorios de la Cámara de Comercio Americana del
 Perú (AmCham Perú). Recibes documentos (normas legales o proyectos de ley) ya resumidos. Para cada uno

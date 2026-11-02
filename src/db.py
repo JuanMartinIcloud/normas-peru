@@ -36,6 +36,8 @@ _ETAPAS = [
                                      WHERE table_schema = 'public' AND table_name = 'analisis_pedidos')
                          AND EXISTS (SELECT 1 FROM information_schema.columns
                                      WHERE table_schema = 'public' AND table_name = 'analisis' AND column_name = 'manual')"""),
+    ("-- Etapa 12:", """SELECT EXISTS (SELECT 1 FROM pg_indexes
+                                     WHERE schemaname = 'public' AND indexname = 'idx_uso_ia_fecha')"""),
 ]
 
 

@@ -180,6 +180,7 @@ export async function POST(request) {
     if (!proyectos.length) lineas.push("(ninguno)");
 
     const { datos, modelo } = await generarJSON({
+      origen: "resumir",
       instrucciones: INSTRUCCIONES,
       partes: [{ text: lineas.join("\n") }],
       esquema: ESQUEMA,

@@ -228,3 +228,14 @@ CREATE TABLE IF NOT EXISTS analisis_pedidos (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pedidos_pendientes ON analisis_pedidos (tipo, ref) WHERE estado = 'pendiente';
 -- Documentos pasados a mano a "impacto empresarial": la IA no los vuelve a sacar del reporte
 ALTER TABLE analisis ADD COLUMN IF NOT EXISTS manual BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Etapa 12: registro de cada consulta a la IA (modelo y resultado), para medir el cupo gratuito real.
+CREATE TABLE IF NOT EXISTS uso_ia (
+    id        BIGSERIAL PRIMARY KEY,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    origen    TEXT,
+    modelo    TEXT NOT NULL,
+    resultado TEXT NOT NULL,      -- ok | cupo (429) | error
+    http      INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_uso_ia_fecha ON uso_ia (creado_en);

@@ -182,6 +182,7 @@ export async function POST(request) {
     }
 
     const { datos, modelo } = await generarJSON({
+      origen: "unir",
       instrucciones: INSTRUCCIONES[accion],
       partes,
       esquema: ESQUEMA,

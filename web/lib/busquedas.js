@@ -134,6 +134,8 @@ entre el ${desde} y el ${hasta}. Español claro. Usa solo los datos recibidos y 
         maxTokens: 4096,
         limiteMs: 90000,
         intentoMs: 45000,
+        perfil: "automatico",
+        origen: "busqueda guardada",
       });
       resumen = { panorama: String(datos.panorama || ""), puntos: (datos.puntos || []).map(String) };
     } catch (e) {

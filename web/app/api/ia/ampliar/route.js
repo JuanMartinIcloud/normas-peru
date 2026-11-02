@@ -39,6 +39,7 @@ export async function POST(request) {
     if (guardada) return Response.json({ terminos: guardada.resultado.terminos, guardado: true });
 
     const { datos, modelo } = await generarJSON({
+      origen: "ampliar",
       instrucciones: INSTRUCCIONES,
       partes: [{ text: `Búsqueda del usuario: ${q}` }],
       esquema: ESQUEMA,

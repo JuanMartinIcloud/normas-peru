@@ -52,6 +52,7 @@ export async function POST(request) {
       if (g) return Response.json({ ...g.resultado, cantidad: items.length, guardado: true });
     }
     const { datos, modelo } = await generarJSON({
+      origen: "resumen ejecutivo",
       instrucciones: INSTRUCCIONES,
       partes: [{ text: `Periodo: ${c.desde} a ${c.hasta}\n\n${usados.join("\n")}` }],
       esquema: ESQUEMA,

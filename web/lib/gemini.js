@@ -1,13 +1,19 @@
 // Cliente de la API de Google Gemini para la web (capa gratuita).
-// Usa las variables de entorno de Vercel: GEMINI_API_KEY (obligatoria) y GEMINI_MODELOS (opcional).
+// Usa las variables de entorno de Vercel: GEMINI_API_KEY (obligatoria) y GEMINI_MODELOS (opcional: modelos
+// adicionales que se prueban al final).
+// Dos grupos de modelos: las consultas del usuario usan primero los Flash (mas precisos) y, si se agotaron,
+// los Lite; el trabajo automatico (resumen de busquedas guardadas) usa solo Lite, para no gastar los Flash.
+// Cada consulta queda anotada en la tabla "uso_ia" (modelo y resultado) para medir el cupo real.
 import { Aviso } from "./errores";
+import { after } from "next/server";
+import { ejecutar, URL_PRINCIPAL } from "./bases";
 
 const API = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta";
 const SUBIDA = "https://generativelanguage.googleapis.com/upload/v1beta/files";
-const MODELOS_POR_DEFECTO = "gemini-flash-latest,gemini-3.5-flash-lite,gemini-3.5-flash";
-// Reserva: se prueban al final si los anteriores agotaron su cupo del dia (gemini-2.5 ya no existe para cuentas nuevas)
-// (al final, por si ya no queda cupo en ninguno, dos de los que usa de dia el analisis de meses anteriores)
-const RESERVA = ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-3.6-flash", "gemma-4-31b-it"];
+const FLASH = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3-flash-preview", "gemini-3.7-flash", "gemini-3.5-flash"];
+const LITE = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite-preview"];
+// Reserva: se prueba al final si los anteriores agotaron su cupo del dia (no es Flash)
+const RESERVA = ["gemma-4-31b-it"];
 
 export class ErrorIA extends Aviso {
   constructor(mensaje, estado = 502) {
@@ -27,12 +33,31 @@ function clave() {
   return k;
 }
 
-function modelos() {
-  // Los de la variable GEMINI_MODELOS (si existe) van primero; despues, siempre, los de por defecto y la reserva
-  const todos = [...(process.env.GEMINI_MODELOS || "").split(","), ...MODELOS_POR_DEFECTO.split(","), ...RESERVA]
-    .map((m) => m.trim())
-    .filter((m) => m && !m.startsWith("gemini-2.5"));
-  return [...new Set(todos)];
+function modelos(perfil = "usuario") {
+  const extra = (process.env.GEMINI_MODELOS || "").split(",").map((m) => m.trim()).filter((m) => m && !m.startsWith("gemini-2.5"));
+  const lista = perfil === "automatico" ? [...LITE, ...RESERVA] : [...FLASH, ...LITE, ...RESERVA, ...extra];
+  return [...new Set(lista)];
+}
+
+// Registro de cada consulta (no detiene nada si falla)
+let tablaUso = false;
+function registrar(modelo, resultado, http, origen) {
+  // after(): se escribe despues de responder al usuario, sin demorarlo (y sin que Vercel lo corte)
+  after(async () => {
+    try {
+      if (!URL_PRINCIPAL) return;
+      if (!tablaUso) {
+        await ejecutar(URL_PRINCIPAL, `CREATE TABLE IF NOT EXISTS uso_ia (id BIGSERIAL PRIMARY KEY, creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+          origen TEXT, modelo TEXT NOT NULL, resultado TEXT NOT NULL, http INTEGER)`);
+        tablaUso = true;
+      }
+      await ejecutar(URL_PRINCIPAL, `INSERT INTO uso_ia (origen, modelo, resultado, http) VALUES ($1, $2, $3, $4)`, [
+        String(origen).slice(0, 60), modelo, resultado, http,
+      ]);
+    } catch (e) {
+      console.error(e);
+    }
+  });
 }
 
 // Los modelos Gemma no aceptan instrucciones de sistema ni modo JSON: van dentro del mensaje
@@ -122,7 +147,7 @@ const agotados = new Map();
  * intentoMs: tiempo maximo de espera de cada modelo; si uno se demora o esta saturado, se pasa al siguiente.
  * Devuelve { datos, modelo }.
  */
-export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 16384, limiteMs = 50000, intentoMs }) {
+export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 16384, limiteMs = 50000, intentoMs, perfil = "usuario", origen = "web" }) {
   const k = clave();
   const fin = Date.now() + limiteMs;
   const tope = intentoMs || Math.max(15000, Math.floor(limiteMs / 3));
@@ -138,8 +163,8 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
   };
   const errores = [];
   let hubo400 = false;
-  let lista = modelos().filter((m) => !(agotados.get(m) > Date.now()));
-  if (!lista.length) lista = modelos();
+  let lista = modelos(perfil).filter((m) => !(agotados.get(m) > Date.now()));
+  if (!lista.length) lista = modelos(perfil);
   const vueltas = [...lista.map((m) => [m, true]), ...lista.map((m) => [m, false])];
   for (const [modelo, conEsquema] of vueltas) {
     if (!conEsquema) {
@@ -159,8 +184,10 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
       });
     } catch (e) {
       errores.push(`${modelo}: ${e.name === "TimeoutError" ? "no respondió a tiempo" : e.message}`);
+      registrar(modelo, "error", null, origen);
       continue; // demora o falla de conexion: siguiente modelo
     }
+    registrar(modelo, r.ok ? "ok" : r.status === 429 ? "cupo" : "error", r.status, origen);
     if (r.ok) {
       try {
         const json = await r.json();

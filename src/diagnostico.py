@@ -192,10 +192,28 @@ def ia():
                    FROM analisis a WHERE a.tipo = 'P' AND a.fecha >= '2026-01-01' GROUP BY 1 ORDER BY 1""")
     p("MESES 2026 proyectos analizados (revisados | relevantes): " + ", ".join(f"{m}: {t}|{r}" for m, t, r in cur.fetchall()))
     cur.execute("""SELECT (creado_en AT TIME ZONE 'America/Los_Angeles')::date AS dia, coalesce(modelo, '(filtro o local)'), count(*)
-                   FROM analisis WHERE creado_en > now() - interval '21 days' GROUP BY 1, 2 ORDER BY 1, 2""")
+                   FROM analisis WHERE creado_en > now() - interval '3 days' GROUP BY 1, 2 ORDER BY 1, 2""")
     p("ANALISIS guardados por dia (hora del Pacifico, cuando Google renueva el cupo) y modelo:")
     for d, m, n in cur.fetchall():
         p(f"  {d} {m}: {n}")
+    try:
+        # Cupo real por modelo y dia de Google (renueva a medianoche del Pacifico): consultas que respondieron,
+        # cuantas dijeron "cupo agotado" y cuantas habian respondido antes del primer "cupo agotado"
+        cur.execute("""WITH u AS (SELECT (creado_en AT TIME ZONE 'America/Los_Angeles')::date AS dia, modelo, resultado,
+                                         creado_en FROM uso_ia),
+                         p AS (SELECT dia, modelo, min(creado_en) AS primero FROM u WHERE resultado = 'cupo' GROUP BY 1, 2)
+                       SELECT u.dia, u.modelo, count(*) FILTER (WHERE resultado = 'ok'),
+                              count(*) FILTER (WHERE resultado = 'cupo'),
+                              count(*) FILTER (WHERE resultado = 'ok' AND (p.primero IS NULL OR u.creado_en < p.primero))
+                       FROM u LEFT JOIN p USING (dia, modelo) GROUP BY 1, 2 ORDER BY 1, 2""")
+        p("USO DE LA IA por dia y modelo (respondio | cupo agotado | respondio antes de agotarse):")
+        for d, m, ok, cupo, antes in cur.fetchall():
+            p(f"  {d} {m}: {ok} | {cupo} | {antes}{'  <- LIMITE DEL DIA' if cupo else ''}")
+        cur.execute("""SELECT (creado_en AT TIME ZONE 'America/Los_Angeles')::date, origen, count(*) FROM uso_ia
+                       GROUP BY 1, 2 ORDER BY 1, 2""")
+        p("USO DE LA IA por dia y origen: " + ", ".join(f"{d} {o}: {n}" for d, o, n in cur.fetchall()))
+    except psycopg2.Error:
+        c.rollback()
     try:
         cur.execute("""SELECT (creado_en AT TIME ZONE 'America/Los_Angeles')::date, tipo, count(*) FROM consultas_ia
                        WHERE creado_en > now() - interval '45 days' GROUP BY 1, 2 ORDER BY 1, 2""")

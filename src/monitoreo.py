@@ -47,12 +47,12 @@ SECTORES = [
 CALIFICACIONES = ["Favorable", "Desfavorable", "Para seguimiento"]
 IMPACTOS = ["Alto", "Moderado", "Bajo"]
 
-MODELOS_FILTRO = [m for m in os.getenv("MODELOS_FILTRO", "gemini-3.5-flash-lite,gemini-flash-latest,gemini-3.5-flash,gemini-flash-lite-latest").split(",") if m]
-MODELOS_ANALISIS = None   # None = modelos por defecto (los mismos del buscador web)
-# Los meses anteriores usan modelos distintos, para no gastar la cuota diaria del buscador ni del reporte diario
-HIST_FILTRO = [m for m in os.getenv("HIST_FILTRO", "gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3-flash-preview").split(",") if m]
-HIST_ANALISIS = [m for m in os.getenv("HIST_ANALISIS", "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3-flash-preview").split(",") if m]
-MODELOS_SEGUNDA = HIST_ANALISIS   # segunda revision de las normas con rango de ley descartadas
+# Todo el trabajo automatico usa solo modelos Lite: los Flash (mas precisos) quedan para el usuario
+MODELOS_FILTRO = gemini.modelos_lite()
+MODELOS_ANALISIS = gemini.modelos_lite()
+HIST_FILTRO = gemini.modelos_lite()      # meses anteriores: tambien solo Lite
+HIST_ANALISIS = gemini.modelos_lite()
+MODELOS_SEGUNDA = gemini.modelos_lite()  # segunda revision de las normas con rango de ley descartadas
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
@@ -576,10 +576,6 @@ def fin_de_mes(dia):
 def procesar_pedidos(reloj):
     """Meses y documentos pedidos desde la web: un mes que alguien abrio en el monitoreo, los resultados
     de una busqueda guardada aun sin revisar, o documentos pasados a mano a "impacto empresarial"."""
-    global MODELOS_FILTRO, MODELOS_ANALISIS
-    # Todos los modelos disponibles (los del dia y los de reserva), para no quedarse sin cupo de la IA
-    MODELOS_FILTRO = list(dict.fromkeys(MODELOS_FILTRO + HIST_FILTRO))
-    MODELOS_ANALISIS = list(dict.fromkeys(gemini.modelos() + HIST_ANALISIS))
     pedidos = consultar("""SELECT id, tipo, ref, forzar FROM analisis_pedidos WHERE estado = 'pendiente'
                            ORDER BY forzar DESC, creado_en""")
     print(f"Pedidos pendientes: {len(pedidos)}")

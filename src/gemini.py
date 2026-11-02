@@ -2,22 +2,28 @@
 
 Variables de entorno:
     GEMINI_API_KEY   clave de Google AI Studio (obligatoria)
-    GEMINI_MODELOS   modelos a probar en orden, separados por coma (opcional)
+    GEMINI_MODELOS   modelos adicionales a probar al final, separados por coma (opcional)
 
-Por defecto usa 'gemini-flash-latest', un alias que Google mantiene apuntando a su
-modelo Flash vigente; si falla (cupo agotado, modelo retirado), prueba los siguientes.
+Dos grupos de modelos, para no gastar en el trabajo automatico el cupo que necesita el usuario:
+- FLASH (los mas precisos): para lo que lee el usuario (resumen diario). Si se agotan, se usan los Lite.
+- LITE: para el trabajo automatico (filtro y analisis del monitoreo, recalificacion). Nunca usa Flash.
+Cada consulta queda anotada en la tabla "uso_ia" (modelo y resultado) para medir el cupo real.
 """
+import atexit
 import json
 import os
 import re
+import sys
 import time
 
 import requests
 
 API = "https://generativelanguage.googleapis.com/v1beta/models"
-MODELOS_POR_DEFECTO = "gemini-flash-latest,gemini-3.5-flash-lite,gemini-3.5-flash"
-# Reserva: se prueban al final si los anteriores agotaron su cupo del dia
-RESERVA = ["gemini-flash-lite-latest", "gemma-4-31b-it"]
+FLASH = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3-flash-preview",
+         "gemini-3.7-flash", "gemini-3.5-flash"]
+LITE = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite-preview"]
+# Reserva: se prueba al final si los anteriores agotaron su cupo del dia (no es Flash)
+RESERVA = ["gemma-4-31b-it"]
 TIMEOUT = 180
 REINTENTOS = 4
 
@@ -26,10 +32,61 @@ class ErrorGemini(RuntimeError):
     pass
 
 
+def _extra() -> list[str]:
+    return [m.strip() for m in os.getenv("GEMINI_MODELOS", "").split(",") if m.strip() and not m.strip().startswith("gemini-2.5")]
+
+
 def modelos() -> list[str]:
-    texto = os.getenv("GEMINI_MODELOS", "").strip() or MODELOS_POR_DEFECTO
-    lista = [m.strip() for m in texto.split(",") if m.strip() and not m.strip().startswith("gemini-2.5")]
-    return lista + [m for m in RESERVA if m not in lista]
+    """Para lo que lee el usuario: Flash primero; si se agotan, Lite."""
+    return list(dict.fromkeys(FLASH + LITE + RESERVA + _extra()))
+
+
+def modelos_lite() -> list[str]:
+    """Para el trabajo automatico: solo Lite (y la reserva), nunca Flash."""
+    return list(dict.fromkeys(LITE + RESERVA))
+
+
+# --------------------------------------------------------------------------- registro de uso
+_uso = []
+
+
+def _registrar(modelo: str, resultado: str, http: int | None):
+    """Anota cada consulta (se envia a la base al terminar la tarea o cada 50 consultas)."""
+    _uso.append((ORIGEN, modelo, resultado, http))
+    if len(_uso) >= 50:
+        _enviar_uso()
+
+
+def _enviar_uso():
+    global _uso
+    if not _uso:
+        return
+    lote, _uso = _uso, []
+    url = os.getenv("DATABASE_URL", "").strip()
+    if not url:
+        return
+    try:
+        import psycopg2
+        from psycopg2.extras import execute_values
+        c = psycopg2.connect(url, connect_timeout=30)
+        with c.cursor() as cur:
+            cur.execute(SQL_USO)
+            execute_values(cur, "INSERT INTO uso_ia (origen, modelo, resultado, http) VALUES %s", lote)
+        c.commit()
+        c.close()
+    except Exception as e:  # noqa: BLE001  (el registro nunca debe detener la tarea)
+        print(f"  (no se pudo anotar el uso de la IA: {type(e).__name__})")
+
+
+SQL_USO = """CREATE TABLE IF NOT EXISTS uso_ia (
+    id        BIGSERIAL PRIMARY KEY,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    origen    TEXT,
+    modelo    TEXT NOT NULL,
+    resultado TEXT NOT NULL,      -- ok | cupo (429) | error
+    http      INTEGER)"""
+ORIGEN = " ".join(os.path.basename(a) for a in sys.argv[:2])[:60]
+atexit.register(_enviar_uso)
 
 
 def verificar_clave() -> None:
@@ -117,8 +174,10 @@ def generar_json(instrucciones: str, contenido: str, esquema: dict, lista_modelo
                 )
             except requests.RequestException as e:
                 errores.append(f"{modelo}: {e}")
+                _registrar(modelo, "error", None)
                 time.sleep(10 * intento)
                 continue
+            _registrar(modelo, "ok" if r.status_code == 200 else ("cupo" if r.status_code == 429 else "error"), r.status_code)
             if r.status_code == 200:
                 try:
                     return _a_json(_texto_respuesta(r.json())), modelo
