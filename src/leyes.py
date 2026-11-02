@@ -24,7 +24,7 @@ from seguimiento import PAUSA, enlace_de, expediente
 
 _LEY = re.compile(
     r"^\W*(LEY|RESOLUCI[ÓO]N\s+LEGISLATIVA(?:\s+DEL\s+(SENADO|CONGRESO)(?:\s+DE\s+LA\s+REP[ÚU]BLICA)?)?)"
-    r"\s*(?:N\s*[°º.o]*\s*)?(\d+(?:-\d{4}-\d{4}(?:-[A-Z]+)?)?)", re.I)
+    r"\s*(?:N\s*[°º.o]*\s*)?(?:RLC?-)?(\d+(?:-\d{4}-\d{4}(?:-[A-Z]+)?)?)", re.I)
 _ERRATA = re.compile(r"^\W*FE\s+DE\s+ERRATAS?", re.I)
 PUBLICADA = "s.estado ILIKE 'publicad%'"
 
@@ -159,7 +159,10 @@ def claves_norma(tipo, numero):
         return errata, [("LEY", n, False) for n in re.findall(r"\b(\d{5})\b", cuerpo)]
     if re.match(r"^\W*RESOLUCION(ES)? LEGISLATIVAS?\b", cuerpo):
         senado = "SENADO" in cuerpo or bool(re.search(r"\d{4}-\d{4}-S\b", cuerpo))
-        return errata, [("RL", _rl(*m), senado) for m in re.findall(r"\b(\d{1,4})-(\d{4})-(\d{4})\b", cuerpo)]
+        claves = [("RL", _rl(*m), senado) for m in re.findall(r"\b(\d{1,4})-(\d{4})-(\d{4})\b", cuerpo)]
+        # Resoluciones legislativas antiguas, numeradas como las leyes (por ejemplo «N° 31347»)
+        claves += [("RL", n, False) for n in re.findall(r"(?<![\d-])(\d{5})(?![\d-])", cuerpo)]
+        return errata, claves
     return errata, []
 
 
@@ -170,7 +173,10 @@ def clave_proyecto(ley_tipo, ley_numero):
         m = re.search(r"\d{5}", n)
         return ("LEY", m.group(0), False) if m else None
     m = re.search(r"(\d{1,4})-(\d{4})-(\d{4})", n)
-    return ("RL", _rl(*m.groups()), "SENADO" in t or n.endswith("-S")) if m else None
+    if m:
+        return ("RL", _rl(*m.groups()), "SENADO" in t or n.endswith("-S"))
+    m = re.fullmatch(r"\d{5}", n.strip())
+    return ("RL", m.group(0), False) if m else None
 
 
 def documentos_de_leyes(cur):
