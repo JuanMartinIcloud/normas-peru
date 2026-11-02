@@ -117,6 +117,17 @@ def _texto_respuesta(datos: dict) -> str:
     return texto
 
 
+def es_limite_diario(texto: str) -> bool:
+    """True si el "cupo agotado" (HTTP 429) es el limite del dia; False si es el limite por minuto."""
+    return bool(re.search(r"PerDay|per day|daily", texto or "", re.I))
+
+
+def espera_sugerida(texto: str) -> int:
+    """Segundos que Google pide esperar (retryDelay), entre 5 y 65."""
+    m = re.search(r'"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"', texto or "")
+    return max(5, min(65, int(float(m.group(1))) + 2)) if m else 30
+
+
 def _a_json(texto: str):
     texto = texto.strip()
     texto = re.sub(r"^```(?:json)?\s*|\s*```$", "", texto)  # por si viene entre ``` ```
@@ -177,7 +188,17 @@ def generar_json(instrucciones: str, contenido: str, esquema: dict, lista_modelo
                 _registrar(modelo, "error", None)
                 time.sleep(10 * intento)
                 continue
-            _registrar(modelo, "ok" if r.status_code == 200 else ("cupo" if r.status_code == 429 else "error"), r.status_code)
+            if r.status_code == 429:
+                # Google limita por minuto y por dia. Por minuto: se espera lo que Google indica y se reintenta
+                # el mismo modelo. Por dia: ese modelo ya no responde hasta manana, se pasa al siguiente.
+                if es_limite_diario(r.text):
+                    _registrar(modelo, "cupo_dia", 429)
+                    errores.append(f"{modelo}: limite del dia")
+                    break
+                _registrar(modelo, "cupo_minuto", 429)
+                time.sleep(espera_sugerida(r.text))
+                continue
+            _registrar(modelo, "ok" if r.status_code == 200 else "error", r.status_code)
             if r.status_code == 200:
                 try:
                     return _a_json(_texto_respuesta(r.json())), modelo

@@ -166,7 +166,10 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
   let lista = modelos(perfil).filter((m) => !(agotados.get(m) > Date.now()));
   if (!lista.length) lista = modelos(perfil);
   const vueltas = [...lista.map((m) => [m, true]), ...lista.map((m) => [m, false])];
-  for (const [modelo, conEsquema] of vueltas) {
+  const reintentados = new Set();
+  for (let i = 0; i < vueltas.length; i++) {
+    const actual = vueltas[i];
+    const [modelo, conEsquema] = actual;
     if (!conEsquema) {
       if (!hubo400) break;
       delete cuerpo.generationConfig.responseSchema;
@@ -187,7 +190,28 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
       registrar(modelo, "error", null, origen);
       continue; // demora o falla de conexion: siguiente modelo
     }
-    registrar(modelo, r.ok ? "ok" : r.status === 429 ? "cupo" : "error", r.status, origen);
+    if (r.status === 429) {
+      // Limite por dia: ese modelo no responde hasta manana. Limite por minuto: se espera lo que Google
+      // indica y se reintenta el mismo modelo una vez, si queda tiempo; si no, se pasa al siguiente.
+      const texto = await r.text().catch(() => "");
+      if (/PerDay|per day|daily/i.test(texto)) {
+        registrar(modelo, "cupo_dia", 429, origen);
+        agotados.set(modelo, Date.now() + 60 * 60 * 1000);
+        errores.push(`${modelo}: HTTP 429 límite del día`);
+        continue;
+      }
+      registrar(modelo, "cupo_minuto", 429, origen);
+      const m = /"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/.exec(texto);
+      const espera = Math.min(30, Math.max(3, m ? Math.ceil(Number(m[1])) + 1 : 10)) * 1000;
+      if (fin - Date.now() > espera + 8000 && !reintentados.has(modelo)) {
+        reintentados.add(modelo);
+        await esperar(espera);
+        vueltas.splice(vueltas.indexOf(actual) + 1, 0, actual);
+      }
+      errores.push(`${modelo}: HTTP 429 límite por minuto`);
+      continue;
+    }
+    registrar(modelo, r.ok ? "ok" : "error", r.status, origen);
     if (r.ok) {
       try {
         const json = await r.json();
@@ -208,9 +232,8 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
     if ((r.status === 400 || r.status === 401 || r.status === 403) && /API key|API_KEY|credential/i.test(detalle)) {
       throw new ErrorIA("La clave GEMINI_API_KEY de Vercel no es válida.", 503);
     }
-    if (r.status === 429) agotados.set(modelo, Date.now() + 10 * 60 * 1000);
     if (r.status === 400) hubo400 = true;
-    // 404 (modelo no existe), 429 (cupo agotado), 400, 5xx (saturado): probar el siguiente modelo
+    // 404 (modelo no existe), 400, 5xx (saturado): probar el siguiente modelo
   }
   const cupo = errores.some((e) => /HTTP 429/.test(e));
   throw new ErrorIA(
