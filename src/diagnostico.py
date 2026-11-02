@@ -559,7 +559,7 @@ def depurar_leyes():
     c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
     cur = c.cursor()
     cur.execute("""SELECT count(*) FROM normas WHERE translate(lower(tipo), 'áéíóú', 'aeiou')
-                   ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(leyes?|resoluciones? legislativas?)\\y'""")
+                   ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(ley(es)?|resolucion(es)? legislativas?)\\y'""")
     p(f"Normas que la consulta reconoce como leyes o resoluciones legislativas: {cur.fetchone()[0]}")
     for n in ("32513", "011-2025-2026", "003-2021-2022", "019-2021-2022"):
         cur.execute("SELECT fecha, tipo, numero, entidad FROM normas WHERE numero ILIKE %s OR tipo ILIKE %s LIMIT 5", (f"%{n}%", f"%{n}%"))

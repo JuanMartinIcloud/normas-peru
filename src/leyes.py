@@ -190,7 +190,7 @@ def documentos_de_leyes(cur):
     # Leyes, resoluciones legislativas y sus fe de erratas publicadas en El Peruano
     cur.execute("""SELECT id, fecha::text, tipo, coalesce(numero, ''), url_detalle FROM normas
                    WHERE translate(lower(tipo), 'áéíóú', 'aeiou')
-                         ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(leyes?|resoluciones? legislativas?)\\y'
+                         ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(ley(es)?|resolucion(es)? legislativas?)\\y'
                    ORDER BY fecha, id""")
     por_clave = {}
     for nid, fecha, tipo, numero, url in cur.fetchall():
