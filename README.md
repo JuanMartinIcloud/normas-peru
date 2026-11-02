@@ -16,8 +16,11 @@ los guarda en bases de datos de Neon, los resume y analiza con IA (Gemini) y los
 ## Tareas automáticas
 
 El flujo **Programador de tareas** (`programador.yml`) es el único que lanza las tareas diarias, a su hora
-de Lima, y repite una tarea que falló (hasta 6 veces en el día). Corre solo en las horas en que hay tareas:
-cada hora de 10:45 p. m. a 7:45 a. m., y a las 3:05 y 4:05 p. m. Los demás flujos no tienen horario propio.
+de Lima, y repite una tarea que falló (hasta 6 veces en el día). No depende del horario de GitHub (que se
+atrasa horas): queda encendido y revisa cada 10 minutos entre las 9:30 p. m. y las 9:30 a. m. y entre las
+2:45 y las 4:30 p. m.; a las 5 h 30 min se relanza solo. Un horario de respaldo cada 2 horas lo vuelve a
+encender si se detuvo. Una tarea que depende de otra (por ejemplo el monitoreo, del Congreso) espera a que
+esa termine ese día. Los demás flujos no tienen horario propio.
 
 | Hora (Lima) | Flujo | Qué hace |
 |---|---|---|
@@ -30,6 +33,8 @@ cada hora de 10:45 p. m. a 7:45 a. m., y a las 3:05 y 4:05 p. m. Los demás fluj
 | 05:00 | `busquedas.yml` | Búsquedas guardadas que tocan ese día |
 | 05:30 | `ocr.yml` | Lectura de documentos escaneados, si hay pendientes |
 | 06:00 | `vigilar.yml` | Alarma de consumo de Neon (espacio, cómputo y transferencia) |
+| 06:20 | `clasificar.yml` | Rubro con IA de las normas que las reglas no pudieron clasificar (hasta 300 consultas al día) |
+| 07:00 | `control.yml` | Control de calidad del día (ver «Control de calidad») |
 | 15:00 | `recalificar.yml` | Recalificación pendiente del monitoreo, si hay |
 | lunes 06:10 | `vocabulario.yml` | Vocabulario del corrector de búsquedas |
 
@@ -37,6 +42,35 @@ Otros flujos:
 
 - **Cupos de Neon** (`cupos.yml`, 4 veces al día: 10 p. m., 2 a. m., 5 a. m. y 1 p. m.): mide con la API de
   Neon cuántos datos salieron de cada base en el mes. Ver «Límites de Neon».
+
+## Control de calidad
+
+Cada mañana (`control.yml`, `src/control.py`) se comprueba y se guarda en la tabla `control_calidad`; se ve
+en la web en *Monitoreo → Control de calidad*:
+
+- Que cada tarea de la noche corrió, terminó bien y empezó cerca de su hora.
+- Que las normas de ayer y anteayer son las mismas que publica El Peruano.
+- Que los proyectos de ley hasta ayer son los mismos del portal del Congreso (los que el Congreso publica
+  tarde con fecha anterior se agregan en ese momento).
+- Que todas las leyes están enlazadas a su publicación en El Peruano (salvo la Ley 31632, que no figura).
+- Que los análisis del reporte están completos y el mes en curso está revisado hasta ayer.
+- Que existe el resumen de ayer y el texto completo de las normas de la última semana.
+- Datos: clasificación pendiente, uso de la IA y transferencia de Neon.
+
+Si algo falla, la ejecución termina en error (GitHub avisa por correo) y la web lo muestra en rojo.
+
+## Clasificación
+
+Las normas se clasifican por sector (entidad que la emite) y rubro (tema) con reglas (`src/classifier.py`).
+Lo que las reglas no pueden clasificar lo clasifica la IA cada mañana (`clasificar.yml`, modelos Lite).
+`reclasificar.yml` vuelve a aplicar las reglas a todo el archivo (modo `simular` o `aplicar`) sin borrar
+lo que clasificó la IA.
+
+## IA
+
+Las consultas de los usuarios en la web usan los modelos Flash; las tareas automáticas, los Lite. Cada
+consulta queda anotada en la tabla `uso_ia`. Si Google dice que se acabó el cupo del minuto, se espera y se
+reintenta; si se acabó el del día, se pasa al siguiente modelo.
 
 ## Monitoreo a pedido
 
