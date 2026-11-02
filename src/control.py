@@ -102,18 +102,26 @@ def main():
         import congreso
         nuestros = {(str(a), b): n for a, b, n in
                     (cur.execute("SELECT periodo, camara, count(*) FROM proyectos_ley GROUP BY 1, 2") or cur.fetchall())}
+        # Lo presentado hoy no cuenta: el sistema baja los proyectos de madrugada y el portal suma los del dia.
+        cur.execute("SELECT periodo, camara, count(*) FROM proyectos_ley WHERE fecha_presentacion >= %s GROUP BY 1, 2", (hoy,))
+        nuestros_hoy = {(str(a), b): n for a, b, n in cur.fetchall()}
         for per in congreso.periodos():
             for cam in congreso.CAMARAS:
                 datos = congreso._con_reintentos(congreso._s.post, f"{congreso.API}/proyecto-ley/lista-con-filtro",
                                                  json=congreso._cuerpo(per["perParId"], cam, 0))["data"]
-                oficial = datos.get("rowsTotal") or 0
-                propio = nuestros.get((str(per["perParId"]), cam), 0)
+                lote = datos.get("proyectos") or []
+                fechas = [(x.get("fecPresentacion") or "")[:10] for x in lote]
+                print(f"  {per.get('desPerParAbrev')} {cam}: primeras fechas del portal {fechas[:5]}")
+                oficial_hoy = sum(1 for f in fechas if f >= hoy.isoformat())
+                oficial = (datos.get("rowsTotal") or 0) - oficial_hoy
+                clave = (str(per["perParId"]), cam)
+                propio = nuestros.get(clave, 0) - nuestros_hoy.get(clave, 0)
                 if not oficial and not propio:
                     continue
                 if propio < oficial:
-                    anotar("FALLA", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: sistema {propio}, Congreso {oficial}")
+                    anotar("FALLA", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: sistema {propio}, Congreso {oficial} (hasta ayer)")
                 else:
-                    anotar("OK", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: {propio}, igual que el Congreso")
+                    anotar("OK", "Proyectos de ley", f"{per.get('desPerParAbrev')} {cam}: {propio} hasta ayer, igual que el Congreso")
     except Exception as e:  # noqa: BLE001
         c.rollback()
         anotar("FALLA", "Proyectos de ley", f"no se pudo comparar con el Congreso ({type(e).__name__})")
