@@ -383,9 +383,76 @@ def auditoria():
     c.close()
 
 
+def verificar_dias():
+    """Vuelve a consultar El Peruano los dias vacios o con muy pocas normas y compara (solo lectura)."""
+    import time
+    import elperuano
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""WITH d AS (SELECT fecha, count(*) n FROM normas GROUP BY 1),
+                        m AS (SELECT extract(year FROM fecha) a, percentile_cont(0.5) WITHIN GROUP (ORDER BY n) med FROM d GROUP BY 1)
+                   SELECT d.fecha, d.n FROM d JOIN m ON m.a = extract(year FROM d.fecha)
+                   WHERE d.n < m.med * 0.2 AND extract(dow FROM d.fecha) BETWEEN 1 AND 5
+                   UNION SELECT fecha, 0 FROM descargas WHERE estado = 'vacio' ORDER BY 1""")
+    dias = cur.fetchall()
+    c.close()
+    iguales, distintos, fallas = 0, [], []
+    for fecha, guardadas in dias:
+        try:
+            hoy_ep = len(elperuano.descargar_dia(fecha))
+        except Exception as e:  # noqa: BLE001
+            fallas.append(f"{fecha} ({type(e).__name__})")
+            continue
+        if hoy_ep == guardadas:
+            iguales += 1
+        else:
+            distintos.append(f"{fecha}: sistema {guardadas}, El Peruano hoy {hoy_ep}")
+        time.sleep(1)
+    p(f"Dias revisados de nuevo en El Peruano: {len(dias)}; iguales a lo guardado: {iguales}; distintos: {len(distintos)}; sin respuesta: {len(fallas)}")
+    for x in distintos:
+        p("  " + x)
+    if fallas:
+        p("  Sin respuesta: " + ", ".join(fallas))
+
+
+def detalle():
+    """Detalle de las observaciones de la auditoria (solo lectura)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""SELECT fecha, tipo, numero, entidad, count(*) FROM normas WHERE coalesce(numero, '') <> ''
+                   GROUP BY fecha, lower(tipo), tipo, numero, entidad HAVING count(*) > 1 ORDER BY 1 LIMIT 40""")
+    p("Normas repetidas: " + "; ".join(f"{f} {t} {n} x{k}" for f, t, n, e, k in cur.fetchall()))
+    cur.execute("""SELECT n1.fecha, n1.tipo, n1.numero, n1.url_detalle = n2.url_detalle, n1.sumilla = n2.sumilla
+                   FROM normas n1 JOIN normas n2 ON n1.fecha = n2.fecha AND lower(n1.tipo) = lower(n2.tipo)
+                    AND n1.numero = n2.numero AND n1.entidad = n2.entidad AND n1.id < n2.id
+                   WHERE coalesce(n1.numero, '') <> '' LIMIT 40""")
+    filas = cur.fetchall()
+    p(f"De las repetidas: mismo enlace {sum(1 for x in filas if x[3])}, misma sumilla {sum(1 for x in filas if x[4])}, de {len(filas)}")
+    cur.execute("SELECT id, fecha, entidad, left(sumilla, 80) FROM normas WHERE coalesce(tipo, '') = ''")
+    p("Norma sin tipo: " + "; ".join(str(r) for r in cur.fetchall()))
+    cur.execute("SELECT numero, estado, ley_numero FROM proyectos_ley WHERE estado ILIKE 'publicad%%' AND ley_numero IS NULL")
+    p("Publicada sin numero de ley: " + "; ".join(str(r) for r in cur.fetchall()))
+    cur.execute("""SELECT extract(year FROM ley_fecha)::int, count(*) FROM proyectos_ley WHERE ley_numero IS NOT NULL
+                   AND ley_docs->'ley' IS NULL GROUP BY 1 ORDER BY 1""")
+    p("Leyes no halladas en El Peruano, por año de publicacion: " + ", ".join(f"{a}: {n}" for a, n in cur.fetchall()))
+    cur.execute("""SELECT ley_tipo, count(*) FROM proyectos_ley WHERE ley_numero IS NOT NULL AND ley_docs->'ley' IS NULL
+                   GROUP BY 1 ORDER BY 2 DESC""")
+    p("Leyes no halladas, por tipo: " + ", ".join(f"{a}: {n}" for a, n in cur.fetchall()))
+    cur.execute("""SELECT p.ley_numero, p.ley_fecha, (SELECT count(*) FROM normas n WHERE n.numero = p.ley_numero) FROM proyectos_ley p
+                   WHERE p.ley_numero IS NOT NULL AND p.ley_docs->'ley' IS NULL ORDER BY p.ley_fecha DESC NULLS LAST LIMIT 15""")
+    p("Ejemplos (numero, fecha, normas con ese numero): " + "; ".join(str(r) for r in cur.fetchall()))
+    cur.execute("SELECT a.tipo, a.ref_id, a.sector, a.modelo FROM analisis a WHERE a.relevante AND coalesce(cardinality(a.comites), 0) = 0")
+    p("En el reporte sin comites: " + "; ".join(str(r) for r in cur.fetchall()))
+    cur.execute("""SELECT rubro, sector, count(*) FROM normas WHERE rubro = 'Sin clasificar' OR sector = 'Otros'
+                   GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 6""")
+    p("Sin clasificar: " + "; ".join(str(r) for r in cur.fetchall()))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
-    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria}[modo]()
+    {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
+     "verificar_dias": verificar_dias, "detalle": detalle}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
