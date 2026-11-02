@@ -157,6 +157,11 @@ def claves_norma(tipo, numero):
     cuerpo = re.sub(r"^\W*FE DE ERRATAS?\s*(DE\s+(LA\s+)?)?", "", t)
     if re.match(r"^\W*LEY(ES)?\b", cuerpo):
         return errata, [("LEY", n, False) for n in re.findall(r"\b(\d{5})\b", cuerpo)]
+    # A veces El Peruano omite «Legislativa»: «Resolucion 020-2022-2023-CR» (sin la -P de las resoluciones
+    # de la Presidencia del Congreso, que son «...-P-CR» o «...-P/CR»)
+    m = re.match(r"^\W*RESOLUCION\s+(?:N\S*\s*)?(\d{1,4})-(\d{4})-(\d{4})-CR\b", cuerpo)
+    if m:
+        return errata, [("RL", _rl(*m.groups()), False)]
     if re.match(r"^\W*RESOLUCION(ES)? LEGISLATIVAS?\b", cuerpo):
         senado = "SENADO" in cuerpo or bool(re.search(r"\d{4}-\d{4}-S\b", cuerpo))
         claves = [("RL", _rl(*m), senado) for m in re.findall(r"\b(\d{1,4})-(\d{4})-(\d{4})\b", cuerpo)]
@@ -191,6 +196,8 @@ def documentos_de_leyes(cur):
     cur.execute("""SELECT id, fecha::text, tipo, coalesce(numero, ''), url_detalle FROM normas
                    WHERE translate(lower(tipo), 'áéíóú', 'aeiou')
                          ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(ley(es)?|resolucion(es)? legislativas?)\\y'
+                      OR (entidad ILIKE 'CONGRESO%%' AND translate(lower(tipo || ' ' || coalesce(numero, '')), 'áéíóú', 'aeiou')
+                          ~ '^\\W*resolucion\\s+\\d{1,4}-\\d{4}-\\d{4}-cr\\y')
                    ORDER BY fecha, id""")
     por_clave = {}
     for nid, fecha, tipo, numero, url in cur.fetchall():
