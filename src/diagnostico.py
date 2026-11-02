@@ -553,12 +553,31 @@ def clasificacion():
     c.close()
 
 
+def depurar_leyes():
+    """Por que no se enlazan algunas leyes (solo lectura)."""
+    import leyes
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""SELECT count(*) FROM normas WHERE translate(lower(tipo), 'áéíóú', 'aeiou')
+                   ~ '^\\W*(fe de erratas?\\s+(de\\s+(la\\s+)?)?)?(leyes?|resoluciones? legislativas?)\\y'""")
+    p(f"Normas que la consulta reconoce como leyes o resoluciones legislativas: {cur.fetchone()[0]}")
+    for n in ("32513", "011-2025-2026", "003-2021-2022", "019-2021-2022"):
+        cur.execute("SELECT fecha, tipo, numero, entidad FROM normas WHERE numero ILIKE %s OR tipo ILIKE %s LIMIT 5", (f"%{n}%", f"%{n}%"))
+        filas = cur.fetchall()
+        p(f"{n}: " + ("; ".join(f"{f} | {t} | {u} | {e} -> {leyes.claves_norma(t, u)}" for f, t, u, e in filas) or "no hay normas con ese numero"))
+    cur.execute("""SELECT ley_tipo, ley_numero, ley_docs IS NULL FROM proyectos_ley WHERE ley_numero IS NOT NULL AND ley_docs->'ley' IS NULL LIMIT 8""")
+    p("Proyectos sin enlace: " + "; ".join(f"{t} {n} -> {leyes.clave_proyecto(t, n)}" for t, n, _ in cur.fetchall()))
+    cur.execute("SELECT tipo, count(*) FROM normas WHERE entidad ILIKE 'CONGRESO%%' GROUP BY 1 ORDER BY 2 DESC LIMIT 12")
+    p("Tipos de norma del Congreso: " + "; ".join(f"{t} {n}" for t, n in cur.fetchall()))
+    c.close()
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
-     "clasificacion": clasificacion}[modo]()
+     "clasificacion": clasificacion, "depurar_leyes": depurar_leyes}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
