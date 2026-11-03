@@ -27,8 +27,8 @@ esa termine ese día. Los demás flujos no tienen horario propio.
 | 22:40 | `diario.yml` | Normas del día (y del anterior, por ediciones extraordinarias) |
 | 23:30 | `historico.yml` | Días pendientes del archivo histórico de El Peruano |
 | 01:20 | `congreso.yml` | Proyectos de ley, su seguimiento y las leyes publicadas |
-| 02:20 | `monitoreo.yml` | Análisis con IA del mes en curso, de lo pedido desde la web y de un mes anterior (hasta 2015) |
 | 03:20 | `resumen.yml` | Resumen diario con IA |
+| 03:40 | `monitoreo.yml` | Análisis con IA (después del resumen, que recoge las ediciones extraordinarias tardías) del mes en curso, de lo pedido desde la web y de un mes anterior (hasta 2015) |
 | 04:00 | `indexar.yml` | Texto completo de lo nuevo (solo lo que aún no está guardado) |
 | 05:00 | `busquedas.yml` | Búsquedas guardadas que tocan ese día |
 | 05:30 | `ocr.yml` | Lectura de documentos escaneados, si hay pendientes |

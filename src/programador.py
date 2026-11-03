@@ -44,8 +44,10 @@ TAREAS = [
     ("historico.yml", 23, 30, {}, None, None),
     ("congreso.yml", 1, 20, {}, None, None),
     ("cupos.yml", 2, 0, {}, None, None),
-    ("monitoreo.yml", 2, 20, {"modo": "diario"}, "congreso.yml", None),
     ("resumen.yml", 3, 20, {}, "diario.yml", None),
+    # Despues del resumen: este vuelve a bajar El Peruano y recoge las ediciones extraordinarias tardias,
+    # que asi tambien se analizan esa noche. Ademas, a esa hora ya se renovo el cupo diario de la IA.
+    ("monitoreo.yml", 3, 40, {"modo": "diario"}, ("resumen.yml", "congreso.yml"), None),
     ("indexar.yml", 4, 0, {}, "resumen.yml", None),
     ("busquedas.yml", 5, 0, {}, "monitoreo.yml", None),
     ("cupos.yml", 5, 0, {}, None, None),
@@ -137,13 +139,20 @@ def revisar():
             continue   # nunca corrio y ya paso demasiado: le tocara en su proxima hora
         if depende:
             # Espera a que la tarea de la que depende haya terminado hoy (como maximo 2 horas)
-            if depende in lanzados:
-                continue
-            dh, dm = HORA[depende]
-            previas = corridas(depende, hora_de_hoy(dh, dm)) or []
-            terminada = any(x["status"] == "completed" for x in previas)
-            en_curso = any(x["status"] != "completed" for x in previas)
-            if (en_curso or not terminada) and ahora() - desde < timedelta(hours=2):
+            # (puede depender de varias: espera a todas)
+            esperar = False
+            for dep in (depende if isinstance(depende, tuple) else (depende,)):
+                if dep in lanzados:
+                    esperar = True
+                    break
+                dh, dm = HORA[dep]
+                previas = corridas(dep, hora_de_hoy(dh, dm)) or []
+                terminada = any(x["status"] == "completed" for x in previas)
+                en_curso = any(x["status"] != "completed" for x in previas)
+                if (en_curso or not terminada) and ahora() - desde < timedelta(hours=2):
+                    esperar = True
+                    break
+            if esperar:
                 continue
         if archivo in lanzados:
             continue
