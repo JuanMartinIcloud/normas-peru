@@ -165,6 +165,11 @@ def main():
                              AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id)""", (inicio_mes, ayer))
         (faltan_p,) = uno("""SELECT count(*) FROM proyectos_ley p WHERE p.fecha_presentacion BETWEEN %s AND %s
                              AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'P' AND a.ref_id = p.id)""", (inicio_mes, ayer))
+        if faltan_n:
+            cur.execute("""SELECT n.id, n.fecha, n.tipo, n.entidad, to_char(n.creado_en AT TIME ZONE 'America/Lima', 'DD/MM HH24:MI')
+                           FROM normas n WHERE n.fecha BETWEEN %s AND %s
+                           AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.tipo = 'N' AND a.ref_id = n.id) LIMIT 10""", (inicio_mes, ayer))
+            print("  normas sin revisar (id, fecha, tipo, entidad, guardada el):", cur.fetchall())
         if inicio_mes <= ayer:
             anotar("FALLA" if faltan_n or faltan_p else "OK", "Monitoreo del mes en curso",
                    f"sin revisar hasta ayer: {faltan_n} normas y {faltan_p} proyectos" if faltan_n or faltan_p else "revisado hasta ayer")
