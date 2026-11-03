@@ -57,7 +57,7 @@ en la web en *Monitoreo → Control de calidad*:
 - Que existe el resumen de ayer y el texto completo de las normas de la última semana.
 - Datos: clasificación pendiente, uso de la IA y transferencia de Neon.
 
-Si algo falla, la ejecución termina en error (GitHub avisa por correo) y la web lo muestra en rojo.
+Si algo falla, la web lo muestra en rojo con el detalle (la ejecución en GitHub queda marcada con una advertencia, pero no se repite sola).
 
 ## Clasificación
 
