@@ -25,7 +25,6 @@ LITE = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-lite-lat
 # Reserva: se prueba al final si los anteriores agotaron su cupo del dia (no es Flash)
 RESERVA = ["gemma-4-31b-it"]
 TIMEOUT = 180
-REINTENTOS = 4
 
 
 class ErrorGemini(RuntimeError):
@@ -150,9 +149,21 @@ def _para_gemma(cuerpo: dict) -> dict:
             "generationConfig": {"temperature": 0.2, "maxOutputTokens": cuerpo["generationConfig"]["maxOutputTokens"]}}
 
 
+# Estado de los modelos durante la tarea (para no perder tiempo en los que no responden):
+_agotados = set()   # llegaron a su limite del dia: no se vuelven a probar en esta tarea
+_ocupado = {}       # modelo -> hora (time.time) hasta la que se salta (saturado o limite por minuto)
+SALTO_SATURADO = 120   # segundos que se salta un modelo que respondio "saturado" (5xx) o no conecto
+TIEMPO_MAXIMO = 600    # segundos como maximo por consulta
+
+
 def generar_json(instrucciones: str, contenido: str, esquema: dict, lista_modelos: list[str] | None = None,
                 max_tokens: int = 16384) -> tuple[dict, str]:
-    """Pide a Gemini una respuesta JSON que siga 'esquema'. Devuelve (datos, modelo_usado)."""
+    """Pide a Gemini una respuesta JSON que siga 'esquema'. Devuelve (datos, modelo_usado).
+
+    Si un modelo esta saturado o llego a su limite por minuto, se pasa AL INSTANTE al siguiente de la lista
+    (y se lo salta un rato); solo se espera cuando ninguno esta disponible. Asi se usa siempre el mejor modelo
+    que este respondiendo en ese momento.
+    """
     clave = _clave()
     cuerpo = {
         "systemInstruction": {"parts": [{"text": instrucciones}]},
@@ -164,58 +175,76 @@ def generar_json(instrucciones: str, contenido: str, esquema: dict, lista_modelo
             "responseSchema": esquema,
         },
     }
+    usar = lista_modelos or modelos()
     errores = []
     hubo_400 = False
-    # Primera vuelta con el esquema estricto; si algun modelo lo rechaza (HTTP 400),
-    # segunda vuelta sin esquema (las instrucciones ya describen el formato).
-    usar = lista_modelos or modelos()
-    intentos = [(m, True) for m in usar] + [(m, False) for m in usar]
-    for modelo, con_esquema in intentos:
-        if not con_esquema:
-            if not hubo_400:
+    con_esquema = True
+    descartados = set()   # en esta consulta: 400, 404 o respuestas invalidas repetidas
+    invalidas = {}
+    fin = time.time() + TIEMPO_MAXIMO
+    while True:
+        vivos = [m for m in usar if m not in _agotados and m not in descartados]
+        if not vivos:
+            if con_esquema and hubo_400:
+                # Algun modelo rechazo el esquema estricto: otra vuelta sin esquema (las instrucciones ya
+                # describen el formato)
+                con_esquema = False
+                cuerpo["generationConfig"].pop("responseSchema", None)
+                descartados = set()
+                continue
+            break
+        ahora = time.time()
+        listos = [m for m in vivos if _ocupado.get(m, 0) <= ahora]
+        if not listos:
+            espera = min(_ocupado[m] for m in vivos) - ahora
+            if ahora + espera > fin:
                 break
-            cuerpo["generationConfig"].pop("responseSchema", None)
-        for intento in range(1, REINTENTOS + 1):
-            try:
-                r = requests.post(
-                    f"{API}/{modelo}:generateContent",
-                    headers={"x-goog-api-key": clave, "Content-Type": "application/json"},
-                    json=_para_gemma(cuerpo) if modelo.startswith("gemma") else cuerpo,
-                    timeout=TIMEOUT,
-                )
-            except requests.RequestException as e:
-                errores.append(f"{modelo}: {e}")
-                _registrar(modelo, "error", None)
-                time.sleep(10 * intento)
-                continue
-            if r.status_code == 429:
-                # Google limita por minuto y por dia. Por minuto: se espera lo que Google indica y se reintenta
-                # el mismo modelo. Por dia: ese modelo ya no responde hasta manana, se pasa al siguiente.
-                if es_limite_diario(r.text):
-                    _registrar(modelo, "cupo_dia", 429)
-                    errores.append(f"{modelo}: limite del dia")
-                    break
+            time.sleep(max(1.0, min(espera, 65)))
+            continue
+        modelo = listos[0]
+        try:
+            r = requests.post(
+                f"{API}/{modelo}:generateContent",
+                headers={"x-goog-api-key": clave, "Content-Type": "application/json"},
+                json=_para_gemma(cuerpo) if modelo.startswith("gemma") else cuerpo,
+                timeout=TIMEOUT,
+            )
+        except requests.RequestException as e:
+            errores.append(f"{modelo}: {e}")
+            _registrar(modelo, "error", None)
+            _ocupado[modelo] = time.time() + SALTO_SATURADO
+            continue
+        if r.status_code == 429:
+            # Por dia: ese modelo ya no responde hasta manana. Por minuto: se lo salta lo que Google indica.
+            if es_limite_diario(r.text):
+                _registrar(modelo, "cupo_dia", 429)
+                errores.append(f"{modelo}: limite del dia")
+                _agotados.add(modelo)
+            else:
                 _registrar(modelo, "cupo_minuto", 429)
-                time.sleep(espera_sugerida(r.text))
+                errores.append(f"{modelo}: limite por minuto")
+                _ocupado[modelo] = time.time() + espera_sugerida(r.text)
+            continue
+        _registrar(modelo, "ok" if r.status_code == 200 else "error", r.status_code)
+        if r.status_code == 200:
+            try:
+                return _a_json(_texto_respuesta(r.json())), modelo
+            except (ValueError, ErrorGemini) as e:
+                errores.append(f"{modelo}: {e}")
+                invalidas[modelo] = invalidas.get(modelo, 0) + 1
+                if invalidas[modelo] >= 2:
+                    descartados.add(modelo)
                 continue
-            _registrar(modelo, "ok" if r.status_code == 200 else "error", r.status_code)
-            if r.status_code == 200:
-                try:
-                    return _a_json(_texto_respuesta(r.json())), modelo
-                except (ValueError, ErrorGemini) as e:
-                    errores.append(f"{modelo}: {e}")
-                    time.sleep(5)
-                    continue
-            detalle = r.text[:300].replace("\n", " ")
-            errores.append(f"{modelo}: HTTP {r.status_code} {detalle}")
-            if r.status_code in (500, 502, 503, 504):
-                time.sleep(15 * intento)   # servidor saturado: esperar y reintentar
-                continue
-            if r.status_code in (401, 403) and "API key" in r.text:
-                raise ErrorGemini(f"La clave GEMINI_API_KEY no es valida: {detalle}")
-            if r.status_code == 400 and "API key" in r.text:
-                raise ErrorGemini(f"La clave GEMINI_API_KEY no es valida: {detalle}")
-            if r.status_code == 400:
-                hubo_400 = True
-            break  # 400, 404 (modelo no existe), 429 (cupo agotado): pasar al siguiente modelo
+        detalle = r.text[:300].replace("\n", " ")
+        errores.append(f"{modelo}: HTTP {r.status_code} {detalle}")
+        if r.status_code in (500, 502, 503, 504):
+            _ocupado[modelo] = time.time() + SALTO_SATURADO   # saturado: el siguiente modelo, ya
+            continue
+        if r.status_code in (401, 403) and "API key" in r.text:
+            raise ErrorGemini(f"La clave GEMINI_API_KEY no es valida: {detalle}")
+        if r.status_code == 400 and "API key" in r.text:
+            raise ErrorGemini(f"La clave GEMINI_API_KEY no es valida: {detalle}")
+        if r.status_code == 400:
+            hubo_400 = True
+        descartados.add(modelo)   # 400 o 404 (modelo no existe): el siguiente
     raise ErrorGemini("Ningun modelo respondio. " + " | ".join(errores[-6:]))

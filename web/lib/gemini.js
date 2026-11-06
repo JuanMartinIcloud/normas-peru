@@ -139,6 +139,10 @@ export async function partePDF(buffer, nombre) {
 
 // Modelos que respondieron "cupo agotado" (429): se saltan por 10 minutos para no perder tiempo en ellos
 const agotados = new Map();
+// Modelos saturados (5xx) o que no respondieron a tiempo: se saltan 2 minutos, para que la siguiente consulta
+// vaya directo a un modelo que si esta respondiendo
+const ocupados = new Map();
+const SALTO_SATURADO = 2 * 60 * 1000;
 
 /**
  * Pide a Gemini una respuesta JSON.
@@ -165,6 +169,8 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
   let hubo400 = false;
   let lista = modelos(perfil).filter((m) => !(agotados.get(m) > Date.now()));
   if (!lista.length) lista = modelos(perfil);
+  // Los saturados van al final (no se descartan: si los demas fallan, igual se prueban)
+  lista = [...lista.filter((m) => !(ocupados.get(m) > Date.now())), ...lista.filter((m) => ocupados.get(m) > Date.now())];
   const vueltas = [...lista.map((m) => [m, true]), ...lista.map((m) => [m, false])];
   const reintentados = new Set();
   for (let i = 0; i < vueltas.length; i++) {
@@ -188,6 +194,7 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
     } catch (e) {
       errores.push(`${modelo}: ${e.name === "TimeoutError" ? "no respondió a tiempo" : e.message}`);
       registrar(modelo, "error", null, origen);
+      ocupados.set(modelo, Date.now() + SALTO_SATURADO);
       continue; // demora o falla de conexion: siguiente modelo
     }
     if (r.status === 429) {
@@ -233,6 +240,7 @@ export async function generarJSON({ instrucciones, partes, esquema, maxTokens = 
       throw new ErrorIA("La clave GEMINI_API_KEY de Vercel no es válida.", 503);
     }
     if (r.status === 400) hubo400 = true;
+    if (r.status >= 500) ocupados.set(modelo, Date.now() + SALTO_SATURADO);
     // 404 (modelo no existe), 400, 5xx (saturado): probar el siguiente modelo
   }
   const cupo = errores.some((e) => /HTTP 429/.test(e));
