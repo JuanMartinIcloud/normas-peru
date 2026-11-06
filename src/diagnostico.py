@@ -597,13 +597,24 @@ def muestra_ia():
         p(f"[{r}] {e}: {s_}")
 
 
+def uso_ia_detalle():
+    """Consultas a la IA de los ultimos 3 dias por tarea, modelo y resultado (solo lectura)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("""SELECT to_char(creado_en AT TIME ZONE 'America/Lima', 'MM-DD HH24'), coalesce(origen, '?'), modelo,
+                          resultado, coalesce(http, 0), count(*)
+                   FROM uso_ia WHERE creado_en > now() - interval '3 days' GROUP BY 1, 2, 3, 4, 5 ORDER BY 1, 2, 3""")
+    for f in cur.fetchall():
+        p("USO " + " | ".join(str(x) for x in f))
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
      "clasificacion": clasificacion, "depurar_leyes": depurar_leyes,
-     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia}[modo]()
+     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
