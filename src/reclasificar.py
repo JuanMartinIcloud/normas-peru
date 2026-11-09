@@ -12,6 +12,7 @@ import psycopg2
 from psycopg2.extras import execute_values
 
 import bases
+import db
 from classifier import clasificar_rubro, clasificar_sector
 
 
@@ -33,6 +34,7 @@ def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "simular"
     if modo not in ("simular", "aplicar"):
         raise SystemExit("Modo: simular | aplicar")
+    db.conectar().close()   # aplica las etapas pendientes del esquema
     c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
     cambios_n, cambios_p = [], []
     antes_sector, antes_rubro, despues_sector, despues_rubro = Counter(), Counter(), Counter(), Counter()
@@ -54,9 +56,11 @@ def main():
                 if len(ejemplos) < 4000:
                     ejemplos.append((entidad, (sumilla or "")[:90], sector, s, rubro, r))
     with c.cursor() as cur:
-        cur.execute("SELECT id, titulo, rubro FROM proyectos_ley")
-        for pid, titulo, rubro in cur.fetchall():
+        cur.execute("SELECT id, titulo, rubro, rubro_ia FROM proyectos_ley")
+        for pid, titulo, rubro, rubro_ia in cur.fetchall():
             r = clasificar_rubro(titulo or "")
+            if r == "Sin clasificar" and rubro_ia:
+                r = rubro   # el rubro que puso la IA se conserva si las reglas no encuentran otro
             if r != rubro:
                 cambios_p.append((pid, r))
     c.rollback()

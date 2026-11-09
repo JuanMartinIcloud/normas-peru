@@ -42,6 +42,8 @@ _ETAPAS = [
                                      WHERE table_schema = 'public' AND table_name = 'normas' AND column_name = 'rubro_ia')"""),
     ("-- Etapa 14:", """SELECT EXISTS (SELECT 1 FROM information_schema.tables
                                      WHERE table_schema = 'public' AND table_name = 'control_calidad')"""),
+    ("-- Etapa 15:", """SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                                     WHERE table_schema = 'public' AND table_name = 'proyectos_ley' AND column_name = 'rubro_ia')"""),
 ]
 
 
@@ -153,7 +155,9 @@ def upsert_proyectos(conn, filas: list[dict]) -> int:
                         ELSE proyectos_ley.estado_cambiado_en END,
                     estado = COALESCE(EXCLUDED.estado, proyectos_ley.estado),
                     titulo = EXCLUDED.titulo, autor = EXCLUDED.autor,
-                    proponente = EXCLUDED.proponente, rubro = EXCLUDED.rubro,
+                    proponente = EXCLUDED.proponente,
+                    -- el rubro que puso la IA se conserva si las reglas no encuentran otro
+                    rubro = CASE WHEN proyectos_ley.rubro_ia AND EXCLUDED.rubro = 'Sin clasificar' THEN proyectos_ley.rubro ELSE EXCLUDED.rubro END,
                     url = COALESCE(EXCLUDED.url, proyectos_ley.url),
                     camara_actual = COALESCE(EXCLUDED.camara_actual, proyectos_ley.camara_actual),
                     fecha_presentacion = EXCLUDED.fecha_presentacion, actualizado = now()
@@ -163,7 +167,8 @@ def upsert_proyectos(conn, filas: list[dict]) -> int:
                        proyectos_ley.fecha_presentacion)
                       IS DISTINCT FROM
                       (COALESCE(EXCLUDED.estado, proyectos_ley.estado), EXCLUDED.titulo, EXCLUDED.autor,
-                       EXCLUDED.proponente, EXCLUDED.rubro, COALESCE(EXCLUDED.url, proyectos_ley.url),
+                       EXCLUDED.proponente, CASE WHEN proyectos_ley.rubro_ia AND EXCLUDED.rubro = 'Sin clasificar' THEN proyectos_ley.rubro ELSE EXCLUDED.rubro END,
+                       COALESCE(EXCLUDED.url, proyectos_ley.url),
                        COALESCE(EXCLUDED.camara_actual, proyectos_ley.camara_actual),
                        EXCLUDED.fecha_presentacion)""",
             valores,

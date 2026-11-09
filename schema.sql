@@ -250,3 +250,7 @@ CREATE TABLE IF NOT EXISTS control_calidad (
     resultado JSONB NOT NULL,
     creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Etapa 15: proyectos de ley cuyo rubro ya reviso la IA (src/clasificar_ia.py): no se le vuelve a preguntar y
+-- la descarga diaria no le borra el rubro que puso la IA.
+ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS rubro_ia BOOLEAN NOT NULL DEFAULT FALSE;

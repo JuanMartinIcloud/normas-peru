@@ -214,7 +214,10 @@ def main():
     try:
         (otros, sin_rubro, pend_ia) = uno("""SELECT count(*) FILTER (WHERE sector = 'Otros'), count(*) FILTER (WHERE rubro = 'Sin clasificar'),
                                              count(*) FILTER (WHERE rubro = 'Sin clasificar' AND NOT rubro_ia) FROM normas""")
-        anotar("INFO", "Clasificacion", f"sector 'Otros': {otros}; sin rubro: {sin_rubro} (por revisar con IA: {pend_ia})")
+        (p_sin, p_pend) = uno("""SELECT count(*) FILTER (WHERE rubro = 'Sin clasificar'),
+                                        count(*) FILTER (WHERE rubro = 'Sin clasificar' AND NOT rubro_ia) FROM proyectos_ley""")
+        anotar("INFO", "Clasificacion", f"normas: sector 'Otros': {otros}; sin rubro: {sin_rubro} (por revisar con IA: "
+               f"{pend_ia}). Proyectos sin rubro: {p_sin} (por revisar con IA: {p_pend})")
     except Exception as e:  # noqa: BLE001  (una comprobacion que falla no detiene las demas)
         c.rollback()
         anotar("FALLA", "Clasificacion", f"no se pudo comprobar ({type(e).__name__}: {str(e)[:120]})")
