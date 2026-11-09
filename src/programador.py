@@ -67,7 +67,7 @@ DURACION_MAXIMA = 5 * 3600 + 30 * 60   # luego se relanza (GitHub corta a las 6 
 MAX_INTENTOS = 6            # por dia y por tarea
 # La alarma de consumo "falla" a proposito cuando una base se acerca a su limite: no se repite (cada
 # repeticion volveria a consultar todas las bases para dar el mismo aviso)
-SIN_REPETIR = {"vigilar.yml"}
+SIN_REPETIR = {"vigilar.yml", "control.yml"}   # el control informa; repetirlo no arregla nada
 ESPERA_REINTENTO = timedelta(minutes=30)   # una falla se repite en la revision siguiente (cada hora)
 
 

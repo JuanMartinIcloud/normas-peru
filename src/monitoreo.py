@@ -642,6 +642,26 @@ def rango(desde, hasta, reloj, solo_normas=False):
     return ok1 and ok2
 
 
+INCOMPLETO = """relevante AND NOT excluido AND (coalesce(resumen, '') = '' OR coalesce(cardinality(comites), 0) = 0
+                OR calificacion IS NULL OR puntaje IS NULL)"""
+
+
+def reparar_incompletos(reloj):
+    """Documentos del reporte con el analisis incompleto (sin resumen, comites, calificacion o puntaje): se
+    vuelven a analizar completos. Es la misma condicion que revisa el control de calidad."""
+    filas = consultar(f"SELECT tipo, ref_id, fecha FROM analisis WHERE {INCOMPLETO}")
+    if not filas:
+        return
+    print(f"Documentos del reporte con el analisis incompleto: {len(filas)} -> {filas[:20]}")
+    inicio, final = date(2000, 1, 1), date(2100, 1, 1)
+    for tipo, funcion in (("N", procesar_normas), ("P", procesar_proyectos)):
+        ids = [r for t, r, _ in filas if t == tipo]
+        if ids:
+            funcion(inicio, final, reloj, ids=ids, forzar=True, manual=False)
+    quedan = consultar(f"SELECT tipo, ref_id FROM analisis WHERE {INCOMPLETO}")
+    print(f"Quedan incompletos: {len(quedan)} {quedan[:20]}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites"])
@@ -660,23 +680,13 @@ def main():
         # analiza lo que falta, asi que si no falta nada no gasta.
         desde = (inicio_mes - timedelta(days=1)).replace(day=1) if hoy.day <= 5 else inicio_mes
         rango(desde, hoy + timedelta(days=1), reloj)
+        reparar_incompletos(reloj)
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "pedidos":
         procesar_pedidos(reloj)
     elif a.modo == "sincomites":
-        # Documentos del reporte que quedaron sin comites: se vuelven a analizar completos (siguen en el reporte)
-        filas = consultar("""SELECT tipo, ref_id FROM analisis
-                             WHERE relevante AND NOT excluido AND coalesce(cardinality(comites), 0) = 0""")
-        print(f"Documentos del reporte sin comites: {len(filas)}")
-        inicio, final = date(2000, 1, 1), date(2100, 1, 1)
-        for tipo, funcion in (("N", procesar_normas), ("P", procesar_proyectos)):
-            ids = [r for t, r in filas if t == tipo]
-            if ids:
-                funcion(inicio, final, reloj, ids=ids, forzar=True, manual=False)
-        quedan = consultar("""SELECT count(*) FROM analisis
-                              WHERE relevante AND NOT excluido AND coalesce(cardinality(comites), 0) = 0""")[0][0]
-        print(f"Quedan sin comites: {quedan}")
+        reparar_incompletos(reloj)
     elif a.modo == "historico":
         if cupos.principal_agotada():
             return
