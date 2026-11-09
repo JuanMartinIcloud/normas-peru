@@ -118,6 +118,11 @@ def _numero_presente(texto: str, numero: str) -> bool:
     return all(re.search(rf"(?<!\d)0*{g}(?!\d)", texto) for g in grupos)
 
 
+def es_aviso_sin_texto(texto: str) -> bool:
+    """El Peruano a veces entrega, en lugar de la norma, un aviso de «el dispositivo se actualizara»."""
+    return "Disculpe Ud. la molestia" in (texto or "")[:400] and len(texto or "") < 1000
+
+
 def recortar_norma(texto: str, codigo: str | None, numero: str = "") -> tuple[str, str]:
     """Devuelve (texto de la norma sola, como se recorto). Si no se puede recortar con seguridad, devuelve el
     texto completo sin cambios: nunca se pierde texto de la norma por un recorte dudoso.
@@ -125,6 +130,8 @@ def recortar_norma(texto: str, codigo: str | None, numero: str = "") -> tuple[st
     "sin_codigos", "no_verificado" (el tramo no tenia su numero) o "sin_cambio"."""
     if not texto or not codigo:
         return texto, "sin_cambio"
+    if es_aviso_sin_texto(texto):
+        return "", "aviso"
     limpio = _CABECERA.sub(" ", texto)
     codigos = [(m.group(1), m.start(), m.end()) for m in _CODIGO.finditer(limpio)]
     if not codigos:
@@ -141,7 +148,10 @@ def recortar_norma(texto: str, codigo: str | None, numero: str = "") -> tuple[st
             tramo, modo = limpio[:fin], "solo_fin"
     else:
         # Su codigo no aparece (el texto se corto antes): empieza despues del ultimo codigo ajeno y no se
-        # sabe donde termina, asi que se conserva hasta el final
+        # sabe donde termina, asi que se conserva hasta el final. Solo si el texto son paginas del diario
+        # (empieza con su cabecera): un texto de otra fuente (ej. la ley del portal del Congreso) no se toca.
+        if not _CABECERA.search(texto[:300]):
+            return texto, "sin_cambio"
         tramo, modo = limpio[codigos[-1][2]:], "inicio"
     tramo = re.sub(r"[ \t]+", " ", tramo).strip()
     if len(tramo) < 100 or not _numero_presente(tramo, numero):

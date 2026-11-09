@@ -76,7 +76,7 @@ def main():
                 codigo, numero = normas.get(clave, (None, ""))
                 nuevo, como = recortar_norma(texto, codigo, numero)
                 cuenta[como] += 1
-                if como in ("no_verificado", "sin_codigos") and len(dudosos) < 40:
+                if como in ("no_verificado", "inicio", "aviso") and len(dudosos) < 40:
                     dudosos.append((num, clave, codigo, numero, como, texto))
                 if nuevo != texto:
                     cuenta["caracteres_quitados"] += len(texto) - len(nuevo)
@@ -85,7 +85,11 @@ def main():
                         ejemplos.append((num, clave, codigo, numero, como, texto, nuevo))
             ultima = filas[-1][0]
             if aplicar and pendientes:
-                execute_values(cur, """UPDATE documentos d SET texto = v.t FROM (VALUES %s) AS v(k, t)
+                # Texto vacio = era un aviso de El Peruano, no la norma: queda como «sin texto» para que la
+                # tarea de documentos pendientes lo vuelva a buscar
+                execute_values(cur, """UPDATE documentos d SET texto = v.t,
+                                         estado = CASE WHEN v.t = '' THEN 'sin_texto' ELSE d.estado END
+                                       FROM (VALUES %s) AS v(k, t)
                                        WHERE d.tipo = 'N' AND d.clave = v.k""", pendientes)
                 c.commit()
                 cambiados_desde_vacuum += len(pendientes)
@@ -110,6 +114,9 @@ def main():
         print(f"=== DUDOSO base {num} | numero {numero!r} | codigo {codigo} | {como} | {len(texto)} caracteres | "
               f"codigos en el texto: {_re.findall(r'(?<![\d-])\d{6,8}-\d{1,2}(?![\d-])', texto)[:8]}")
         print("    INICIO: " + texto[:300].replace("\n", " "))
+        if como == "inicio":
+            nuevo, _ = recortar_norma(texto, codigo, numero)
+            print("    QUEDA: " + nuevo[:300].replace("\n", " "))
     random.seed(1)
     for num, clave, codigo, numero, como, texto, nuevo in random.sample(ejemplos, min(25, len(ejemplos))):
         print(f"--- base {num} | {numero} | codigo {codigo} | {como} | {len(texto)} -> {len(nuevo)} caracteres")

@@ -19,7 +19,7 @@ from psycopg2.extras import execute_values
 
 import cupos
 import indexar
-from textos import codigo_norma, recortar_norma
+from textos import codigo_norma, es_aviso_sin_texto, recortar_norma
 from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_cuadernillo, texto_html_norma, texto_ley_congreso
 
 SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
@@ -180,6 +180,8 @@ def main():
                     fecha, url, numero, tipo_norma = normas[clave]
                     datos = pdf_norma(url, fecha)
                     texto = extraer(datos) if datos else ""
+                    if es_aviso_sin_texto(texto):
+                        texto = ""   # El Peruano entrego un aviso en lugar de la norma
                     # Sin PDF o PDF vacio/dañado: pagina de la norma, su otro PDF y, al final,
                     # las paginas de la edicion completa del dia donde aparece su numero
                     for otra in (lambda: texto_html_norma(url), lambda: texto_ley_congreso(tipo_norma, numero),
