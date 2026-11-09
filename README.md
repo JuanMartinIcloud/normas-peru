@@ -61,10 +61,21 @@ Si algo falla, la web lo muestra en rojo con el detalle (la ejecución en GitHub
 
 ## Clasificación
 
-Las normas se clasifican por sector (entidad que la emite) y rubro (tema) con reglas (`src/classifier.py`).
-Lo que las reglas no pueden clasificar lo clasifica la IA cada mañana (`clasificar.yml`, modelos Lite).
+Las normas se clasifican por sector (entidad que la emite) y rubro (tema) con reglas (`src/classifier.py`);
+las reglas comparan palabras completas, y las municipalidades y gobiernos regionales se reconocen primero.
+Los proyectos de ley tienen rubro (por su título). Lo que las reglas no pueden clasificar, normas y
+proyectos, lo clasifica la IA cada mañana (`clasificar.yml`, modelos Lite); la descarga diaria no borra el
+rubro que puso la IA.
 `reclasificar.yml` vuelve a aplicar las reglas a todo el archivo (modo `simular` o `aplicar`) sin borrar
 lo que clasificó la IA.
+
+## Texto completo
+
+El PDF de cada norma que entrega El Peruano son las páginas del diario donde aparece: traen el final de la
+norma anterior y el inicio de la siguiente. Cada norma termina con su código (el de su enlace, por ejemplo
+2571897-1), y con él se guarda solo el texto de la norma (`recortar_norma` en `src/textos.py`). Si el recorte
+no se puede verificar (el número de la norma no aparece en el tramo), el texto se guarda completo.
+`recortar.yml` aplica lo mismo a los textos ya guardados (modo `simular` o `aplicar`).
 
 ## IA
 
