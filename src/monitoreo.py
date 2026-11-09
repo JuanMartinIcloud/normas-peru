@@ -683,7 +683,7 @@ def reanalizar_texto_corregido(reloj, maximo):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites", "reanalizar"])
-    ap.add_argument("--maximo", type=int, default=150)
+    ap.add_argument("--maximo", type=int, default=400)
     ap.add_argument("fechas", nargs="*")
     ap.add_argument("--max-minutos", type=float, default=300)
     ap.add_argument("--forzar", action="store_true")
@@ -700,7 +700,7 @@ def main():
         desde = (inicio_mes - timedelta(days=1)).replace(day=1) if hoy.day <= 5 else inicio_mes
         rango(desde, hoy + timedelta(days=1), reloj)
         reparar_incompletos(reloj)
-        reanalizar_texto_corregido(reloj, 150)
+        reanalizar_texto_corregido(reloj, 300)
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "pedidos":
