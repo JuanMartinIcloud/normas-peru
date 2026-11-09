@@ -623,13 +623,32 @@ def auditoria_sectores():
         p(f"ENT {n} | {classifier.clasificar_sector(e)} | {e}")
 
 
+def textos_muestra():
+    """Texto guardado de algunas normas (por su codigo de El Peruano), para ver si trae otras normas (solo lectura)."""
+    import re as _re
+    from monitoreo import textos
+    codigos = (os.getenv("CODIGOS") or "2571897-1,2570668-1,2572828-1,2572850-1").split(",")
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("SELECT hash_unico, tipo, numero, url_detalle FROM normas WHERE url_detalle LIKE ANY(%s)",
+                ([f"%/{x.strip()}" for x in codigos],))
+    filas = cur.fetchall()
+    t = textos("N", [f[0] for f in filas])
+    for h, tipo, num, url in filas:
+        x = t.get(h, "")
+        finales = _re.findall(r"\b\d{6,8}-\d\b", x)
+        p(f"TXT {tipo} {num} | {url.rsplit('/', 1)[-1]} | {len(x)} caracteres | codigos de fin de norma en el texto: {finales[:12]}")
+        p("TXT   INICIO: " + x[:500].replace("\n", " "))
+        p("TXT   FIN: " + x[-300:].replace("\n", " "))
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
      "clasificacion": clasificacion, "depurar_leyes": depurar_leyes,
-     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle, "auditoria_sectores": auditoria_sectores}[modo]()
+     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle, "auditoria_sectores": auditoria_sectores, "textos_muestra": textos_muestra}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
