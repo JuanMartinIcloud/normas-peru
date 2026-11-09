@@ -138,7 +138,8 @@ def recortar_norma(texto: str, codigo: str | None, numero: str = "") -> tuple[st
         return texto, "sin_codigos"
     propios = [c for c in codigos if c[0] == codigo]
     if propios:
-        fin = propios[0][2]
+        # Su ultima aparicion: en las «publicaciones digitales» su codigo se repite al pie de cada pagina
+        fin = propios[-1][2]
         anteriores = [c for c in codigos if c[2] <= propios[0][1] and c[0] != codigo]
         inicio = anteriores[-1][2] if anteriores else 0
         tramo, modo = limpio[inicio:fin], "codigo"
