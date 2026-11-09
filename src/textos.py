@@ -89,3 +89,52 @@ def pdf_norma(url_detalle: str, fecha) -> bytes | None:
         return None
     r.raise_for_status()
     return r.content if r.content[:4] == b"%PDF" else None
+
+
+# --------------------------------------------------------------------------- recorte del texto de una norma
+# El PDF de cada norma que entrega El Peruano son las paginas del diario donde aparece: traen el final de la
+# norma anterior y el inicio de la siguiente. Cada norma termina con su codigo (ej. «2571897-1»), el mismo de
+# su enlace: con eso se corta el texto exactamente donde empieza y termina la norma.
+
+_DIAS = r"(?:Lunes|Martes|Mi[eé]rcoles|Jueves|Viernes|S[aá]bado|Domingo)"
+_FECHA = _DIAS + r"\s+\d{1,2}\s+de\s+[a-záéíóú]+\s+de\s+\d{4}"
+_CABECERA = re.compile(
+    r"\d{1,4}\s*NORMAS\s+LEGALES\s*" + _FECHA + r"\s*/?\s*El\s+Peruano\s*/?"
+    r"|El\s+Peruano\s*/?\s*" + _FECHA + r"\s*/?\s*NORMAS\s+LEGALES\s*\d{1,4}",
+    re.I)
+_CODIGO = re.compile(r"(?<![\d-])(\d{6,8}-\d{1,2})(?![\d-])")
+
+
+def _numero_presente(texto: str, numero: str) -> bool:
+    """True si el texto contiene el numero de la norma (sus dos primeros grupos de cifras)."""
+    grupos = [g.lstrip("0") or "0" for g in re.findall(r"\d+", numero or "")][:2]
+    if not grupos:
+        return True   # sin numero (ej. algunas «Fe de erratas»): no se puede verificar, no se exige
+    return all(re.search(rf"(?<!\d)0*{g}(?!\d)", texto) for g in grupos)
+
+
+def recortar_norma(texto: str, codigo: str | None, numero: str = "") -> tuple[str, str]:
+    """Devuelve (texto de la norma sola, como se recorto). Si no se puede recortar con seguridad, devuelve el
+    texto completo sin cambios: nunca se pierde texto de la norma por un recorte dudoso.
+    Resultados: "codigo" (cortado por su codigo de fin), "inicio" (cortado al inicio; el fin no estaba),
+    "sin_codigos", "no_verificado" (el tramo no tenia su numero) o "sin_cambio"."""
+    if not texto or not codigo:
+        return texto, "sin_cambio"
+    limpio = _CABECERA.sub(" ", texto)
+    codigos = [(m.group(1), m.start(), m.end()) for m in _CODIGO.finditer(limpio)]
+    if not codigos:
+        return texto, "sin_codigos"
+    propios = [c for c in codigos if c[0] == codigo]
+    if propios:
+        fin = propios[0][2]
+        anteriores = [c for c in codigos if c[2] <= propios[0][1] and c[0] != codigo]
+        inicio = anteriores[-1][2] if anteriores else 0
+        tramo, modo = limpio[inicio:fin], "codigo"
+    else:
+        # Su codigo no aparece (el texto se corto antes): empieza despues del ultimo codigo ajeno y no se
+        # sabe donde termina, asi que se conserva hasta el final
+        tramo, modo = limpio[codigos[-1][2]:], "inicio"
+    tramo = re.sub(r"[ \t]+", " ", tramo).strip()
+    if len(tramo) < 100 or not _numero_presente(tramo, numero):
+        return texto, "no_verificado"
+    return tramo, modo

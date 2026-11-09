@@ -35,7 +35,7 @@ import config
 import cupos
 import bases as registro
 import ocr as ocr_mod
-from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, texto_pdf
+from textos import AGENTE, API_CONGRESO, CABECERAS_CONGRESO, EPDOC, cifrar, codigo_norma, recortar_norma, texto_pdf
 
 MAX_CARACTERES = 200_000            # texto que se guarda por documento (anexos enormes se recortan)
 LIMITE_MB = int(os.getenv("TEXTOS_LIMITE_MB", "900"))   # MB que se llenan de cada base de texto (Neon gratis: 1024 MB por base)
@@ -373,7 +373,7 @@ def normas_de_principal(desde_fecha, hasta_fecha, parte, de, limite, hasta_clave
             else:
                 limite_sql, params = "(fecha, hash_unico) < (%s, %s)", [hasta_fecha, hasta_clave]
             cur.execute(
-                f"""SELECT hash_unico, fecha, url_detalle FROM normas
+                f"""SELECT hash_unico, fecha, url_detalle, coalesce(numero, '') FROM normas
                     WHERE fecha >= %s AND {limite_sql} AND url_detalle IS NOT NULL
                       AND abs(hashtext(hash_unico)) %% %s = %s
                     ORDER BY fecha DESC, hash_unico DESC LIMIT %s""",
@@ -542,7 +542,7 @@ def procesar_normas(bases, filas, reloj, estado_errores):
     hechos = 0
     ultima = None
     for fila in filas:
-        clave, fecha, url = fila
+        clave, fecha, url, numero = fila
         if clave not in hechas:
             if not reloj.queda():
                 return hechos, ultima, True
@@ -558,6 +558,8 @@ def procesar_normas(bases, filas, reloj, estado_errores):
                     print("  El Peruano no responde; se continuara en la proxima ejecucion.")
                 return hechos, ultima, True
             texto = extraer(datos) if datos is not None else ""
+            # Solo la norma: sin el final de la anterior ni el inicio de la siguiente (vienen en las mismas paginas)
+            texto, _ = recortar_norma(texto, codigo_norma(url), numero)
             if len(texto) < 100:
                 # Sin PDF, PDF vacio o dañado: se toma el texto de la pagina de la norma
                 try:

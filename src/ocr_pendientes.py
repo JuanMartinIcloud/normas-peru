@@ -19,6 +19,7 @@ from psycopg2.extras import execute_values
 
 import cupos
 import indexar
+from textos import codigo_norma, recortar_norma
 from indexar import Bases, FuenteNoResponde, extraer, expediente_proyecto, pdf_norma, texto_cuadernillo, texto_html_norma, texto_ley_congreso
 
 SQL_CONTROL = """CREATE TABLE IF NOT EXISTS ocr_revisado (
@@ -188,6 +189,7 @@ def main():
                         alterno = otra()
                         if len(alterno) > len(texto):
                             texto = alterno
+                    texto, _ = recortar_norma(texto, codigo_norma(url), numero)   # solo la norma
                     completo = texto
                 errores, espera = 0, 30
             except (requests.RequestException, FuenteNoResponde, ValueError) as e:
