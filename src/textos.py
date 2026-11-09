@@ -75,6 +75,11 @@ def codigo_norma(url_detalle: str) -> str | None:
                 return f"{m2.group(1)}-{m2.group(2)}"
         except Exception:  # noqa: BLE001
             pass
+    # El codigo son 6 a 8 cifras, guion y 1 a 3 cifras, al final del enlace. (Antes se tomaba «31838-2197008» de
+    # «...-ley-n-31838-2197008-1/»: el numero de la ley pegado al codigo.)
+    m = re.search(r"(?<![\d])(\d{6,8}-\d{1,3})(?:\.html?)?/?$", u)
+    if m:
+        return m.group(1)
     m = re.search(r"(\d{5,}-\d+)(?:-\d+)?(?:\.html?)?/?$", u)
     return m.group(1) if m else None
 
@@ -130,6 +135,10 @@ def recortar_norma(texto: str, codigo: str | None, numero: str = "") -> tuple[st
         anteriores = [c for c in codigos if c[2] <= propios[0][1] and c[0] != codigo]
         inicio = anteriores[-1][2] if anteriores else 0
         tramo, modo = limpio[inicio:fin], "codigo"
+        if anteriores and not _numero_presente(tramo, numero):
+            # Paginas a dos columnas: el inicio de la norma puede quedar antes del codigo de la anterior.
+            # Se corta solo el final (lo que viene despues de su codigo).
+            tramo, modo = limpio[:fin], "solo_fin"
     else:
         # Su codigo no aparece (el texto se corto antes): empieza despues del ultimo codigo ajeno y no se
         # sabe donde termina, asi que se conserva hasta el final
