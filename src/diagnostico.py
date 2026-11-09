@@ -608,13 +608,28 @@ def uso_ia_detalle():
         p("USO " + " | ".join(str(x) for x in f))
 
 
+def auditoria_sectores():
+    """Cada entidad emisora con el sector guardado y el que dan las reglas actuales (solo lectura)."""
+    import classifier
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("SELECT entidad, sector, count(*) FROM normas GROUP BY 1, 2 ORDER BY 3 DESC")
+    filas = cur.fetchall()
+    cambian = [(e, s_, classifier.clasificar_sector(e), n) for e, s_, n in filas if classifier.clasificar_sector(e) != s_]
+    p(f"ENTIDADES: {len(filas)}; cambian de sector: {len(cambian)} ({sum(x[3] for x in cambian)} normas)")
+    for e, viejo, nuevo, n in cambian:
+        p(f"CAMBIA {n} | {viejo} -> {nuevo} | {e}")
+    for e, s_, n in filas:
+        p(f"ENT {n} | {classifier.clasificar_sector(e)} | {e}")
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
      "clasificacion": clasificacion, "depurar_leyes": depurar_leyes,
-     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle}[modo]()
+     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle, "auditoria_sectores": auditoria_sectores}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""

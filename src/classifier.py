@@ -11,11 +11,17 @@ def _norm(s: str) -> str:
 
 # (sector, palabras clave que aparecen en el nombre de la entidad)
 SECTORES = [
+    # Primero los gobiernos locales y regionales: su nombre suele contener palabras de otros sectores
+    # ("Metropolitana", "Aguas Verdes", "Salud" de una gerencia, etc.)
+    ("Gobiernos Locales", ["municipalidad", "municipalidades", "gobierno local"]),
+    ("Gobiernos Regionales", ["gobierno regional"]),
     ("Congreso", ["congreso de la republica"]),
     ("Presidencia y PCM", ["presidencia del consejo de ministros", "presidencia de la republica", "pcm",
                            "despacho presidencial", "decretos legislativos", "decretos de urgencia",
                            "estadistica e informatica", "servicio civil", "planeamiento estrategico",
-                           "ciencia, tecnologia", "ciencia tecnologia", "vida sin drogas"]),
+                           "ciencia, tecnologia", "ciencia tecnologia", "vida sin drogas",
+                           # INDECOPI (adscrito a la PCM); su nombre dice "Defensa de la Competencia"
+                           "indecopi", "defensa de la competencia", "propiedad intelectual"]),
     ("Economia y Finanzas", ["economia y finanzas", "mef", "sunat", "sbs", "superintendencia de banca",
                              "aduanas", "administracion tributaria", "mercado de valores", "compras publicas",
                              "contrataciones del estado", "contrataciones publicas", "actividad empresarial del estado",
@@ -31,7 +37,7 @@ SECTORES = [
     ("Relaciones Exteriores", ["relaciones exteriores", "rree"]),
     ("Energia y Minas", ["energia y minas", "minem", "osinergmin", "ingemmet", "perupetro", "energia y mineria",
                          "geologico minero", "energia nuclear"]),
-    ("Transportes y Comunicaciones", ["transportes y comunicaciones", "mtc", "osiptel", "sutran", "ositran", "indecopi",
+    ("Transportes y Comunicaciones", ["transportes y comunicaciones", "mtc", "osiptel", "sutran", "ositran",
                                       "telecomunicaciones", "transporte", "portuaria", "radio y television"]),
     ("Vivienda y Construccion", ["vivienda", "construccion y saneamiento", "sunass", "sedapal", "saneamiento",
                                  "formalizacion de la propiedad", "industria de la construccion"]),
@@ -46,8 +52,6 @@ SECTORES = [
     ("Cultura", ["ministerio de cultura", "cultura", "archivo general de la nacion"]),
     ("Organismos Autonomos", ["jne", "jurado nacional de elecciones", "onpe", "reniec", "contraloria", "tribunal constitucional", "banco central",
                               "procesos electorales", "estado civil", "jurados electorales"]),
-    ("Gobiernos Regionales", ["gobierno regional"]),
-    ("Gobiernos Locales", ["municipalidad", "gobierno local"]),
 ]
 
 # (rubro, palabras clave en sumilla o tipo)
@@ -91,9 +95,11 @@ RUBROS = [
 
 
 def clasificar_sector(entidad: str) -> str:
+    # Palabras completas (o inicio de palabra en las largas): "ana" no coincide con "Metropolitana",
+    # ni "cultura" con "Agricultura"
     e = _norm(entidad)
-    for sector, claves in SECTORES:
-        if any(c in e for c in claves):
+    for sector, patrones in _SECTORES:
+        if any(p.search(e) for p in patrones):
             return sector
     return "Otros"
 
@@ -106,6 +112,7 @@ def _patron(clave: str) -> re.Pattern:
 
 
 _RUBROS = [(r, [_patron(c) for c in claves]) for r, claves in RUBROS]
+_SECTORES = [(sec, [_patron(c) for c in claves]) for sec, claves in SECTORES]
 
 
 def clasificar_rubro(sumilla: str, tipo: str = "") -> str:
