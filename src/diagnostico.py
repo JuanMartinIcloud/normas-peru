@@ -642,13 +642,25 @@ def textos_muestra():
         p("TXT   FIN: " + x[-300:].replace("\n", " "))
 
 
+def muestra_ia_proyectos():
+    """Muestra al azar de proyectos de ley clasificados por la IA (solo lectura)."""
+    c = psycopg2.connect(bases.url_principal(), connect_timeout=60)
+    cur = c.cursor()
+    cur.execute("SELECT rubro, count(*) FROM proyectos_ley GROUP BY 1 ORDER BY 2 DESC")
+    p("RUBROS PROYECTOS: " + " | ".join(f"{r}={n}" for r, n in cur.fetchall()))
+    cur.execute("""SELECT rubro, left(titulo, 170) FROM proyectos_ley WHERE rubro_ia AND rubro <> 'Sin clasificar'
+                   ORDER BY random() LIMIT 60""")
+    for r, t in cur.fetchall():
+        p(f"[{r}] {t}")
+
+
 def main():
     modo = sys.argv[1] if len(sys.argv) > 1 else "neon"
     {"neon": neon, "consultas": consultas, "conteos": conteos, "seguridad": seguridad, "web": web, "ia": ia, "auditoria": auditoria,
      "verificar_dias": verificar_dias, "detalle": detalle,
      "leyes_faltantes": leyes_faltantes, "casos": casos,
      "clasificacion": clasificacion, "depurar_leyes": depurar_leyes,
-     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle, "auditoria_sectores": auditoria_sectores, "textos_muestra": textos_muestra}[modo]()
+     "clasificacion_datos": clasificacion_datos, "muestra_ia": muestra_ia, "uso_ia_detalle": uso_ia_detalle, "auditoria_sectores": auditoria_sectores, "textos_muestra": textos_muestra, "muestra_ia_proyectos": muestra_ia_proyectos}[modo]()
     print("\n".join(lineas))
     # El resultado va en avisos de la ejecucion (GitHub muestra hasta 10 por paso): se reparte en partes
     partes, actual = [], ""
