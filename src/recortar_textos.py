@@ -46,6 +46,7 @@ def main():
     print(f"Normas en la base principal: {len(normas)}")
     total = Counter()
     ejemplos = []
+    dudosos = []
     for num, url in bases.bases_texto():
         inicio = time.time()
         c = psycopg2.connect(url, connect_timeout=60)
@@ -75,6 +76,8 @@ def main():
                 codigo, numero = normas.get(clave, (None, ""))
                 nuevo, como = recortar_norma(texto, codigo, numero)
                 cuenta[como] += 1
+                if como in ("no_verificado", "sin_codigos") and len(dudosos) < 40:
+                    dudosos.append((num, clave, codigo, numero, como, texto))
                 if nuevo != texto:
                     cuenta["caracteres_quitados"] += len(texto) - len(nuevo)
                     pendientes.append((clave, nuevo))
@@ -102,6 +105,11 @@ def main():
         print(f"Base {num}: {dict(cuenta)}; espacio {tam_antes / 1e6:.0f} MB -> {tam_despues / 1e6:.0f} MB "
               f"({time.time() - inicio:.0f} s)")
     print(f"TOTAL {'APLICADO' if aplicar else 'SIMULACION (muestra)'}: {dict(total)}")
+    for num, clave, codigo, numero, como, texto in dudosos:
+        import re as _re
+        print(f"=== DUDOSO base {num} | numero {numero!r} | codigo {codigo} | {como} | {len(texto)} caracteres | "
+              f"codigos en el texto: {_re.findall(r'(?<![\d-])\d{6,8}-\d{1,2}(?![\d-])', texto)[:8]}")
+        print("    INICIO: " + texto[:300].replace("\n", " "))
     random.seed(1)
     for num, clave, codigo, numero, como, texto, nuevo in random.sample(ejemplos, min(25, len(ejemplos))):
         print(f"--- base {num} | {numero} | codigo {codigo} | {como} | {len(texto)} -> {len(nuevo)} caracteres")
