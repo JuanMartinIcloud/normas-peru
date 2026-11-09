@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       modo:
-        description: "diario | pedidos | historico | rango | sincomites"
+        description: "diario | pedidos | historico | rango | sincomites | reanalizar"
         default: "diario"
       fechas:
         description: "Para 'rango': desde hasta (AAAA-MM-DD AAAA-MM-DD)"

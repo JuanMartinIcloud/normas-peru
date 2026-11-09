@@ -192,6 +192,16 @@ export default async function Proyectos({ searchParams: parametros }) {
       )}
       <p className="resumen">
         {total.toLocaleString("es-PE")} {total === 1 ? "resultado" : "resultados"} · página {f.pagina} de {paginas.toLocaleString("es-PE")}
+        {f.q && f.orden !== "r" && (
+          <>
+            {" · "}
+            {f.orden === "f" ? (
+              <>Más recientes primero · <a href={enlace(f, { orden: "", pagina: 1 })}>frase exacta primero</a></>
+            ) : (
+              <>Frase exacta primero · <a href={enlace(f, { orden: "f", pagina: 1 })}>más recientes primero</a></>
+            )}
+          </>
+        )}
       </p>
 
       {(f.q || f.periodo || f.estado || f.rubro || f.proponente || f.desde || f.hasta || f.terminos.length > 0 || f.refinar.length > 0) && (

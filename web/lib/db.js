@@ -52,7 +52,7 @@ export function leerFiltros(sp = {}) {
     terminos: leerTerminos(sp.t),
     refinar: leerTerminos(sp.y),
     pregunta: v("pregunta").slice(0, 300),
-    orden: v("orden") === "r" ? "r" : "",
+    orden: ["r", "f"].includes(v("orden")) ? v("orden") : "",
     pagina,
   };
 }
@@ -114,11 +114,30 @@ export function construirWhere(f) {
 export const TSV_NORMAS =
   "to_tsvector('spanish', coalesce(sumilla,'') || ' ' || coalesce(numero,'') || ' ' || coalesce(entidad,''))";
 
-// Orden de los resultados: por relevancia (busqueda con IA) o por fecha.
+// true si la busqueda son palabras sueltas (sin comillas, OR ni -palabra): se puede buscar como frase exacta
+export function esFraseSimple(q) {
+  return !!q && !/["]|\bOR\b|(^|\s)-/.test(q) && q.trim().split(/\s+/).length >= 1;
+}
+
+// Orden de los resultados: frase exacta primero (por defecto), relevancia (busqueda con IA) o por fecha.
 // Recibe los params del WHERE y les agrega los suyos.
 export function ordenNormas(f, params) {
   const buscados = [f.q, ...(f.terminos || []), ...(f.refinar || [])].filter(Boolean);
-  if (f.orden !== "r" || !buscados.length) return "fecha DESC, id DESC";
+  if (!buscados.length || f.orden === "f") return "fecha DESC, id DESC";
+  if (f.orden !== "r") {
+    // Por defecto, con una busqueda: primero la frase exacta en la sumilla, luego la frase exacta en el texto
+    // completo, luego todas las palabras en la sumilla y al final el resto; dentro de cada grupo, por fecha
+    if (!esFraseSimple(f.q)) return "fecha DESC, id DESC";
+    params.push(f.q);
+    const iq = params.length;
+    let caso = `CASE WHEN ${TSV_NORMAS} @@ phraseto_tsquery('spanish', $${iq}) THEN 0`;
+    if (f.clavesFrase && f.clavesFrase.length) {
+      params.push(f.clavesFrase);
+      caso += ` WHEN hash_unico = ANY($${params.length}::text[]) THEN 1`;
+    }
+    caso += ` WHEN ${TSV_NORMAS} @@ websearch_to_tsquery('spanish', $${iq}) THEN 2 ELSE 3 END`;
+    return `${caso}, fecha DESC, id DESC`;
+  }
   const q = buscados
     .map((t) => {
       params.push(t);
@@ -155,12 +174,16 @@ export async function prepararBusqueda(f, tipo) {
   const refinar = f.refinar || [];
   if (!buscados.length && !refinar.length) return f;
   try {
-    const [principal, porFiltro, todas] = await Promise.all([
+    // Documentos con la frase exacta en el texto completo (para mostrarlos primero)
+    const frase = f.orden !== "f" && f.orden !== "r" && esFraseSimple(f.q) && /\s/.test(f.q.trim());
+    const [principal, porFiltro, todas, conFrase] = await Promise.all([
       buscados.length ? clavesPorTexto(tipo, buscados) : [],
       Promise.all(refinar.map((r) => clavesPorTexto(tipo, [r]))),
       refinar.length ? clavesPorGrupos(tipo, [buscados, ...refinar.map((r) => [r])]) : [],
+      frase ? clavesPorTexto(tipo, [`"${f.q.trim()}"`]) : [],
     ]);
     f.clavesTexto = principal;
+    f.clavesFrase = conFrase;
     f.clavesRefinar = porFiltro;
     f.clavesTodas = todas;
     if (principal.parcial || todas.parcial || porFiltro.some((x) => x.parcial)) f.avisoTexto = "parcial";

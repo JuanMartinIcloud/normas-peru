@@ -1,5 +1,5 @@
 // Filtros y busqueda de proyectos de ley (los usa la pagina /proyectos, /buscar y la IA)
-import { leerTerminos } from "./db";
+import { leerTerminos , esFraseSimple } from "./db";
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -16,7 +16,7 @@ export function leerFiltrosProyectos(sp = {}) {
     terminos: leerTerminos(sp.t),
     refinar: leerTerminos(sp.y),
     pregunta: v("pregunta").slice(0, 300),
-    orden: v("orden") === "r" ? "r" : "",
+    orden: ["r", "f"].includes(v("orden")) ? v("orden") : "",
     pagina: Math.min(100, Math.max(1, parseInt(v("p"), 10) || 1)), // hasta la pagina 100
   };
 }
@@ -82,7 +82,20 @@ const CLAVE_PROYECTO = "(periodo || '|' || camara || '|' || numero)";
 // Orden de los proyectos: por relevancia (busqueda con IA) o por fecha de presentacion
 export function ordenProyectos(f, params) {
   const buscados = [f.q, ...(f.terminos || []), ...(f.refinar || [])].filter(Boolean);
-  if (f.orden !== "r" || !buscados.length) return "fecha_presentacion DESC NULLS LAST, id DESC";
+  if (!buscados.length || f.orden === "f") return "fecha_presentacion DESC NULLS LAST, id DESC";
+  if (f.orden !== "r") {
+    // Por defecto: primero la frase exacta en el titulo/sumilla, luego en el texto completo, luego el resto
+    if (!esFraseSimple(f.q)) return "fecha_presentacion DESC NULLS LAST, id DESC";
+    params.push(f.q);
+    const iq = params.length;
+    let caso = `CASE WHEN ${TSV_PROYECTOS} @@ phraseto_tsquery('spanish', $${iq}) THEN 0`;
+    if (f.clavesFrase && f.clavesFrase.length) {
+      params.push(f.clavesFrase);
+      caso += ` WHEN ${CLAVE_PROYECTO} = ANY($${params.length}::text[]) THEN 1`;
+    }
+    caso += ` WHEN ${TSV_PROYECTOS} @@ websearch_to_tsquery('spanish', $${iq}) THEN 2 ELSE 3 END`;
+    return `${caso}, fecha_presentacion DESC NULLS LAST, id DESC`;
+  }
   const q = buscados
     .map((t) => {
       params.push(t);

@@ -662,9 +662,28 @@ def reparar_incompletos(reloj):
     print(f"Quedan incompletos: {len(quedan)} {quedan[:20]}")
 
 
+# El 9 de noviembre de 2026 se corrigio el texto completo guardado (traia pedazos de otras normas). Las normas
+# del reporte analizadas antes con ese texto se vuelven a analizar, de la mas reciente a la mas antigua.
+TEXTO_CORREGIDO = "2026-11-09 19:00:00+00"
+PENDIENTE_REANALISIS = f"""tipo = 'N' AND relevante AND NOT excluido AND creado_en < '{TEXTO_CORREGIDO}'"""
+
+
+def reanalizar_texto_corregido(reloj, maximo):
+    filas = consultar(f"SELECT ref_id FROM analisis WHERE {PENDIENTE_REANALISIS} ORDER BY fecha DESC, ref_id DESC LIMIT %s",
+                      (maximo,))
+    if not filas:
+        return
+    total = consultar(f"SELECT count(*) FROM analisis WHERE {PENDIENTE_REANALISIS}")[0][0]
+    print(f"Normas del reporte por volver a analizar con el texto corregido: {total}; en esta ejecucion: {len(filas)}")
+    procesar_normas(date(2000, 1, 1), date(2100, 1, 1), reloj, ids=[r[0] for r in filas], forzar=True, manual=False)
+    quedan = consultar(f"SELECT count(*) FROM analisis WHERE {PENDIENTE_REANALISIS}")[0][0]
+    print(f"Quedan por volver a analizar: {quedan}")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites"])
+    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites", "reanalizar"])
+    ap.add_argument("--maximo", type=int, default=150)
     ap.add_argument("fechas", nargs="*")
     ap.add_argument("--max-minutos", type=float, default=300)
     ap.add_argument("--forzar", action="store_true")
@@ -681,12 +700,15 @@ def main():
         desde = (inicio_mes - timedelta(days=1)).replace(day=1) if hoy.day <= 5 else inicio_mes
         rango(desde, hoy + timedelta(days=1), reloj)
         reparar_incompletos(reloj)
+        reanalizar_texto_corregido(reloj, 150)
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "pedidos":
         procesar_pedidos(reloj)
     elif a.modo == "sincomites":
         reparar_incompletos(reloj)
+    elif a.modo == "reanalizar":
+        reanalizar_texto_corregido(reloj, a.maximo)
     elif a.modo == "historico":
         if cupos.principal_agotada():
             return

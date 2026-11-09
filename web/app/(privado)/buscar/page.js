@@ -157,6 +157,16 @@ export default async function Buscar({ searchParams: parametros }) {
           )}
           <p className="resumen">
             {totalN.toLocaleString("es-PE")} normas legales · {totalP.toLocaleString("es-PE")} proyectos de ley
+            {fn.q && fn.orden !== "r" && (
+              <>
+                {" · "}
+                {fn.orden === "f" ? (
+                  <>Más recientes primero · <a href={qs({ q: fn.q, desde: fn.desde, hasta: fn.hasta, t: fn.terminos.join("|"), y: fn.refinar.join("|"), pregunta: fn.pregunta, orden: "" })}>frase exacta primero</a></>
+                ) : (
+                  <>Frase exacta primero · <a href={qs({ q: fn.q, desde: fn.desde, hasta: fn.hasta, t: fn.terminos.join("|"), y: fn.refinar.join("|"), pregunta: fn.pregunta, orden: "f" })}>más recientes primero</a></>
+                )}
+              </>
+            )}
           </p>
           {fn.pregunta && (
             <p className="pregunta">
