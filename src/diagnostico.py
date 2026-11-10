@@ -633,6 +633,10 @@ def textos_muestra():
     cur.execute("SELECT hash_unico, tipo, numero, url_detalle FROM normas WHERE url_detalle LIKE ANY(%s)",
                 ([f"%/{x.strip()}" for x in codigos],))
     filas = cur.fetchall()
+    # Ademas, las normas guardadas en las ultimas 36 horas (para ver que el texto nuevo tambien se recorta)
+    cur.execute("""SELECT hash_unico, tipo, numero, url_detalle FROM normas
+                   WHERE creado_en > now() - interval '36 hours' AND url_detalle IS NOT NULL ORDER BY random() LIMIT 10""")
+    filas += cur.fetchall()
     t = textos("N", [f[0] for f in filas])
     for h, tipo, num, url in filas:
         x = t.get(h, "")
