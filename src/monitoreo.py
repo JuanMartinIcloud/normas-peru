@@ -701,6 +701,7 @@ def main():
         rango(desde, hoy + timedelta(days=1), reloj)
         reparar_incompletos(reloj)
         reanalizar_texto_corregido(reloj, 300)
+        reparar_incompletos(reloj)   # el reanalisis tambien puede dejar alguno incompleto (si la IA falla a medias)
         if leer_config("historico_hasta") is None:
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "pedidos":
@@ -709,6 +710,7 @@ def main():
         reparar_incompletos(reloj)
     elif a.modo == "reanalizar":
         reanalizar_texto_corregido(reloj, a.maximo)
+        reparar_incompletos(reloj)
     elif a.modo == "historico":
         if cupos.principal_agotada():
             return
