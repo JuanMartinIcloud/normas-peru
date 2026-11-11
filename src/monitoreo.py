@@ -53,6 +53,10 @@ MODELOS_ANALISIS = gemini.modelos_lite()
 HIST_FILTRO = gemini.modelos_lite()      # meses anteriores: tambien solo Lite
 HIST_ANALISIS = gemini.modelos_lite()
 MODELOS_SEGUNDA = gemini.modelos_lite()  # segunda revision de las normas con rango de ley descartadas
+# Segunda opinion con Flash (los mas potentes gratuitos) para los documentos del reporte con puntaje 5 o mas.
+# Los Flash mas nuevos (3.8, 3.7 y el «latest») quedan libres para lo que se lee en la web durante el dia.
+FLASH_SEGUNDA = ["gemini-3.6-flash", "gemini-3-flash-preview", "gemini-3.5-flash"]
+PUNTAJE_SEGUNDA = 5
 LOTE_FILTRO = 40
 MAX_TEXTO = 25000
 
@@ -662,6 +666,54 @@ def reparar_incompletos(reloj):
     print(f"Quedan incompletos: {len(quedan)} {quedan[:20]}")
 
 
+def segunda_opinion(reloj):
+    """Los Flash vuelven a analizar los documentos del reporte que la primera revision (Lite) califico con 5 o
+    mas. Orden: mes en curso primero y luego del mes mas reciente al mas antiguo; dentro de cada mes, del
+    puntaje mas alto al mas bajo. Su analisis reemplaza al de Lite. Cuando los Flash llegan a su limite del
+    dia, la noche siguiente sigue donde quedo (analisis.segunda_en)."""
+    global MODELOS_ANALISIS
+    flash = FLASH_SEGUNDA + list(gemini.FLASH)
+    # Lo que ya analizo un Flash no necesita segunda opinion
+    consultar("UPDATE analisis SET segunda_en = now() WHERE segunda_en IS NULL AND modelo = ANY(%s) RETURNING id", (flash,))
+    mes_actual = hoy_lima().replace(day=1)
+    pendientes = consultar(f"""SELECT count(*) FROM analisis WHERE relevante AND NOT excluido AND segunda_en IS NULL
+                               AND puntaje >= %s""", (PUNTAJE_SEGUNDA,))[0][0]
+    print(f"Segunda opinion con Flash: {pendientes} documentos del reporte pendientes (puntaje {PUNTAJE_SEGUNDA} o mas)")
+    antes = MODELOS_ANALISIS
+    MODELOS_ANALISIS = FLASH_SEGUNDA
+    hechos = 0
+    try:
+        while reloj.queda():
+            lote = consultar("""SELECT tipo, ref_id FROM analisis
+                                WHERE relevante AND NOT excluido AND segunda_en IS NULL AND puntaje >= %s
+                                ORDER BY date_trunc('month', fecha) = %s DESC, date_trunc('month', fecha) DESC,
+                                         puntaje DESC, fecha DESC
+                                LIMIT 10""", (PUNTAJE_SEGUNDA, mes_actual))
+            if not lote:
+                break
+            ok = True
+            for tipo, funcion in (("N", procesar_normas), ("P", procesar_proyectos)):
+                ids = [r for t, r in lote if t == tipo]
+                if ids:
+                    _, completo = funcion(date(2000, 1, 1), date(2100, 1, 1), reloj, ids=ids, forzar=True, manual=False)
+                    marcados = consultar("""UPDATE analisis SET segunda_en = now() WHERE tipo = %s AND ref_id = ANY(%s)
+                                            AND modelo = ANY(%s) AND segunda_en IS NULL RETURNING ref_id""",
+                                         (tipo, ids, flash))
+                    hechos += len(marcados)
+                    if completo:
+                        # Documentos que ya no se pueden volver a analizar (por ejemplo, borrados): no se reintentan
+                        consultar("""UPDATE analisis SET segunda_en = now() WHERE tipo = %s AND ref_id = ANY(%s)
+                                     AND segunda_en IS NULL RETURNING id""", (tipo, ids))
+                    ok = ok and completo
+            if not ok:
+                print("  los Flash no respondieron o llegaron a su limite; la segunda opinion sigue en la proxima ejecucion.")
+                break
+    finally:
+        MODELOS_ANALISIS = antes
+    print(f"Segunda opinion: {hechos} documentos revisados por Flash")
+    reparar_incompletos(reloj)
+
+
 # El 9 de noviembre de 2026 se corrigio el texto completo guardado (traia pedazos de otras normas). Las normas
 # del reporte analizadas antes con ese texto se vuelven a analizar, de la mas reciente a la mas antigua.
 TEXTO_CORREGIDO = "2026-11-09 19:00:00+00"
@@ -682,7 +734,7 @@ def reanalizar_texto_corregido(reloj, maximo):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites", "reanalizar"])
+    ap.add_argument("modo", choices=["diario", "pedidos", "historico", "rango", "sincomites", "reanalizar", "segunda"])
     ap.add_argument("--maximo", type=int, default=400)
     ap.add_argument("fechas", nargs="*")
     ap.add_argument("--max-minutos", type=float, default=300)
@@ -707,6 +759,8 @@ def main():
     elif a.modo == "pedidos":
         procesar_pedidos(reloj)
         reparar_incompletos(reloj)
+    elif a.modo == "segunda":
+        segunda_opinion(reloj)
     elif a.modo == "sincomites":
         reparar_incompletos(reloj)
     elif a.modo == "reanalizar":

@@ -254,3 +254,8 @@ CREATE TABLE IF NOT EXISTS control_calidad (
 -- Etapa 15: proyectos de ley cuyo rubro ya reviso la IA (src/clasificar_ia.py): no se le vuelve a preguntar y
 -- la descarga diaria no le borra el rubro que puso la IA.
 ALTER TABLE proyectos_ley ADD COLUMN IF NOT EXISTS rubro_ia BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Etapa 16: segunda opinion con Flash para los documentos del reporte de puntaje 5 o mas (src/monitoreo.py):
+-- momento en que los Flash lo revisaron (NULL = todavia no).
+ALTER TABLE analisis ADD COLUMN IF NOT EXISTS segunda_en TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_analisis_segunda ON analisis (fecha DESC) WHERE segunda_en IS NULL AND relevante;
