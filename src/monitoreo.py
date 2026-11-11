@@ -668,8 +668,8 @@ def reparar_incompletos(reloj):
 
 def segunda_opinion(reloj):
     """Los Flash vuelven a analizar los documentos del reporte que la primera revision (Lite) califico con 5 o
-    mas. Orden: mes en curso primero y luego del mes mas reciente al mas antiguo; dentro de cada mes, del
-    puntaje mas alto al mas bajo. Su analisis reemplaza al de Lite. Cuando los Flash llegan a su limite del
+    mas. Orden: mes en curso primero; luego todo el historial del puntaje mas alto al mas bajo (10, 9, 8...)
+    y, a igual puntaje, del mas reciente al mas antiguo. Su analisis reemplaza al de Lite. Cuando los Flash llegan a su limite del
     dia, la noche siguiente sigue donde quedo (analisis.segunda_en)."""
     global MODELOS_ANALISIS
     flash = FLASH_SEGUNDA + list(gemini.FLASH)
@@ -686,8 +686,7 @@ def segunda_opinion(reloj):
         while reloj.queda():
             lote = consultar("""SELECT tipo, ref_id FROM analisis
                                 WHERE relevante AND NOT excluido AND segunda_en IS NULL AND puntaje >= %s
-                                ORDER BY date_trunc('month', fecha) = %s DESC, date_trunc('month', fecha) DESC,
-                                         puntaje DESC, fecha DESC
+                                ORDER BY date_trunc('month', fecha) = %s DESC, puntaje DESC, fecha DESC
                                 LIMIT 10""", (PUNTAJE_SEGUNDA, mes_actual))
             if not lote:
                 break
