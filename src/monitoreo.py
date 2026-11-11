@@ -706,6 +706,7 @@ def main():
             escribir_config("historico_hasta", inicio_mes.isoformat())
     elif a.modo == "pedidos":
         procesar_pedidos(reloj)
+        reparar_incompletos(reloj)
     elif a.modo == "sincomites":
         reparar_incompletos(reloj)
     elif a.modo == "reanalizar":
@@ -731,8 +732,10 @@ def main():
             escribir_config("historico_hasta", ini.isoformat())
             escribir_config("historico_dia", hoy.isoformat())
             print(f"Mes {ini:%Y-%m} completo.")
+        reparar_incompletos(reloj)   # el mes historico tambien puede dejar alguno incompleto
     else:
         rango(date.fromisoformat(a.fechas[0]), date.fromisoformat(a.fechas[1]), reloj)
+        reparar_incompletos(reloj)
 
 
 if __name__ == "__main__":
